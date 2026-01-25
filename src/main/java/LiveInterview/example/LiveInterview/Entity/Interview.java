@@ -16,19 +16,28 @@ import java.time.LocalDateTime;
 public class Interview {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-    @Column(name = "hr_id", nullable = false)
-    private Integer hrId;
-    @Column(name = "student_id", nullable = false)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "hr_id")
+    private UserEntity hr;
+
+    @Column(name = "candidate_email", nullable = false)
+    private String candidateEmail;
+    @Column(name = "student_id", nullable = true)
     private Integer studentId;
-    @Column(name = "scheduled_time", nullable = false)
-    private LocalDateTime scheduledTime;
+
+    @Column(name = "start_time", nullable = false)
+    private LocalDateTime startTime;
+    @Column(name = "end_time", nullable = false)
+    private LocalDateTime endTime;
+
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private InterviewStatus status;
 
-    @Column(name = "meeting_link")
+    @Column(name = "meeting_link", nullable = false, unique = true)
     private String meetingLink;
 
     @Column(name = "created_at", updatable = false)
@@ -41,7 +50,11 @@ public class Interview {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = createdAt;
+        if (status == null) {
+            status = InterviewStatus.SCHEDULED;
+        }
     }
+
 
     @PreUpdate
     protected void onUpdate() {

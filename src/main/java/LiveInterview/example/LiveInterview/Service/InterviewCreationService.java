@@ -1,14 +1,51 @@
 package LiveInterview.example.LiveInterview.Service;
 
+import LiveInterview.example.LiveInterview.DTO.InterviewCreateRequest;
+import LiveInterview.example.LiveInterview.DTO.InterviewCreateResponse;
+import LiveInterview.example.LiveInterview.Entity.Interview;
+import LiveInterview.example.LiveInterview.Entity.UserEntity;
+import LiveInterview.example.LiveInterview.Repository.InterviewRepository;
+import LiveInterview.example.LiveInterview.Repository.UserRepo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Service
 public class InterviewCreationService {
+    private final UserRepo userRepo;
+    private final InterviewRepository interviewRepository;
+    @Autowired
+    public InterviewCreationService( UserRepo userRepo,  InterviewRepository interviewRepository) {
 
-    public InterviewCreationService() {
+        this.userRepo = userRepo;
+        this.interviewRepository = interviewRepository;
 
     }
-    public void createInterviewLink(){
+    public InterviewCreateResponse createInterviewLink(InterviewCreateRequest req ,  String userEmail) {
+        Interview interview = new Interview();
+        LocalDateTime now = LocalDateTime.now();
+        if (req.getStartTime().isBefore(now)) {
+            throw new IllegalArgumentException("Start time must be in future");
+        }
 
+        if (req.getEndTime().isBefore(req.getStartTime())) {
+            throw new IllegalArgumentException("End time must be after start time");
+        }
+        interview.setStartTime(req.getStartTime());
+        interview.setEndTime(req.getEndTime());
+        UserEntity hr = userRepo.findByEmail(userEmail).orElseThrow(() -> new RuntimeException("User not found"));;
+        interview.setHr(hr);
+        interview.setCandidateEmail(req.getCandidateEmail());
+
+
+        // meeting link creation is remaining I will do it afterwords
+
+        Interview saved = interviewRepository.save(interview);
+        return new  InterviewCreateResponse(
+                saved.getId(),
+                saved.getMeetingLink(),
+                saved.getStatus()
+        );
     }
 }
