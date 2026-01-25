@@ -30,7 +30,7 @@ public class SecurityConfig {
 
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOriginPatterns(List.of("https://sangrajrentalll.netlify.app","http://localhost:*"));
+        config.setAllowedOriginPatterns(List.of("http://localhost:*"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 

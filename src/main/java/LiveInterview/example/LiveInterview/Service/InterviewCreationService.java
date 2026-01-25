@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 public class InterviewCreationService {
@@ -25,6 +26,8 @@ public class InterviewCreationService {
     public InterviewCreateResponse createInterviewLink(InterviewCreateRequest req ,  String userEmail) {
         Interview interview = new Interview();
         LocalDateTime now = LocalDateTime.now();
+        UserEntity hr = userRepo.findByEmail(userEmail).orElseThrow(
+                () -> new RuntimeException("User not found"));;
         if (req.getStartTime().isBefore(now)) {
             throw new IllegalArgumentException("Start time must be in future");
         }
@@ -34,13 +37,15 @@ public class InterviewCreationService {
         }
         interview.setStartTime(req.getStartTime());
         interview.setEndTime(req.getEndTime());
-        UserEntity hr = userRepo.findByEmail(userEmail).orElseThrow(() -> new RuntimeException("User not found"));;
+
         interview.setHr(hr);
         interview.setCandidateEmail(req.getCandidateEmail());
 
 
         // meeting link creation is remaining I will do it afterwords
 
+        String meeting_link = UUID.randomUUID().toString();
+        interview.setMeetingLink(meeting_link);
         Interview saved = interviewRepository.save(interview);
         return new  InterviewCreateResponse(
                 saved.getId(),

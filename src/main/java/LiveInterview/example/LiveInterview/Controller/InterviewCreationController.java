@@ -21,12 +21,14 @@ public class InterviewCreationController {
         this.interviewCreationService = interviewCreationService;
     }
     @PostMapping("/createInterview")
-    public ResponseEntity<?> createInterview(
+    public ResponseEntity<InterviewCreateResponse> createInterview(
             @RequestBody InterviewCreateRequest req,
             Authentication authentication
             ) {
-        String userEmail =  authentication.getName();
+        String userEmail = authentication.getName();
         InterviewCreateResponse response = interviewCreationService.createInterviewLink(req, userEmail);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(response);
     }
+
 }
+

@@ -2,7 +2,7 @@ package LiveInterview.example.LiveInterview.DTO;
 
 public enum InterviewStatus {
     SCHEDULED,
-    ONGOING,
-    COMPLETED,
+    LIVE,
+    EXPIRED,
     CANCELLED
 }

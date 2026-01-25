@@ -24,8 +24,10 @@ public class Interview {
 
     @Column(name = "candidate_email", nullable = false)
     private String candidateEmail;
-    @Column(name = "student_id", nullable = true)
-    private Integer studentId;
+    @ManyToOne
+    @JoinColumn(name = "student_id")
+    private UserEntity Candidate;
+
 
     @Column(name = "start_time", nullable = false)
     private LocalDateTime startTime;

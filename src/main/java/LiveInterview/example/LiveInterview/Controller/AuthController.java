@@ -5,6 +5,7 @@ import LiveInterview.example.LiveInterview.DTO.RegisterRequest;
 import LiveInterview.example.LiveInterview.DTO.UserResponse;
 import LiveInterview.example.LiveInterview.Entity.UserEntity;
 import LiveInterview.example.LiveInterview.Repository.UserRepo;
+import LiveInterview.example.LiveInterview.Service.CustomUserDetailsService;
 import LiveInterview.example.LiveInterview.Service.JwtService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -33,13 +34,18 @@ public class AuthController {
    private final AuthenticationManager authManager;
    private final JwtService jwtService;
    private final PasswordEncoder passwordEncoder;
+   private final CustomUserDetailsService customUserDetailsService;
    @Autowired
-   public AuthController(UserRepo userRepo, AuthenticationManager authManager, JwtService jwtService ,  PasswordEncoder passwordEncoder
+   public AuthController(UserRepo userRepo, AuthenticationManager authManager,
+                         JwtService jwtService ,
+                         PasswordEncoder passwordEncoder,
+                         CustomUserDetailsService customUserDetailsService
                          ) {
       this.userRepo = userRepo;
       this.authManager = authManager;
       this.jwtService = jwtService;
       this.passwordEncoder = passwordEncoder;
+      this.customUserDetailsService = customUserDetailsService;
    }
 
    @PostMapping("/register")
@@ -67,13 +73,12 @@ public class AuthController {
       UserEntity user = new UserEntity();
       user.setEmail(req.email());
       user.setName(req.name());
-      user.setRole(req.role())
-      ;
+      user.setRole(req.role());
       user.setPassword(passwordEncoder.encode(req.password()));
 
       user.setEnabled(false);
 
-      userRepo.save(user);
+      customUserDetailsService.save(user);
      // emailService.sendVerificationLink(user.getId());
 
 
