@@ -1,0 +1,23 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  application:
+    name: LiveInterview
+
+  datasource:
+      url: jdbc:postgresql://localhost:5432/live_interview
+      username: tanish
+      password: 12345678
+      driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+    sql:
+      init:
+        platform: postgres
