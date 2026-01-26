@@ -8,6 +8,7 @@ import LiveInterview.example.LiveInterview.Repository.UserRepo;
 import LiveInterview.example.LiveInterview.Service.CustomUserDetailsService;
 import LiveInterview.example.LiveInterview.Service.JwtService;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,9 +16,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -144,5 +145,50 @@ public class AuthController {
               )
       );
    }
+    @PostMapping("/refresh-token")
+    public ResponseEntity<?> refreshToken(HttpServletRequest request) {
+
+        String refreshToken = null;
+
+        if (request.getCookies() != null) {
+            for (Cookie c : request.getCookies()) {
+                if (c.getName().equals("refreshToken")) {
+                    refreshToken = c.getValue();
+                    break;
+                }
+            }
+        }
+
+        if (refreshToken == null)
+            return ResponseEntity.status(401).body("Refresh Token Missing");
+
+        String email = jwtService.extractEmail(refreshToken);
+
+        UserDetails user = customUserDetailsService.loadUserByUsername(email);
+
+        if (!jwtService.isRefreshTokenValid(refreshToken, user))
+            return ResponseEntity.status(401).body("Invalid Refresh Token");
+
+        UserEntity app = userRepo.findByEmail(email).orElseThrow();
+
+        String newAccessToken = jwtService.generateToken(
+                app.getEmail(),
+                app.getUsername(),
+                app.getRole().name()
+        );
+
+        return ResponseEntity.ok(
+                new AuthResponse(
+                        newAccessToken,
+                        refreshToken,
+                        new UserResponse(
+                                app.getId(),app.getUsername(),
+                                app.getEmail(), app.getRole().name()
+                        )
+                )
+        );
+    }
+
+
 
 }

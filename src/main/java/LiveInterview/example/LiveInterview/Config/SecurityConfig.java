@@ -3,6 +3,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.*;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -24,7 +26,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthFilter jwtFilter;
+    private final JwtAuthFilter jwtAuthFilter;
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
@@ -40,6 +42,16 @@ public class SecurityConfig {
 
         return source;
     }
+    @Bean
+    public AuthenticationManager authenticationManager(
+            DaoAuthenticationProvider daoProvider,
+            JwtAuthenticationProvider jwtProvider) {
+
+        return new ProviderManager(
+                List.of(daoProvider, jwtProvider)
+        );
+    }
+
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -68,19 +80,21 @@ public class SecurityConfig {
 
                         .anyRequest().authenticated()
                 )
-                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                .sessionManagement(sm ->
+                        sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(jwtAuthFilter,
+                        UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
 
     // keep the AuthenticationManager bean if you need it in controllers
-    @Bean
-    public AuthenticationManager authenticationManager(org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration config)
-            throws Exception {
-        return config.getAuthenticationManager();
-    }
+//    @Bean
+//    public AuthenticationManager authenticationManager(org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration config)
+//            throws Exception {
+//        return config.getAuthenticationManager();
+//    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
