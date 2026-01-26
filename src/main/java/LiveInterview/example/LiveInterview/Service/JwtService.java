@@ -17,17 +17,21 @@ import java.util.Map;
 @Service
 public class JwtService {
 
-    @Value("${jwt.secret}")
+
+    @Value("${spring.security.jwt.secret}")
     private String secret;
 
-    @Value("${jwt.expiration-ms}")
+    @Value("${spring.security.jwt.expiration}")
     private long expirationMs;
 
     private Key signingKey;
 
+
+
     @PostConstruct
     public void init() {
         signingKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        System.out.println("JWT initialized successfully");
     }
 
     // --------------------------

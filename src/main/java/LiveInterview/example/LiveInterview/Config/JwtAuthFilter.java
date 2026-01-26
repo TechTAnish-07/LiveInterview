@@ -1,26 +1,29 @@
 package LiveInterview.example.LiveInterview.Config;
 
+import LiveInterview.example.LiveInterview.Service.CustomUserDetailsService;
+import LiveInterview.example.LiveInterview.Service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import javax.xml.xpath.XPath;
 import java.io.IOException;
 
-@Slf4j
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
+    private final CustomUserDetailsService userDetailsService;
 
-    public JwtAuthFilter(AuthenticationManager authenticationManager) {
-        this.authenticationManager = authenticationManager;
+    public JwtAuthFilter(JwtService jwtService,
+                         CustomUserDetailsService userDetailsService) {
+        this.jwtService = jwtService;
+        this.userDetailsService = userDetailsService;
     }
 
     @Override
@@ -28,31 +31,40 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
-
         String path = request.getServletPath();
+        if("OPTIONS".equalsIgnoreCase(request.getMethod()) || path.equals("/auth/**")) {
+            filterChain.doFilter(request, response);
+        }
+        String authHeader = request.getHeader("Authorization");
 
-        if (path.startsWith("/auth/")) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String authHeader = request.getHeader("Authorization");
+        String token = authHeader.substring(7);
+        String email = jwtService.extractEmail(token);
 
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+        if (email != null &&
+                SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            String token = authHeader.substring(7);
+            var userDetails =
+                    userDetailsService.loadUserByUsername(email);
 
-            JwtAuthenticationToken authRequest =
-                    new JwtAuthenticationToken(token);
+            if (jwtService.isTokenValid(token, userDetails)) {
 
-            Authentication authResult =
-                    authenticationManager.authenticate(authRequest);
+                var auth =
+                        new UsernamePasswordAuthenticationToken(
+                                userDetails,
+                                null,
+                                userDetails.getAuthorities()
+                        );
 
-            SecurityContextHolder.getContext()
-                    .setAuthentication(authResult);
+                SecurityContextHolder.getContext()
+                        .setAuthentication(auth);
+            }
         }
 
         filterChain.doFilter(request, response);
     }
-
 }
