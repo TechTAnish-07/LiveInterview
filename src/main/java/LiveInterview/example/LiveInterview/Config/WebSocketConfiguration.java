@@ -57,6 +57,7 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
                 .setSystemHeartbeatSendInterval(6000)
                 .setSystemHeartbeatReceiveInterval(6000)
                 .setTaskScheduler(webSocketTaskScheduler);
+        config.setPreservePublishOrder(true);
     }
 
 

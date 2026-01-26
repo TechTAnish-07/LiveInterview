@@ -39,6 +39,8 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
         if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
 
             String authHeader = accessor.getFirstNativeHeader("Authorization");
+            String interviewId = accessor.getFirstNativeHeader("interviewId");
+            String role = accessor.getFirstNativeHeader("role"); // HR / CANDIDATE
 
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 throw new IllegalArgumentException("Missing Authorization header");
