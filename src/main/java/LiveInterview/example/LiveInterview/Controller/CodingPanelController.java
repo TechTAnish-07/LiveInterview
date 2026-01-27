@@ -44,7 +44,6 @@ public class CodingPanelController {
             CodeSyncMessage message,
             Principal principal
     ) {
-        // 🔐 Security check
          interviewService.verifyUserInInterview(principal, interviewId);
 
         message.setTimestamp(System.currentTimeMillis());
