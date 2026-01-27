@@ -48,6 +48,7 @@ public class CodingPanelController {
          interviewService.verifyUserInInterview(principal, interviewId);
 
         message.setTimestamp(System.currentTimeMillis());
+        interviewService.updateLiveCode(interviewId, message, principal);
         return message;
     }
 
