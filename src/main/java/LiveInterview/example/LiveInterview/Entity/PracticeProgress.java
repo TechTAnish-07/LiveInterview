@@ -15,10 +15,10 @@ public class PracticeProgress {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     @Column(name = "user_id", nullable = false)
-    private Integer userId;
+    private Long userId;
 
     @Column(name = "question_id", nullable = false)
-    private Integer questionId;
+    private Long questionId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -26,4 +26,6 @@ public class PracticeProgress {
 
     @Column(name = "last_attempt_at")
     private LocalDateTime lastAttemptAt;
+    @Column(name = "attempt_count")
+    private Integer attemptCount;
 }
