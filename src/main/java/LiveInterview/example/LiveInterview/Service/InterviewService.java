@@ -2,7 +2,6 @@ package LiveInterview.example.LiveInterview.Service;
 
 import LiveInterview.example.LiveInterview.DTO.CodeSyncMessage;
 import LiveInterview.example.LiveInterview.DTO.InterviewJoinResponse;
-import LiveInterview.example.LiveInterview.DTO.InterviewStatus;
 import LiveInterview.example.LiveInterview.DTO.QuestionSyncMessage;
 import LiveInterview.example.LiveInterview.Entity.Interview;
 import LiveInterview.example.LiveInterview.Entity.InterviewCode;
@@ -148,4 +147,6 @@ public class InterviewService {
         return userRepo.findByEmail(principal.getName())
                 .orElseThrow();
     }
+
+
 }
