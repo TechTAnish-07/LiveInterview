@@ -6,6 +6,7 @@ import LiveInterview.example.LiveInterview.DTO.UserResponse;
 import LiveInterview.example.LiveInterview.Entity.UserEntity;
 import LiveInterview.example.LiveInterview.Repository.UserRepo;
 import LiveInterview.example.LiveInterview.Service.CustomUserDetailsService;
+import LiveInterview.example.LiveInterview.Service.EmailService;
 import LiveInterview.example.LiveInterview.Service.JwtService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,10 +20,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
@@ -36,17 +34,21 @@ public class AuthController {
    private final JwtService jwtService;
    private final PasswordEncoder passwordEncoder;
    private final CustomUserDetailsService customUserDetailsService;
+   private final EmailService emailService;
+
    @Autowired
    public AuthController(UserRepo userRepo, AuthenticationManager authManager,
                          JwtService jwtService ,
                          PasswordEncoder passwordEncoder,
-                         CustomUserDetailsService customUserDetailsService
+                         CustomUserDetailsService customUserDetailsService,
+                         EmailService emailService
                          ) {
       this.userRepo = userRepo;
       this.authManager = authManager;
       this.jwtService = jwtService;
       this.passwordEncoder = passwordEncoder;
       this.customUserDetailsService = customUserDetailsService;
+      this.emailService = emailService;
    }
 
    @PostMapping("/register")
@@ -63,7 +65,7 @@ public class AuthController {
                     .body("Email already registered");
          }
          System.out.println("user existed but is not enabled");
-         //emailService.sendVerificationLink(existingUser.getId());
+         emailService.sendVerificationLink(existingUser.getId());
 
 
          return ResponseEntity.ok(
@@ -80,7 +82,7 @@ public class AuthController {
       user.setEnabled(false);
 
       customUserDetailsService.save(user);
-     // emailService.sendVerificationLink(user.getId());
+     emailService.sendVerificationLink(user.getId());
 
 
       return ResponseEntity.ok(
@@ -88,7 +90,13 @@ public class AuthController {
       );
 
    }
-   @PostMapping("/login")
+   @GetMapping("/verify")
+   public ResponseEntity<String> verifyEmail(@RequestParam String token) {
+       emailService.verifyEmail(token);
+       return ResponseEntity.ok(" " );
+   }
+
+    @PostMapping("/login")
    public ResponseEntity<?> login(@RequestBody LoginReq req, HttpServletResponse response) {
 
       try {
