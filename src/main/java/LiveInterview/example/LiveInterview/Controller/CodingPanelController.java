@@ -5,6 +5,7 @@ import LiveInterview.example.LiveInterview.DTO.QuestionSyncMessage;
 import LiveInterview.example.LiveInterview.DTO.RunRequest;
 import LiveInterview.example.LiveInterview.DTO.RunResponse;
 import LiveInterview.example.LiveInterview.Service.InterviewService;
+import LiveInterview.example.LiveInterview.Service.Judge0LiveService;
 import LiveInterview.example.LiveInterview.Service.Judge0Service;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -22,13 +23,13 @@ import java.security.Principal;
 @RequestMapping("/api/coding")
 public class CodingPanelController {
     private final InterviewService interviewService;
-    private final Judge0Service runService;
+    private final Judge0LiveService judge0LiveService;
     public CodingPanelController(InterviewService interviewService,
-                                  Judge0Service runService
+                                  Judge0LiveService judge0LiveService
 
                                  ) {
             this.interviewService = interviewService;
-            this.runService = runService;
+            this.judge0LiveService = judge0LiveService;
     }
 
     @MessageMapping("/interview/{interviewId}/question")
@@ -63,13 +64,12 @@ public class CodingPanelController {
     }
 
    @PostMapping("/interview/run")
-    public ResponseEntity<RunResponse> run(@RequestBody RunRequest runRequest, Principal principal) {
+    public ResponseEntity<?> run(@RequestBody RunRequest request, Principal principal) {
 
-       interviewService.verifyUserInInterview(principal, runRequest.getInterviewId());
-       String token = runService.submit(runRequest);
-       RunResponse response = runService.getResult(token);
-       return ResponseEntity.ok(response);
+       interviewService.verifyUserInInterview(principal, request.getInterviewId());
+       judge0LiveService.runWithLiveOutput(request.getInterviewId(),
+               request);
+       return ResponseEntity.accepted().build();
    }
-
 
 }

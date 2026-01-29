@@ -73,6 +73,15 @@ public class Judge0Service {
         );
     }
 
+    public Judge0Result fetchRawResult(String token) {
+        return client()
+                .get()
+                .uri("/submissions/{token}?base64_encoded=false", token)
+                .retrieve()
+                .bodyToMono(Judge0Result.class)
+                .block();
+    }
+
 
     private static class TokenResponse {
         private String token;
