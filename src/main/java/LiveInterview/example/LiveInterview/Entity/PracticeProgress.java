@@ -2,6 +2,7 @@ package LiveInterview.example.LiveInterview.Entity;
 
 import LiveInterview.example.LiveInterview.DTO.PracticeStatus;
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
         uniqueConstraints = {
                 @UniqueConstraint(columnNames = {"user_id", "question_id"})
         })
+@Data
 public class PracticeProgress {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

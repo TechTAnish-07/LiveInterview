@@ -3,10 +3,9 @@ package LiveInterview.example.LiveInterview.Controller;
 import LiveInterview.example.LiveInterview.DTO.CodeSyncMessage;
 import LiveInterview.example.LiveInterview.DTO.QuestionSyncMessage;
 import LiveInterview.example.LiveInterview.DTO.RunRequest;
-import LiveInterview.example.LiveInterview.DTO.RunResponse;
+
 import LiveInterview.example.LiveInterview.Service.InterviewService;
 import LiveInterview.example.LiveInterview.Service.Judge0LiveService;
-import LiveInterview.example.LiveInterview.Service.Judge0Service;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -67,6 +66,8 @@ public class CodingPanelController {
     public ResponseEntity<?> run(@RequestBody RunRequest request, Principal principal) {
 
        interviewService.verifyUserInInterview(principal, request.getInterviewId());
+
+
        judge0LiveService.runWithLiveOutput(request.getInterviewId(),
                request);
        return ResponseEntity.accepted().build();

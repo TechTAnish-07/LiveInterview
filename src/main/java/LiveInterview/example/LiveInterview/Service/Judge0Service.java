@@ -18,7 +18,7 @@ public class Judge0Service {
         return webClientBuilder.baseUrl(BASE_URL).build();
     }
 
-    public String submit(RunRequest runRequest) {
+    public String submit(CodeExecutionRequest runRequest) {
 
         int languageId = Judge0Language.fromName(runRequest.getLanguage());
 

@@ -1,14 +1,12 @@
 package LiveInterview.example.LiveInterview.DTO;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-public class RunRequest {
-
-    private Long interviewId;
+@AllArgsConstructor
+public class CodeExecutionRequest {
     private String sourceCode;
     private String language;
     private String stdin;
-
-
 }

@@ -1,5 +1,6 @@
 package LiveInterview.example.LiveInterview.Service;
 
+import LiveInterview.example.LiveInterview.DTO.CodeExecutionRequest;
 import LiveInterview.example.LiveInterview.DTO.Judge0Result;
 import LiveInterview.example.LiveInterview.DTO.LiveRunMessage;
 import LiveInterview.example.LiveInterview.DTO.RunRequest;
@@ -22,8 +23,15 @@ public class Judge0LiveService {
 
         messagingTemplate.convertAndSend(topic,
                 new LiveRunMessage("STATUS", "Submitting code..."));
+        CodeExecutionRequest execRequest =
+                new CodeExecutionRequest(
+                        request.getSourceCode(),
+                        request.getLanguage(),
+                        request.getStdin()
+                );
 
-        String token = judge0Service.submit(request);
+        String token = judge0Service.submit(execRequest);
+
 
         String lastStdout = "";
         String lastStderr = "";
