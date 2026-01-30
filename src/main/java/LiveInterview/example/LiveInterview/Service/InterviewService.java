@@ -2,6 +2,7 @@ package LiveInterview.example.LiveInterview.Service;
 
 import LiveInterview.example.LiveInterview.DTO.CodeSyncMessage;
 import LiveInterview.example.LiveInterview.DTO.InterviewJoinResponse;
+import LiveInterview.example.LiveInterview.DTO.InterviewStatus;
 import LiveInterview.example.LiveInterview.DTO.QuestionSyncMessage;
 import LiveInterview.example.LiveInterview.Entity.Interview;
 import LiveInterview.example.LiveInterview.Entity.InterviewCode;
@@ -14,10 +15,12 @@ import LiveInterview.example.LiveInterview.Repository.UserRepo;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.nio.file.AccessDeniedException;
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -49,7 +52,7 @@ public class InterviewService {
     private final Map<Long, String> liveQuestion = new ConcurrentHashMap<>();
     private final Map<Long, String> liveCode = new ConcurrentHashMap<>();
 
-    public void verifyHrInInterview(Principal principal, Long interviewId) throws AccessDeniedException {
+    public void verifyHrInInterview(Principal principal, Long interviewId) {
         Interview interview =getInterview(interviewId);
         UserEntity user = getUser(principal);
 
@@ -148,5 +151,69 @@ public class InterviewService {
                 .orElseThrow();
     }
 
+
+
+    @Transactional
+    public InterviewJoinResponse joinInterview(String meetingLink) {
+
+        Interview interview = interviewRepository
+                .findByMeetingLink(meetingLink)
+                .orElseThrow(() ->
+                        new RuntimeException("Invalid or expired interview link"));
+
+        String email = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+
+        UserEntity user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        LocalDateTime now = LocalDateTime.now();
+
+
+        if (now.isBefore(interview.getStartTime())) {
+            throw new IllegalStateException("Interview has not started yet");
+        }
+
+        if (now.isAfter(interview.getEndTime())) {
+            interview.setStatus(InterviewStatus.COMPLETED);
+            interviewRepository.save(interview);
+            throw new IllegalStateException("Interview has expired");
+        }
+
+        // 🔐 Authorization
+        boolean isHr = interview.getHr().getId().equals(user.getId());
+
+        boolean isCandidateAllowed =
+                interview.getCandidateEmail().equalsIgnoreCase(user.getEmail());
+
+        if (!isHr && !isCandidateAllowed) {
+            throw new AccessDeniedException(
+                    "This interview is not assigned to your email");
+        }
+
+        if (!isHr && interview.getCandidate() != null &&
+                !interview.getCandidate().getId().equals(user.getId())) {
+
+            throw new AccessDeniedException("Another candidate has already joined");
+        }
+
+
+
+        if (interview.getStatus() == InterviewStatus.SCHEDULED) {
+            interview.setStatus(InterviewStatus.LIVE);
+        }
+
+        interviewRepository.save(interview);
+
+
+        return new InterviewJoinResponse(
+                true,
+                interview.getId(),
+                interview.getStatus(),
+                interview.getStartTime(),
+                interview.getEndTime()
+        );
+    }
 
 }
