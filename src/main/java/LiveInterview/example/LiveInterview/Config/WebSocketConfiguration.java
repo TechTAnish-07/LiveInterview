@@ -38,7 +38,7 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOrigins("*")
+                .setAllowedOriginPatterns("*")
                 .withSockJS();
     }
 
@@ -50,6 +50,7 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
         config.enableStompBrokerRelay("/topic", "/queue")
                 .setRelayHost("localhost")
                 .setRelayPort(61613)
+                .setVirtualHost("/")
                 .setClientLogin("live_interview")
                 .setClientPasscode("secret123")
                 .setSystemLogin("live_interview")
@@ -57,6 +58,7 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
                 .setSystemHeartbeatSendInterval(6000)
                 .setSystemHeartbeatReceiveInterval(6000)
                 .setTaskScheduler(webSocketTaskScheduler);
+        config.setUserDestinationPrefix("/user");
         config.setPreservePublishOrder(true);
     }
 
