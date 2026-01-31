@@ -25,16 +25,20 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
     }
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+        return path.startsWith("/auth/")
+                || path.startsWith("/ws/")
+                || path.startsWith("/ws/info");
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
-        String path = request.getServletPath();
-        if("OPTIONS".equalsIgnoreCase(request.getMethod()) || path.equals("/auth/**")) {
-            filterChain.doFilter(request, response);
-        }
+
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -43,7 +47,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         String token = authHeader.substring(7);
-        String email = jwtService.extractEmail(token);
+        String email;
+
+        try {
+            email = jwtService.extractEmail(token);
+        } catch (Exception e) {
+            // ❌ Invalid token → reject request cleanly
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
 
         if (email != null &&
                 SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -67,4 +79,5 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
+
 }

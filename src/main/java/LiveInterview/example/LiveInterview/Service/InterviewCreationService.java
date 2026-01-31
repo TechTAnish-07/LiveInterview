@@ -27,7 +27,7 @@ public class InterviewCreationService {
         Interview interview = new Interview();
         LocalDateTime now = LocalDateTime.now();
         UserEntity hr = userRepo.findByEmail(userEmail).orElseThrow(
-                () -> new RuntimeException("User not found"));;
+                () -> new RuntimeException("User not found"));
         if (req.getStartTime().isBefore(now)) {
             throw new IllegalArgumentException("Start time must be in future");
         }
