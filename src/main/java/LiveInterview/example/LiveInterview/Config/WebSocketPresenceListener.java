@@ -3,7 +3,9 @@ package LiveInterview.example.LiveInterview.Config;
 import LiveInterview.example.LiveInterview.DTO.PresenceEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
@@ -19,6 +21,11 @@ import java.util.Map;
 public class WebSocketPresenceListener {
 
     private final SimpMessagingTemplate messagingTemplate;
+    @Bean
+    public SimpMessagingTemplate simpMessagingTemplate(
+            MessageChannel brokerChannel) {
+        return new SimpMessagingTemplate(brokerChannel);
+    }
 
     @EventListener
     public void handleConnect(SessionConnectedEvent event) {
@@ -45,7 +52,7 @@ public class WebSocketPresenceListener {
         log.info("User {} JOINED interview {}", user.getName(), interviewId);
 
         messagingTemplate.convertAndSend(
-                "/topic/interview/" + interviewId + "/presence",
+                "/app/topic/interview/" + interviewId + "/presence",
                 presence
         );
     }

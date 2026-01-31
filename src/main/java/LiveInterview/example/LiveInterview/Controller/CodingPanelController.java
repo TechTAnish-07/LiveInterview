@@ -1,6 +1,7 @@
 package LiveInterview.example.LiveInterview.Controller;
 
 import LiveInterview.example.LiveInterview.DTO.CodeSyncMessage;
+import LiveInterview.example.LiveInterview.DTO.PresenceEvent;
 import LiveInterview.example.LiveInterview.DTO.QuestionSyncMessage;
 import LiveInterview.example.LiveInterview.DTO.RunRequest;
 
@@ -15,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.nio.file.AccessDeniedException;
 import java.security.Principal;
 
 @RestController
@@ -37,7 +37,7 @@ public class CodingPanelController {
             @DestinationVariable Long interviewId,
             QuestionSyncMessage message,
             Principal principal
-    ) throws AccessDeniedException {
+    )  {
         interviewService.verifyHrInInterview(principal, interviewId);
 
         message.setTimestamp(System.currentTimeMillis());
@@ -72,5 +72,10 @@ public class CodingPanelController {
                request);
        return ResponseEntity.accepted().build();
    }
+    @MessageMapping("/internal/presence")
+    @SendTo("/topic/interview/{interviewId}/presence")
+    public PresenceEvent relayPresence(PresenceEvent event) {
+        return event;
+    }
 
 }
