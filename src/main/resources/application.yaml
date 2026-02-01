@@ -33,3 +33,9 @@ spring:
         platform: postgres
 
   debug: true
+admin:
+  enabled: true
+  email: 231161@iiitt.ac.in
+  name: Tanish
+  password: ${9165849391}
+  role: Admin

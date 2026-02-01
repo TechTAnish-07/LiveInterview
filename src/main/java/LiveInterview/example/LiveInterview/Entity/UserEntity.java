@@ -40,9 +40,16 @@ public class UserEntity implements UserDetails {
    @Column(nullable = false)
    private LocalDateTime createdDate;
 
-   public UserEntity(String tanish, String mail, @Nullable String encode, Role role, boolean b) {
+   public UserEntity() {
+      // required by JPA
    }
-
+   public UserEntity(String email, String name, String password, Role role, Boolean enabled) {
+      this.email = email;
+      this.name = name;
+      this.password = password;
+      this.role = role;
+      this.enabled = enabled;
+   }
 
    //  Spring Security methods
 
