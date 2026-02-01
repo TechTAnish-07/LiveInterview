@@ -72,10 +72,6 @@ public class CodingPanelController {
                request);
        return ResponseEntity.accepted().build();
    }
-    @MessageMapping("/internal/presence")
-    @SendTo("/topic/interview/{interviewId}/presence")
-    public PresenceEvent relayPresence(PresenceEvent event) {
-        return event;
-    }
+
 
 }

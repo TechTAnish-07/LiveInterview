@@ -3,6 +3,7 @@ package LiveInterview.example.LiveInterview.Entity;
 import LiveInterview.example.LiveInterview.DTO.Role;
 import jakarta.persistence.*;
 import lombok.Data;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -39,8 +40,11 @@ public class UserEntity implements UserDetails {
    @Column(nullable = false)
    private LocalDateTime createdDate;
 
+   public UserEntity(String tanish, String mail, @Nullable String encode, Role role, boolean b) {
+   }
 
-     //  Spring Security methods
+
+   //  Spring Security methods
 
 
    @Override

@@ -21,11 +21,7 @@ import java.util.Map;
 public class WebSocketPresenceListener {
 
     private final SimpMessagingTemplate messagingTemplate;
-    @Bean
-    public SimpMessagingTemplate simpMessagingTemplate(
-            MessageChannel brokerChannel) {
-        return new SimpMessagingTemplate(brokerChannel);
-    }
+
 
     @EventListener
     public void handleConnect(SessionConnectedEvent event) {

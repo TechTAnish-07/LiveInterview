@@ -47,6 +47,10 @@ public class SecurityConfig {
                                 "/ws/info/**"
                         ).permitAll()
                         .anyRequest().authenticated()
+                        .requestMatchers(
+                                "/api/question/add"
+                        ).hasRole("ADMIN")
+
                 )
                 .addFilterBefore(jwtAuthFilter,
                         UsernamePasswordAuthenticationFilter.class);
