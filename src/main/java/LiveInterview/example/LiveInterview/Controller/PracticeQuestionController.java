@@ -38,7 +38,7 @@ public class PracticeQuestionController {
     @PostMapping("/question/add")
     public ResponseEntity<?> addQuestion(@RequestBody PracticeQuestion practiceQuestion) {
       practiceQuestionService.saveQuestion(practiceQuestion);
-      return ResponseEntity.ok().build();
+      return ResponseEntity.ok("successfully added");
     }
     @GetMapping("/question/{id}")
     public ResponseEntity<PracticeQuestionResponse> getQuestion(@PathVariable Long id) {

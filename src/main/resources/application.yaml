@@ -6,10 +6,11 @@ spring:
     name: LiveInterview
 
   datasource:
-      url: jdbc:postgresql://localhost:5432/live_interview
-      username: tanish
-      password: 12345678
-      driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/live_interview
+    username: tanish
+    password: 12345678
+    driver-class-name: org.postgresql.Driver
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -17,25 +18,21 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
   security:
     jwt:
       secret: mySuperSecretJwtKey_ChangeThisInProd_123456
       expiration: 86400000
 
   rabbitmq:
-      host: localhost
-      port: 5672
-      username: live_interview
-      password: secret123
+    host: localhost
+    port: 5672
+    username: live_interview
+    password: secret123
 
   sql:
-      init:
-        platform: postgres
+    init:
+      platform: postgres
 
   debug: true
-admin:
-  enabled: true
-  email: 231161@iiitt.ac.in
-  name: Tanish
-  password: ${9165849391}
-  role: Admin
+
