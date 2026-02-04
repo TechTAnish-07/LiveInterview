@@ -1,4 +1,4 @@
-package LiveInterview.example.LiveInterview.Controller;
+package LiveInterview.example.LiveInterview.backend.Controller;
 
 import LiveInterview.example.LiveInterview.DTO.UserResponse;
 import LiveInterview.example.LiveInterview.Entity.UserEntity;
