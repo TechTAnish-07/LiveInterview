@@ -4,10 +4,12 @@ import { useNavigate } from "react-router-dom";
 import api from "./Axios.jsx";
 import { jwtDecode } from "jwt-decode";
 import "./Login.css";
+import { tr } from "framer-motion/client";
+import { useAuth } from "./AuthProvider.jsx";
 
 const Login = () => {
   const navigate = useNavigate();
-
+ const { login } = useAuth();
   const [isSignIn, setIsSignIn] = useState(true);
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
@@ -29,19 +31,9 @@ const Login = () => {
       if (isSignIn) {
         const res = await api.post("/auth/login", { email, password });
         const { token: accessToken, refreshToken, user } = res.data;
-
-        localStorage.setItem("accessToken", accessToken);
-        localStorage.setItem("refreshToken", refreshToken);
-        localStorage.setItem("currentUser", JSON.stringify(user));
-        localStorage.setItem("isLoggedIn", "true");
-        const decoded = jwtDecode(accessToken);
-        const role = decoded.role;
-
-        if (role === "ROLE_ADMIN") {
-          navigate("/admin/dashboard");
-        } else {
-          navigate("/user/dashboard");
-        }
+        console.log(accessToken);
+        login(accessToken);
+    navigate("/");
       } else {
         const res = await fetch("http://localhost:8080/auth/register", {
           method: "POST",

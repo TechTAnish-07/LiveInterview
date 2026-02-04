@@ -1,0 +1,33 @@
+.live-interview-container {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+}
+
+/* LEFT PANEL */
+.question-panel {
+  width: 35%;
+  padding: 16px;
+  border-right: 1px solid #ddd;
+  background: #f9f9f9;
+  display: flex;
+  flex-direction: column;
+}
+
+.question-panel h3 {
+  margin-bottom: 8px;
+}
+
+.question-panel textarea {
+  flex: 1;
+  resize: none;
+  padding: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* RIGHT PANEL */
+.editor-panel {
+  width: 65%;
+  height: 100%;
+}

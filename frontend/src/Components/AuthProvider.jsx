@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { jwtDecode } from "jwt-decode";
 import api from "./Axios.jsx";
 
 const AuthContext = createContext(null);
@@ -10,7 +11,16 @@ export const AuthProvider = ({ children }) => {
 
   const token = localStorage.getItem("accessToken");
 
-  /* TOKEN VALIDATION*/
+  /* ---------------- TOKEN VALIDATION ---------------- */
+const login = (accessToken) => {
+  if (!accessToken || typeof accessToken !== "string") return;
+
+  localStorage.setItem("accessToken", accessToken);
+
+  const decoded = jwtDecode(accessToken);
+  setRole(decoded.role);
+};
+
 
   useEffect(() => {
     if (!token) {
@@ -27,7 +37,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const decoded = jwtDecode(token);
 
-      // token expiry check
+      // expiry check
       if (decoded.exp * 1000 < Date.now()) {
         clearAuth();
         return;
@@ -40,7 +50,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token]);
 
-  /* FETCH USER */
+  /* ---------------- FETCH USER ---------------- */
 
   const fetchUser = async () => {
     try {
@@ -54,15 +64,15 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  useEffect(() => {
-    if (token && role) {
-      fetchUser();
-    } else {
-      setLoading(false);
-    }
-  }, [token, role]);
+  // useEffect(() => {
+  //   if (token && role) {
+  //     fetchUser();
+  //   } else {
+  //     setLoading(false);
+  //   }
+  // }, [token, role]);
 
-  /* HELPERS  */
+  /* ---------------- HELPERS ---------------- */
 
   const clearAuth = () => {
     localStorage.removeItem("accessToken");
@@ -75,23 +85,21 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     clearAuth();
-    window.location.href = "/signin";
+    window.location.href = "/login";
   };
-
 
   const value = {
     user,
     role,
     loading,
+    login,
     fetchUser,
     logout,
 
-    
     isAdmin: role === "ROLE_ADMIN",
     isHR: role === "ROLE_HR",
     isCandidate: role === "ROLE_CANDIDATE",
 
-   
     isAuthenticated: !!user,
   };
 
@@ -101,7 +109,6 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
-
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
