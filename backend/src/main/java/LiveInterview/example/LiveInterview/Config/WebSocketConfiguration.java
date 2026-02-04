@@ -17,17 +17,22 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
     private final ThreadPoolTaskExecutor inboundChannelExecutor;
     private final ThreadPoolTaskExecutor outboundChannelExecutor;
     private final TaskScheduler webSocketTaskScheduler;
+    private final WebSocketAuthChannelInterceptor authInterceptor;
     @Autowired
     public WebSocketConfiguration(ThreadPoolTaskExecutor inboundChannelExecutor,
                                   ThreadPoolTaskExecutor outboundChannelExecutor,
-                                  @Qualifier("webSocketTaskScheduler") TaskScheduler webSocketTaskScheduler) {
+                                  @Qualifier("webSocketTaskScheduler") TaskScheduler webSocketTaskScheduler,
+                                  WebSocketAuthChannelInterceptor authInterceptor
+                                  ) {
         this.inboundChannelExecutor = inboundChannelExecutor;
         this.outboundChannelExecutor = outboundChannelExecutor;
          this.webSocketTaskScheduler = webSocketTaskScheduler;
+         this.authInterceptor = authInterceptor;
     }
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.taskExecutor(inboundChannelExecutor);
+        registration.interceptors(authInterceptor)
+                .taskExecutor(inboundChannelExecutor);
     }
 
     @Override
