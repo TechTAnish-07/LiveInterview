@@ -149,7 +149,7 @@ public class AuthController {
                       refreshToken,
                       new UserResponse(
                               user.getId(),user.getName(),
-                              user.getEmail(), user.getRole().name()
+                              user.getEmail(), user.getRole()
                       )
               )
       );
@@ -192,7 +192,7 @@ public class AuthController {
                         refreshToken,
                         new UserResponse(
                                 app.getId(),app.getUsername(),
-                                app.getEmail(), app.getRole().name()
+                                app.getEmail(), app.getRole()
                         )
                 )
         );
