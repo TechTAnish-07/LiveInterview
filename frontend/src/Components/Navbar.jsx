@@ -12,10 +12,21 @@ const Navbar = () => {
       </div>
       
       <ul className='nav-links'>
-        <li><Link to="/" className='nav-link'>Home</Link></li>
-      {!isLogin && (<li><Link to="/login" className='nav-link'>Login</Link></li>)}
-        <li><Link to="/dashboard" className='nav-link'>Dashboard</Link></li>
-        <li><NavLink to="/history" className='nav-link'>History</NavLink></li>
+        <li><NavLink to="/"  className={({ isActive }) =>
+          isActive ? "nav-link active" : "nav-link"
+        }>Home</NavLink></li>
+
+      {!isLogin && (<li><NavLink to="/login" className={({ isActive }) =>
+          isActive ? "nav-link active" : "nav-link"
+        }>Login</NavLink></li>)}
+
+        <li><NavLink to="/dashboard" className={({ isActive }) =>
+          isActive ? "nav-link active" : "nav-link"
+        }>Dashboard</NavLink></li>
+
+        <li><NavLink to="/history" className={({ isActive }) =>
+          isActive ? "nav-link active" : "nav-link"
+        }>History</NavLink></li>
       </ul>
       {isLogin && (
         <div className="nav-actions">
