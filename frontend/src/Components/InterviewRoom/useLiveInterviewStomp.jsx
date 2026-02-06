@@ -24,7 +24,7 @@ export function useLiveInterviewStomp({ interviewId, token }) {
       webSocketFactory: () => new SockJS(WS_URL),
       reconnectDelay: 3000,
       connectHeaders: token ? {
-        Authorization: token,
+        Authorization: `Bearer ${token}`,
       } : {},
       debug: (str) => {
         // Uncomment for debugging
@@ -36,7 +36,7 @@ export function useLiveInterviewStomp({ interviewId, token }) {
       console.log("✅ STOMP CONNECTED");
 
       client.subscribe(
-        '/topic/interview.${interviewId}.question', 
+        `/topic/interview/${interviewId}/question`, 
         (message) => {
           console.log("📥 Received question update:", message.body);
           isRemoteUpdate.current = true;
@@ -50,7 +50,7 @@ export function useLiveInterviewStomp({ interviewId, token }) {
       );
 
       client.subscribe(
-        '/topic/interview.${interviewId}.code',  // ← Fixed: was '/topic/interview.${interviewId}.code'
+        `/topic/interview/${interviewId}/code`,  
         (message) => {
           console.log("📥 Received code update:", message.body);
           isRemoteUpdate.current = true;
@@ -87,12 +87,13 @@ export function useLiveInterviewStomp({ interviewId, token }) {
     client.activate();
     clientRef.current = client;
 
-    return () => {
-      console.log("🧹 Cleaning up STOMP connection");
-      readyRef.current = false;
-      setConnected(false);
-      client.deactivate();
-    };
+    // return () => {
+    //    client.activate();
+    //   console.log("🧹 Cleaning up STOMP connection");
+    //   readyRef.current = false;
+    //   setConnected(false);
+    //   client.deactivate();
+    // };
   }, [interviewId, token]);
 
   /* ---------------- SENDERS ---------------- */
@@ -104,7 +105,7 @@ export function useLiveInterviewStomp({ interviewId, token }) {
         return;
       }
 
-      const destination = '/app/interview.${interviewId}.question'; 
+      const destination = `/app/interview/${interviewId}/question`; 
       console.log("📤 Sending question to:", destination);
       
       try {
@@ -121,12 +122,13 @@ export function useLiveInterviewStomp({ interviewId, token }) {
 
   const sendCodeUpdate = useCallback(
     (value) => {
+      
       if (!readyRef.current || !clientRef.current) {
         console.warn("Cannot send code: client not ready");
         return;
       }
 
-      const destination = '/app/interview.${interviewId}.code';  // ← Fixed
+      const destination = `/app/interview/${interviewId}/code`;
       console.log("📤 Sending code to:", destination);
       
       try {
