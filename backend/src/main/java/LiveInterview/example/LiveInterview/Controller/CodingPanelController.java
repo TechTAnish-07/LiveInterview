@@ -37,15 +37,18 @@ public class CodingPanelController {
             @DestinationVariable Long interviewId,
             QuestionSyncMessage message,
             Principal principal
-    )  {
+    ) {
+        if (message == null || message.getQuestion() == null) {
+            return null;
+        }
+
         interviewService.verifyHrInInterview(principal, interviewId);
 
         message.setTimestamp(System.currentTimeMillis());
-
         interviewService.updateLiveQuestion(interviewId, message, principal);
-
         return message;
     }
+
 
 
     @MessageMapping("/interview/{interviewId}/code")
@@ -55,14 +58,19 @@ public class CodingPanelController {
             CodeSyncMessage message,
             Principal principal
     ) {
-         interviewService.verifyUserInInterview(principal, interviewId);
+        if (message == null || message.getCode() == null) {
+            return null;
+        }
+
+        interviewService.verifyUserInInterview(principal, interviewId);
 
         message.setTimestamp(System.currentTimeMillis());
         interviewService.updateLiveCode(interviewId, message, principal);
         return message;
     }
 
-   @PostMapping("/interview/run")
+
+    @PostMapping("/interview/run")
     public ResponseEntity<?> run(@RequestBody RunRequest request, Principal principal) {
 
        interviewService.verifyUserInInterview(principal, request.getInterviewId());

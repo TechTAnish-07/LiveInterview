@@ -40,6 +40,8 @@ public class InterviewService {
          this.questionRepo = questionRepo;
          this.codeRepo = codeRepo;
      }
+    private final Map<Long, String> liveQuestion = new ConcurrentHashMap<>();
+    private final Map<Long, String> liveCode = new ConcurrentHashMap<>();
 
     @Scheduled(fixedRate = 5000)
     public void autoSave() {
@@ -49,8 +51,7 @@ public class InterviewService {
 
 
     // 🔥 Replace with Redis in prod
-    private final Map<Long, String> liveQuestion = new ConcurrentHashMap<>();
-    private final Map<Long, String> liveCode = new ConcurrentHashMap<>();
+
 
     public void verifyHrInInterview(Principal principal, Long interviewId) {
         Interview interview =getInterview(interviewId);
@@ -67,6 +68,10 @@ public class InterviewService {
             QuestionSyncMessage msg,
             Principal principal
     ) {
+        System.out.println(
+                "📌 updateLiveQuestion called | interviewId=" + interviewId
+        );
+
         liveQuestion.put(interviewId, msg.getQuestion());
     }
 
@@ -75,11 +80,16 @@ public class InterviewService {
             CodeSyncMessage msg,
             Principal principal
     ) {
+        System.out.println(
+                "🔥 Autosave running | liveQuestion size = " + liveQuestion.size()
+        );
+
         liveCode.put(interviewId, msg.getCode());
     }
 
 
     public void verifyUserInInterview(Principal principal, Long interviewId) {
+
         if (principal == null) {
             throw new SecurityException("Unauthenticated access");
         }
@@ -92,31 +102,28 @@ public class InterviewService {
         Interview interview = interviewRepository.findById(interviewId)
                 .orElseThrow(() -> new IllegalArgumentException("Interview not found"));
 
-        boolean isHr = interview.getHr().getId().equals(user.getId());
-        boolean isCandidate = interview.getCandidate().getId().equals(user.getId());
 
-        if (!isHr && !isCandidate) {
+        boolean isHr = interview.getHr() != null
+                && interview.getHr().getId().equals(user.getId());
+
+
+        boolean isCandidate =
+                interview.getCandidate() != null
+                        && interview.getCandidate().getId().equals(user.getId());
+
+        boolean isCandidateByEmail =
+                interview.getCandidate() == null
+                        && interview.getCandidateEmail() != null
+                        && interview.getCandidateEmail().equalsIgnoreCase(user.getEmail());
+
+        if (!isHr && !isCandidate && !isCandidateByEmail) {
             throw new SecurityException("User is not authorized for this interview");
         }
     }
-    public String getUserRoleInInterview(Principal principal, Interview interview) throws AccessDeniedException {
 
-        String email = principal.getName();
-
-        if (interview.getHr() != null &&
-                interview.getHr().getEmail().equals(email)) {
-            return "HR";
-        }
-
-        if (interview.getCandidate() != null &&
-                interview.getCandidate().getEmail().equals(email)) {
-            return "CANDIDATE";
-        }
-
-        throw new AccessDeniedException("User not part of interview");
-    }
     @Transactional
     public void persistQuestion(Long interviewId) {
+        System.out.println("💾 Persisting question for interview " + interviewId);
         InterviewQuestion q = questionRepo
                 .findById(interviewId)
                 .orElse(new InterviewQuestion());
