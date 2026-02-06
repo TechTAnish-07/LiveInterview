@@ -6,13 +6,15 @@ import { useParams } from "react-router-dom";
 const LiveInterview = ({  }) => {
     const { id } = useParams();        // ✅ REQUIRED
   const interviewId = id; 
+  const token = localStorage.getItem("accessToken"); 
+ // console.log("InterviewRoom token:", token);
   const {
     connected,
     question,
     updateQuestion,
     code,
     updateCode,
-  } = useLiveInterviewStomp({ interviewId:1 });
+  } = useLiveInterviewStomp({ interviewId:1 ,token });
 
   if (!connected) {
     return <div>Connecting to interview...</div>;

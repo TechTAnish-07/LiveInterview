@@ -54,7 +54,7 @@ const login = (accessToken) => {
 
   const fetchUser = async () => {
     try {
-      const res = await api.get("/api/user-detail/me");
+      const res = await api.get("/api/userdetail/me");
       setUser(res.data);
       localStorage.setItem("currentUser", JSON.stringify(res.data));
     } catch (err) {
@@ -64,13 +64,13 @@ const login = (accessToken) => {
     }
   };
 
-  // useEffect(() => {
-  //   if (token && role) {
-  //     fetchUser();
-  //   } else {
-  //     setLoading(false);
-  //   }
-  // }, [token, role]);
+  useEffect(() => {
+    if (token && role) {
+      fetchUser();
+    } else {
+      setLoading(false);
+    }
+  }, [token, role]);
 
   /* ---------------- HELPERS ---------------- */
 
