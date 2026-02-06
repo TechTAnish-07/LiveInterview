@@ -1,6 +1,6 @@
 import React from 'react'
-import TestEditor from './TestEditor.jsx'
-import InterviewRoom from './InterviewRoom/InterviewRoom.jsx'
+import InterviewSchedule from './HR/InterviewSchedule'
+
 
 const Home = () => {
   return (
@@ -8,7 +8,7 @@ const Home = () => {
       <h1>Welcome to LiveInterview</h1>
       <p>Your one-stop solution for all interview preparations.</p>
 
-  <InterviewRoom />
+ <InterviewSchedule/>
     </div>
   )
 }
