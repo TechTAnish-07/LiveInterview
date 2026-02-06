@@ -24,11 +24,6 @@ spring:
       secret: mySuperSecretJwtKey_ChangeThisInProd_123456
       expiration: 86400000
 
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: live_interview
-    password: secret123
 
   sql:
     init:

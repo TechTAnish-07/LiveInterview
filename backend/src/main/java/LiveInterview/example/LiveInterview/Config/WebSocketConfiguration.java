@@ -31,14 +31,14 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
     }
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(authInterceptor)
-                .taskExecutor(inboundChannelExecutor);
+        registration.interceptors(authInterceptor);
+               // .taskExecutor(inboundChannelExecutor);
     }
 
-    @Override
-    public void configureClientOutboundChannel(ChannelRegistration registration) {
-        registration.taskExecutor(outboundChannelExecutor);
-    }
+//    @Override
+//    public void configureClientOutboundChannel(ChannelRegistration registration) {
+//        registration.taskExecutor(outboundChannelExecutor);
+//    }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
@@ -52,19 +52,8 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
 
         config.setApplicationDestinationPrefixes("/app");
 
-        config.enableStompBrokerRelay("/topic", "/queue")
-                .setRelayHost("localhost")
-                .setRelayPort(61613)
-                .setVirtualHost("/")
-                .setClientLogin("live_interview")
-                .setClientPasscode("secret123")
-                .setSystemLogin("live_interview")
-                .setSystemPasscode("secret123")
-                .setSystemHeartbeatSendInterval(6000)
-                .setSystemHeartbeatReceiveInterval(6000)
-                .setTaskScheduler(webSocketTaskScheduler);
-        config.setUserDestinationPrefix("/user");
-        config.setPreservePublishOrder(true);
+        config.enableSimpleBroker("/topic", "/queue");
+            //    .setTaskScheduler(webSocketTaskScheduler);
     }
 
 

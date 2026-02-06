@@ -11,7 +11,6 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -36,25 +35,36 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
         StompHeaderAccessor accessor =
                 MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
-        if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
+        if (accessor == null) {
+            return message;
+        }
+
+        StompCommand command = accessor.getCommand();
+
+
+        if (StompCommand.CONNECT.equals(command)) {
 
             String authHeader = accessor.getFirstNativeHeader("Authorization");
-            String interviewId = accessor.getFirstNativeHeader("interviewId");
-            String role = accessor.getFirstNativeHeader("role"); // HR / CANDIDATE
 
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                throw new IllegalArgumentException("Missing Authorization header");
+
+                return null;
             }
 
             String token = authHeader.substring(7);
 
-            String username = jwtService.extractEmail(token);
+            String username;
+            try {
+                username = jwtService.extractEmail(token);
+            } catch (Exception e) {
+                return null;
+            }
 
             UserDetails userDetails =
                     userDetailsService.loadUserByUsername(username);
 
             if (!jwtService.isTokenValid(token, userDetails)) {
-                throw new IllegalArgumentException("Invalid JWT token");
+                return null;
             }
 
             UsernamePasswordAuthenticationToken authentication =
@@ -64,9 +74,18 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
                             userDetails.getAuthorities()
                     );
 
+
             accessor.setUser(authentication);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
+
+        if (StompCommand.SEND.equals(command)
+                || StompCommand.SUBSCRIBE.equals(command)) {
+
+            if (accessor.getUser() == null) {
+                return null;
+            }
+        }
+
 
         return message;
     }
