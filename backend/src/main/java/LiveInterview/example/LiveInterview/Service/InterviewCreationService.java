@@ -2,6 +2,8 @@ package LiveInterview.example.LiveInterview.Service;
 
 import LiveInterview.example.LiveInterview.DTO.InterviewCreateRequest;
 import LiveInterview.example.LiveInterview.DTO.InterviewCreateResponse;
+import LiveInterview.example.LiveInterview.DTO.InterviewJoinResponse;
+import LiveInterview.example.LiveInterview.DTO.InterviewScheduleResponse;
 import LiveInterview.example.LiveInterview.Entity.Interview;
 import LiveInterview.example.LiveInterview.Entity.UserEntity;
 import LiveInterview.example.LiveInterview.Repository.InterviewRepository;
@@ -10,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -42,7 +45,7 @@ public class InterviewCreationService {
         interview.setCandidateEmail(req.getCandidateEmail());
 
 
-        // meeting link creation is remaining I will do it afterwords
+
 
         String meeting_link = UUID.randomUUID().toString();
         interview.setMeetingLink(meeting_link);
@@ -53,4 +56,19 @@ public class InterviewCreationService {
                 saved.getStatus()
         );
     }
+
+    public List<InterviewScheduleResponse> getInterviews() {
+        return interviewRepository.findAll()
+                .stream()
+                .map(interview -> new InterviewScheduleResponse(
+                        interview.getId(),
+                        interview.getCandidate().getEmail(),
+                        interview.getStartTime(),
+                        interview.getEndTime(),
+                        interview.getMeetingLink(),
+                        interview.getStatus()
+                ))
+                .toList();
+    }
+
 }

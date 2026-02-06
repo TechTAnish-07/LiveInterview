@@ -6,6 +6,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class InterviewCreateResponse {
+
     private Long interviewId;
     private String meetingLink;
     private InterviewStatus status;
