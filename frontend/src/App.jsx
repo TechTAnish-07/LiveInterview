@@ -22,7 +22,7 @@ const router = createBrowserRouter([
       { index: true, element: <Home /> },
       { path: "login", element: <Login /> },
       { path: "questions", element: <Questions /> },
-      { path: "interview", element: <InterviewRoom /> },
+      { path: "interview/:id", element: <InterviewRoom /> },
       { path: "coding", element: <CodingPanel /> },
       { path: "codeeditor", element: <TestEditor /> },
       { path: "interviewschedule", element: <InterviewSchedule /> },

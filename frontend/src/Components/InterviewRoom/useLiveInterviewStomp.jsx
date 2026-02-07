@@ -8,6 +8,8 @@ export function useLiveInterviewStomp({ interviewId, token }) {
   const clientRef = useRef(null);
   const isRemoteUpdate = useRef(false);
   const readyRef = useRef(false);
+  const questionTimerRef = useRef(null);
+  const codeTimerRef = useRef(null);
 
   const [question, setQuestion] = useState("");
   const [code, setCode] = useState("");
@@ -36,30 +38,21 @@ export function useLiveInterviewStomp({ interviewId, token }) {
       console.log("✅ STOMP CONNECTED");
 
       client.subscribe(
-        `/topic/interview/${interviewId}/question`, 
+        `/topic/interview/${interviewId}/question`,
         (message) => {
-          console.log("📥 Received question update:", message.body);
+          const parsed = JSON.parse(message.body);
           isRemoteUpdate.current = true;
-          try {
-            const parsed = JSON.parse(message.body);
-            setQuestion(parsed.value);
-          } catch (e) {
-            console.error("Error parsing question:", e);
-          }
+          setQuestion(parsed.question); // ✅ FIX
         }
       );
 
+
       client.subscribe(
-        `/topic/interview/${interviewId}/code`,  
+        `/topic/interview/${interviewId}/code`,
         (message) => {
-          console.log("📥 Received code update:", message.body);
+          const parsed = JSON.parse(message.body);
           isRemoteUpdate.current = true;
-          try {
-            const parsed = JSON.parse(message.body);
-            setCode(parsed.value);
-          } catch (e) {
-            console.error("Error parsing code:", e);
-          }
+          setCode(parsed.code); // ✅ FIX
         }
       );
 
@@ -87,13 +80,12 @@ export function useLiveInterviewStomp({ interviewId, token }) {
     client.activate();
     clientRef.current = client;
 
-    // return () => {
-    //    client.activate();
-    //   console.log("🧹 Cleaning up STOMP connection");
-    //   readyRef.current = false;
-    //   setConnected(false);
-    //   client.deactivate();
-    // };
+    return () => {
+      console.log("🧹 Cleaning up STOMP connection");
+      readyRef.current = false;
+      setConnected(false);
+      client.deactivate();
+    };
   }, [interviewId, token]);
 
   /* ---------------- SENDERS ---------------- */
@@ -105,13 +97,16 @@ export function useLiveInterviewStomp({ interviewId, token }) {
         return;
       }
 
-      const destination = `/app/interview/${interviewId}/question`; 
+      const destination = `/app/interview/${interviewId}/question`;
       console.log("📤 Sending question to:", destination);
-      
+
       try {
         clientRef.current.publish({
           destination: destination,
-          body: JSON.stringify({ value }),
+          body: JSON.stringify({
+            question: value,
+            timestamp: Date.now(),
+          }),
         });
       } catch (e) {
         console.error("Error sending question:", e);
@@ -122,7 +117,7 @@ export function useLiveInterviewStomp({ interviewId, token }) {
 
   const sendCodeUpdate = useCallback(
     (value) => {
-      
+
       if (!readyRef.current || !clientRef.current) {
         console.warn("Cannot send code: client not ready");
         return;
@@ -130,11 +125,17 @@ export function useLiveInterviewStomp({ interviewId, token }) {
 
       const destination = `/app/interview/${interviewId}/code`;
       console.log("📤 Sending code to:", destination);
-      
+
       try {
+        console.log(value);
         clientRef.current.publish({
           destination: destination,
-          body: JSON.stringify({ value }),
+          body: JSON.stringify({
+            code: value,
+            language: "cpp",
+            sender: "HR",
+            timestamp: Date.now(),
+          }),
         });
       } catch (e) {
         console.error("Error sending code:", e);
@@ -147,19 +148,26 @@ export function useLiveInterviewStomp({ interviewId, token }) {
 
   const updateQuestion = useCallback((value) => {
     setQuestion(value);
-    if (!isRemoteUpdate.current) {
-      sendQuestionUpdate(value);
+    if (questionTimerRef.current) {
+      clearTimeout(questionTimerRef.current);
     }
-    isRemoteUpdate.current = false;
+    questionTimerRef.current = setTimeout(() => {
+      sendQuestionUpdate(value);
+    }, 400);
   }, [sendQuestionUpdate]);
 
   const updateCode = useCallback((value) => {
     setCode(value);
-    if (!isRemoteUpdate.current) {
-      sendCodeUpdate(value);
+
+    if (codeTimerRef.current) {
+      clearTimeout(codeTimerRef.current);
     }
-    isRemoteUpdate.current = false;
+
+    codeTimerRef.current = setTimeout(() => {
+      sendCodeUpdate(value);
+    }, 400);
   }, [sendCodeUpdate]);
+
 
   return {
     connected,
