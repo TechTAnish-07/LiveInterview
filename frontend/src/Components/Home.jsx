@@ -7,8 +7,6 @@ const Home = () => {
     <div>
       <h1>Welcome to LiveInterview</h1>
       <p>Your one-stop solution for all interview preparations.</p>
-
- <InterviewSchedule/>
     </div>
   )
 }

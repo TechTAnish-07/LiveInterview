@@ -1,9 +1,17 @@
 import React, { useState } from 'react';
 import CreateInterview from '../InterviewRoom/CreateInterview';
+import api from '../Axios';
 
 const InterviewSchedule = () => {
   const [showCreateInterview, setShowCreateInterview] = useState(false);
   const [interviews, setInterviews] = useState([]);
+  const [interviewData, setInterviewData] = useState([]);
+  try{
+    const res  = api.get("/api/hr/schedule");
+    setInterviewData(res.data);
+  } catch (error) {
+    console.error("Error fetching interview schedule:", error);
+  }
 
   const handleInterviewCreated = (newInterview) => {
     setInterviews((prev) => [...prev, newInterview]);
@@ -36,6 +44,7 @@ const InterviewSchedule = () => {
           </li>
         ))}
       </ul>
+      
     </div>
   );
 };
