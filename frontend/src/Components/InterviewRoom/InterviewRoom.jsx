@@ -1,20 +1,23 @@
 import React from "react";
+import { useParams } from "react-router-dom";
 import { useLiveInterviewStomp } from "./useLiveInterviewStomp";
 import TestEditor from "../TestEditor";
-import { useParams } from "react-router-dom";
 
-const LiveInterview = ({  }) => {
-    const { id } = useParams();        // ✅ REQUIRED
-  const interviewId = id; 
-  const token = localStorage.getItem("accessToken"); 
- // console.log("InterviewRoom token:", token);
+const LiveInterview = () => {
+  const { id } = useParams();              
+  const interviewId = Number(id);         
+  const token = localStorage.getItem("accessToken");
+
   const {
     connected,
     question,
     updateQuestion,
     code,
     updateCode,
-  } = useLiveInterviewStomp({ interviewId:1 ,token });
+  } = useLiveInterviewStomp({
+    interviewId,                         
+    token,
+  });
 
   if (!connected) {
     return <div>Connecting to interview...</div>;

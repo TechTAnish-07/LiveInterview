@@ -10,7 +10,8 @@ const Questions = lazy(() => import("./Components/Questions"));
 const InterviewRoom = lazy(() => import("./Components/InterviewRoom/InterviewRoom.jsx"));
 const CodingPanel = lazy(() => import("./Components/InterviewRoom/CodePanel.jsx"));
 import TestEditor from "./Components/TestEditor.jsx";
-const InterviewSchedule = lazy(() => import("./Components/HR/InterviewSchedule.jsx"));  
+const JoinInterview = lazy(() => import("./Components/InterviewRoom/JoinInterview.jsx"));
+const InterviewSchedule = lazy(() => import("./Components/HR/InterviewSchedule.jsx"));
 const router = createBrowserRouter([
   {
     path: "/",
@@ -24,6 +25,7 @@ const router = createBrowserRouter([
       { path: "coding", element: <CodingPanel /> },
       { path: "codeeditor", element: <TestEditor /> },
       { path: "interviewschedule", element: <InterviewSchedule /> },
+      { path: "/join/:meetingLink", element: <JoinInterview/> },
     ],
   },
 ]);
