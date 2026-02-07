@@ -2,7 +2,6 @@ package LiveInterview.example.LiveInterview.Service;
 
 import LiveInterview.example.LiveInterview.DTO.InterviewCreateRequest;
 import LiveInterview.example.LiveInterview.DTO.InterviewCreateResponse;
-import LiveInterview.example.LiveInterview.DTO.InterviewJoinResponse;
 import LiveInterview.example.LiveInterview.DTO.InterviewScheduleResponse;
 import LiveInterview.example.LiveInterview.Entity.Interview;
 import LiveInterview.example.LiveInterview.Entity.UserEntity;
