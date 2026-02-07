@@ -26,9 +26,12 @@ public class InterviewController {
     ) {
         try {
             System.out.println("Meeting link received = [" + meetingLink + "]");
-            meetingLink = meetingLink.substring(1, meetingLink.length() - 1);
+            String normalized = meetingLink
+                    .replace("{", "")
+                    .replace("}", "")
+                    .trim();
             InterviewJoinResponse response =
-                    interviewService.joinInterview(meetingLink);
+                    interviewService.joinInterview(normalized);
             return ResponseEntity.ok(response);
 
         } catch (IllegalStateException ex) {
