@@ -30,7 +30,7 @@ const InterviewSchedule = () => {
 
     const upcomingInterviews = interviews.filter((i) => {
         return (
-            i.status === "SCHEDULED" &&
+            (i.status === "SCHEDULED" || i.status === "LIVE") &&
             new Date(i.endTime) >= now
         );
     });

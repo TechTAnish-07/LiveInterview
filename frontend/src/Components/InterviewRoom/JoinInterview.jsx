@@ -8,7 +8,6 @@ const JoinInterview = () => {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   useEffect(() => {
     const joinInterview = async () => {
       try {

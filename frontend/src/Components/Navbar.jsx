@@ -10,8 +10,8 @@ const Navbar = () => {
   return (
     <nav className='navbar'>
       <div className='logo-section'>
-        <div className='logo'>LI</div>
-        <span className='brand-name'>LiveInterview</span>
+        <div className='logo' onClick={() => window.location.href = '/'}>LI</div>
+        <span className='brand-name' onClick={() => window.location.href = '/'} >LiveInterview</span>
       </div>
 
       <ul className='nav-links'>
@@ -19,9 +19,11 @@ const Navbar = () => {
           isActive ? "nav-link active" : "nav-link"
         }>Home</NavLink></li>
 
-        <li><NavLink to="/questions" className={({ isActive }) =>
+        {userRole !== "HR" && (<li><NavLink to="/questions" className={({ isActive }) =>
           isActive ? "nav-link active" : "nav-link"
-        }>Practice</NavLink></li>
+        }>Practice</NavLink></li>)
+        }
+
         {!isLoggedIn && (<li><NavLink to="/login" className={({ isActive }) =>
           isActive ? "nav-link active" : "nav-link"
         }>Login</NavLink></li>)}
