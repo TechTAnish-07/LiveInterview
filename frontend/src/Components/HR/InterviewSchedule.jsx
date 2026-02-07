@@ -1,22 +1,39 @@
-import React, { useState } from 'react';
-import CreateInterview from '../InterviewRoom/CreateInterview';
-import api from '../Axios';
+import React, { useEffect, useState } from "react";
+import CreateInterview from "../InterviewRoom/CreateInterview";
+import api from "../Axios";
 
 const InterviewSchedule = () => {
   const [showCreateInterview, setShowCreateInterview] = useState(false);
   const [interviews, setInterviews] = useState([]);
-  const [interviewData, setInterviewData] = useState([]);
-  try{
-    const res  = api.get("/api/hr/schedule");
-    setInterviewData(res.data);
-  } catch (error) {
-    console.error("Error fetching interview schedule:", error);
-  }
+  
+
+  useEffect(() => {
+    const fetchSchedule = async () => {
+      try {
+        const res = await api.get("/api/hr/schedule");
+        setInterviews(res.data);
+      } catch (error) {
+        console.error("Error fetching interview schedule:", error);
+      }
+    };
+
+    fetchSchedule();
+  },[]);
 
   const handleInterviewCreated = (newInterview) => {
     setInterviews((prev) => [...prev, newInterview]);
     setShowCreateInterview(false);
+   
   };
+
+  const now = new Date();
+
+  const upcomingInterviews = interviews.filter((i) => {
+    return (
+      i.status === "SCHEDULED" &&
+      new Date(i.endTime) >= now
+    );
+  });
 
   return (
     <div>
@@ -35,16 +52,38 @@ const InterviewSchedule = () => {
         />
       )}
 
-      {/* Interview list */}
-      <ul>
-        {interviews.map((i) => (
-          <li key={i.interviewId}>
-            {i.candidateEmail} — {i.status}
-            {i.meetingLink && <a href={i.meetingLink}>Join Meeting</a>}
-          </li>
-        ))}
-      </ul>
-      
+    
+      <h2>Upcoming Interviews</h2>
+
+      {upcomingInterviews.length === 0 ? (
+        <p>No upcoming interviews</p>
+      ) : (
+        <ul>
+          {upcomingInterviews.map((i) => (
+            <li key={i.interviewId}>
+              
+              <strong>{i.candidateEmail}</strong>
+              <br />
+              🕒 {new Date(i.startTime).toLocaleString()} –{" "}
+              {new Date(i.endTime).toLocaleString()}
+              <br />
+              <span>Status: {i.status}</span>
+              <br />
+              {console.log(i.meetingLink)}
+              {i.meetingLink && (
+                <a
+                  href={`/join/${i.meetingLink}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                    
+                  Join Interview
+                </a>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };
