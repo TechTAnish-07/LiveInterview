@@ -15,7 +15,22 @@ export function useLiveInterviewStomp({ interviewId, token }) {
   const [code, setCode] = useState("");
   const [connected, setConnected] = useState(false);
 
-  /* ---------------- CONNECT & SUBSCRIBE ---------------- */
+  useEffect(() => {
+  if (!interviewId) return;
+
+  const loadInitialState = async () => {
+    try {
+      const res = await api.get(`/api/interview/${interviewId}/state`);
+      setQuestion(res.data.question || "");
+      setCode(res.data.code || "");
+    } catch (e) {
+      console.error("Failed to load interview state", e);
+    }
+  };
+
+  loadInitialState();
+}, [interviewId]);
+
   useEffect(() => {
     if (!interviewId) {
       console.warn("STOMP not connected: interviewId missing");
@@ -146,23 +161,29 @@ export function useLiveInterviewStomp({ interviewId, token }) {
 
   /* ---------------- SAFE STATE UPDATERS ---------------- */
 
-  const updateQuestion = useCallback((value) => {
-    setQuestion(value);
-    if (questionTimerRef.current) {
-      clearTimeout(questionTimerRef.current);
-    }
-    questionTimerRef.current = setTimeout(() => {
-      sendQuestionUpdate(value);
-    }, 400);
-  }, [sendQuestionUpdate]);
+ const updateQuestion = useCallback((value) => {
+  setQuestion(value);
+
+  if (isRemoteUpdate.current) {
+    isRemoteUpdate.current = false;
+    return;
+  }
+
+  clearTimeout(questionTimerRef.current);
+  questionTimerRef.current = setTimeout(() => {
+    sendQuestionUpdate(value);
+  }, 400);
+}, [sendQuestionUpdate]);
 
   const updateCode = useCallback((value) => {
     setCode(value);
 
-    if (codeTimerRef.current) {
-      clearTimeout(codeTimerRef.current);
+    if (isRemoteUpdate.current) {
+      isRemoteUpdate.current = false;
+      return;
     }
 
+    clearTimeout(codeTimerRef.current);
     codeTimerRef.current = setTimeout(() => {
       sendCodeUpdate(value);
     }, 400);
