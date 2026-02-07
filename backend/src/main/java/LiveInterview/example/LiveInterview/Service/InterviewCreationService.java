@@ -62,7 +62,7 @@ public class InterviewCreationService {
                 .stream()
                 .map(interview -> new InterviewScheduleResponse(
                         interview.getId(),
-                        interview.getCandidate().getEmail(),
+                        interview.getCandidateEmail(),
                         interview.getStartTime(),
                         interview.getEndTime(),
                         interview.getMeetingLink(),
