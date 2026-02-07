@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public record LoginReq (
         @JsonProperty("email") String email,
-@JsonProperty("password") String password,
-@JsonProperty("role") Role role
+       @JsonProperty("password") String password,
+        @JsonProperty("role") Role role
 ){
 }

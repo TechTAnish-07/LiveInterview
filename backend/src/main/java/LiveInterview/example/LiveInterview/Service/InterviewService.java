@@ -1,9 +1,6 @@
 package LiveInterview.example.LiveInterview.Service;
 
-import LiveInterview.example.LiveInterview.DTO.CodeSyncMessage;
-import LiveInterview.example.LiveInterview.DTO.InterviewJoinResponse;
-import LiveInterview.example.LiveInterview.DTO.InterviewStatus;
-import LiveInterview.example.LiveInterview.DTO.QuestionSyncMessage;
+import LiveInterview.example.LiveInterview.DTO.*;
 import LiveInterview.example.LiveInterview.Entity.Interview;
 import LiveInterview.example.LiveInterview.Entity.InterviewCode;
 import LiveInterview.example.LiveInterview.Entity.InterviewQuestion;
@@ -47,7 +44,10 @@ public class InterviewService {
     public void autoSave() {
         liveQuestion.keySet().forEach(this::persistQuestion);
         liveCode.keySet().forEach(this::persistCode);
+
+
     }
+
 
 
     // 🔥 Replace with Redis in prod
@@ -63,6 +63,7 @@ public class InterviewService {
     }
 
 
+
     public void updateLiveQuestion(
             Long interviewId,
             QuestionSyncMessage msg,
@@ -71,7 +72,7 @@ public class InterviewService {
         System.out.println(
                 "📌 updateLiveQuestion called | interviewId=" + interviewId
         );
-
+//   System.out.println(msg.getQuestion());
         liveQuestion.put(interviewId, msg.getQuestion());
     }
 
@@ -87,6 +88,18 @@ public class InterviewService {
         liveCode.put(interviewId, msg.getCode());
     }
 
+    public InterviewStateResponse getInterviewState(Long interviewId) {
+
+        String question = questionRepo.findById(interviewId)
+                .map(InterviewQuestion::getQuestionText)
+                .orElse("");
+
+        String code = codeRepo.findById(interviewId)
+                .map(InterviewCode::getCode)
+                .orElse("");
+
+        return new InterviewStateResponse(question, code);
+    }
 
     public void verifyUserInInterview(Principal principal, Long interviewId) {
 
@@ -127,12 +140,16 @@ public class InterviewService {
         InterviewQuestion q = questionRepo
                 .findById(interviewId)
                 .orElse(new InterviewQuestion());
-
+//        System.out.println("LiveQuestion map = " + liveQuestion);
+//        System.out.println("InterviewId asked = " + interviewId);
         q.setInterviewId(interviewId);
         q.setQuestionText(liveQuestion.get(interviewId));
+
+        System.out.println("database contain this question " + q.getQuestionText());
         q.setUpdatedAt(System.currentTimeMillis());
 
         questionRepo.save(q);
+        liveQuestion.remove(interviewId);
     }
 
     @Transactional
@@ -146,6 +163,16 @@ public class InterviewService {
         c.setUpdatedAt(System.currentTimeMillis());
 
         codeRepo.save(c);
+    }
+    @Transactional
+    public void loadPersistedState(Long interviewId) {
+        questionRepo.findById(interviewId).ifPresent(q ->
+                liveQuestion.put(interviewId, q.getQuestionText())
+        );
+
+        codeRepo.findById(interviewId).ifPresent(c ->
+                liveCode.put(interviewId, c.getCode())
+        );
     }
 
     private Interview getInterview(Long id) {
@@ -213,7 +240,7 @@ public class InterviewService {
 
         interviewRepository.save(interview);
 
-
+        loadPersistedState(interview.getId());
         return new InterviewJoinResponse(
                 true,
                 interview.getId(),
