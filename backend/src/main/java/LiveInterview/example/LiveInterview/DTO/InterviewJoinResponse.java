@@ -13,4 +13,5 @@ public class InterviewJoinResponse {
     private InterviewStatus status;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+    private String reason;
 }

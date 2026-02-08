@@ -2,6 +2,7 @@ package LiveInterview.example.LiveInterview.Controller;
 
 import LiveInterview.example.LiveInterview.DTO.InterviewJoinResponse;
 import LiveInterview.example.LiveInterview.Service.InterviewService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,6 +33,10 @@ public class InterviewController {
                     .trim();
             InterviewJoinResponse response =
                     interviewService.joinInterview(normalized);
+            boolean allowed = response.isAllowed();
+            if (!allowed) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
             return ResponseEntity.ok(response);
 
         } catch (IllegalStateException ex) {
