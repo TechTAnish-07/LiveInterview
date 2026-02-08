@@ -16,7 +16,7 @@ const login = (accessToken) => {
   if (!accessToken || typeof accessToken !== "string") return;
 
   localStorage.setItem("accessToken", accessToken);
-
+  localStorage.setItem("isLoggedIn", "true");
   const decoded = jwtDecode(accessToken);
   setRole(decoded.role);
 };
@@ -78,6 +78,7 @@ console.log(token);
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("currentUser");
+    localStorage.setItem("isLoggedIn", "false");
     setUser(null);
     setRole(null);
     setLoading(false);
@@ -95,7 +96,7 @@ console.log(token);
     login,
     fetchUser,
     logout,
-
+    clearAuth,
     isAdmin: role === "ROLE_ADMIN",
     isHR: role === "ROLE_HR",
     isCandidate: role === "ROLE_CANDIDATE",

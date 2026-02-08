@@ -5,8 +5,8 @@ import api from "../Axios";
 const InterviewSchedule = () => {
     const [showCreateInterview, setShowCreateInterview] = useState(false);
     const [interviews, setInterviews] = useState([]);
-
-
+    const [meetingLink, setMeetingLink] = useState([]);
+    const [copy , setCopy] = useState(false);
     useEffect(() => {
         const fetchSchedule = async () => {
             try {
@@ -22,6 +22,7 @@ const InterviewSchedule = () => {
 
     const handleInterviewCreated = (newInterview) => {
         setInterviews((prev) => [...prev, newInterview]);
+        setMeetingLink((prev) => [...prev, newInterview.meetingLink]);
         setShowCreateInterview(false);
 
     };
@@ -34,6 +35,29 @@ const InterviewSchedule = () => {
             new Date(i.endTime) >= now
         );
     });
+    const getInterviewUrl = (meetingLink) => {
+        return `${window.location.origin}/join/${meetingLink}`;
+    };
+
+    const shareOnWhatsApp = (meetingLink) => {
+        const interviewUrl = getInterviewUrl(meetingLink);
+        const message = `Hi! You are invited to join the interview.\n\nJoin here 👉 ${interviewUrl}`;
+        const encodedMessage = encodeURIComponent(message);
+
+        window.open(`https://wa.me/?text=${encodedMessage}`, "_blank");
+    };
+
+    const copyLink = async (meetingLink) => {
+        const interviewUrl = getInterviewUrl(meetingLink);
+        try {
+            await navigator.clipboard.writeText(interviewUrl);
+            setCopy(true);
+            setTimeout(() => setCopy(false), 2000);
+            
+        } catch (err) {
+            alert("Failed to copy link");
+        }
+    };
 
     return (
         <div>
@@ -69,15 +93,33 @@ const InterviewSchedule = () => {
                             <br />
                             <span>Status: {i.status}</span>
                             <br />
-                            {console.log(i.meetingLink)}
+
                             {i.meetingLink && (
-                                <a href={`/join/${i.meetingLink}`}>
-                                    Join Interview
-                                </a>
+                                <>
+                                    <a
+                                        href={`/join/${i.meetingLink}`}
+                                       
+                                        rel="noopener noreferrer"
+                                    >
+                                        Join Interview
+                                    </a>
 
+                                    <div style={{ marginTop: "8px" }}>
+                                        <button onClick={() => shareOnWhatsApp(i.meetingLink)}>
+                                            📲 Share via WhatsApp
+                                        </button>
 
-
+                                        <button
+                                            onClick={() => copyLink(i.meetingLink)}
+                                            style={{ marginLeft: "8px" }}
+                                        >
+                                         { copy ? (  "Copied!" ) : ( "📋 Copy Link") }
+                                        </button>
+                                    </div>
+                                </>
                             )}
+
+
                         </li>
                     ))}
                 </ul>

@@ -4,9 +4,12 @@ import './Navbar.css'
 import { useAuth } from './AuthProvider'
 
 const Navbar = () => {
-  const { user, role } = useAuth();
+  const { user, role, clearAuth } = useAuth();
   const isLoggedIn = !!user;
   const userRole = role;
+  const handleLogout = () => {
+    clearAuth();
+  }
   return (
     <nav className='navbar'>
       <div className='logo-section'>
@@ -60,7 +63,7 @@ const Navbar = () => {
       </ul>
       {isLoggedIn && (
         <div className="nav-actions">
-          <button className="logout-button">Logout</button>
+          <button className="logout-button" onClick={handleLogout}>Logout</button>
         </div>
       )}
     </nav>

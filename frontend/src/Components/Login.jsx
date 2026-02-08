@@ -1,6 +1,6 @@
 // pages/Login.jsx
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "./Axios.jsx";
 import { jwtDecode } from "jwt-decode";
 import "./Login.css";
@@ -16,12 +16,21 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [searchParams] = useSearchParams();
 
   const toggleForm = () => {
     setIsSignIn(!isSignIn);
     setError("");
   };
+  const handleLoginSuccess = () => {
+    const redirectTo = searchParams.get('redirect');
 
+    if (redirectTo) {
+      navigate(redirectTo, { replace: true });
+    } else {
+      navigate('/', { replace: true });
+    }
+  };
   const handleSubmitButton = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -33,7 +42,7 @@ const Login = () => {
         const { token: accessToken, refreshToken, user } = res.data;
         console.log(accessToken);
         login(accessToken);
-    navigate("/");
+        handleLoginSuccess();
       } else {
         const res = await fetch("http://localhost:8080/auth/register", {
           method: "POST",

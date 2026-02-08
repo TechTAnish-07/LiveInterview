@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
+import api from "../Axios";
 
 const WS_URL = "http://localhost:8080/ws";
 
@@ -20,7 +21,7 @@ export function useLiveInterviewStomp({ interviewId, token }) {
 
   const loadInitialState = async () => {
     try {
-      const res = await api.get(`/api/interview/${interviewId}/state`);
+      const res = await api.get(`/api/coding/interview/${interviewId}/state`);
       setQuestion(res.data.question || "");
       setCode(res.data.code || "");
     } catch (e) {
