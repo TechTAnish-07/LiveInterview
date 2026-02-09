@@ -210,7 +210,7 @@ public class InterviewService {
         }
 
         if (now.isAfter(interview.getEndTime())) {
-            interview.setStatus(InterviewStatus.COMPLETED);
+            interview.setStatus(InterviewStatus.EXPIRED);
             interviewRepository.save(interview);
             throw new IllegalStateException("Interview has expired");
         }
