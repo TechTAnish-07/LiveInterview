@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import api from '../Axios';
 
 const History = () => {
-       const [interviews, setInterviews] = useState([]);
+    const [interviews, setInterviews] = useState([]);
 
 
     useEffect(() => {
@@ -18,25 +18,31 @@ const History = () => {
         fetchSchedule();
     }, []);
 
-     const historyInterviews = interviews.filter((i) => {
+    const now = new Date();
+    const historyInterviews = interviews.filter((i) => {
         return (
-            i.status === "COMPLETED" &&
+            i.status === "EXPIRED" &&
             new Date(i.endTime) <= now
         );
     });
 
-  return (
-    <div>
-      <h2>Interview History</h2>
-      <ul>
-        {historyInterviews.map((interview) => (
-          <li key={interview.id}>
-            {interview.position} - {interview.date}
-          </li>
-        ))}
-      </ul>
-    </div>
-  )
+    return (
+        <div>
+            <h2>Interview History</h2>
+            {historyInterviews.length === 0 ? (
+                <p>No interview history found</p>
+            ) : (
+                <ul>
+                    {historyInterviews.map((i) => (
+                        <li key={i.interviewId}>
+                            {i.candidateEmail} — {i.startTime} to {i.endTime} — Status: {i.status}
+                        </li>
+                    ))}
+                </ul>
+            )}
+
+        </div>
+    )
 }
 
 export default History

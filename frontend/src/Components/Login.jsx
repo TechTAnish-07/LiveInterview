@@ -2,9 +2,7 @@
 import React, { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "./Axios.jsx";
-import { jwtDecode } from "jwt-decode";
 import "./Login.css";
-import { tr } from "framer-motion/client";
 import { useAuth } from "./AuthProvider.jsx";
 
 const Login = () => {

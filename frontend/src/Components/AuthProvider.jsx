@@ -49,7 +49,6 @@ const login = (accessToken) => {
       clearAuth();
     }
   }, [token]);
-console.log(token);
 
 
   const fetchUser = async () => {
