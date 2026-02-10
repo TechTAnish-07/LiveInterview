@@ -1,73 +1,56 @@
-import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import api from "../Axios";
 import { useAuth } from "../AuthProvider";
 
 const JoinInterview = () => {
   const { meetingLink } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
-  const { isAuthenticated, loading: authLoading } = useAuth();
+  const { loading: authLoading } = useAuth();
+  const token = localStorage.getItem("accessToken");
+
+  const mic = location.state?.mic ?? false;
+  const camera = location.state?.camera ?? false;
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    
     if (authLoading) return;
 
-    if (!isAuthenticated) {
+    if (!token) {
       navigate(`/login?redirect=/join/${meetingLink}`, { replace: true });
       return;
     }
 
-    const joinInterview = async () => {
+    const join = async () => {
       try {
         const res = await api.get(`/api/interview/join/${meetingLink}`);
 
         navigate(`/interview/${res.data.interviewId}`, {
           replace: true,
           state: {
-            interview: res.data,
-            meetingLink,
-          },
+            mic,
+            camera,
+            interview: res.data
+          }
         });
       } catch (err) {
         const status = err.response?.status;
-
-        if (status === 401) {
-          navigate(`/login?redirect=/join/${meetingLink}`, { replace: true });
-          return;
-        }
-
-        if (status === 403) {
-          setError("You are not allowed to join this interview.");
-          return;
-        }
-
-        if (status === 404) {
-          setError("Invalid or expired interview link.");
-          return;
-        }
-
-        setError("Something went wrong. Please try again later.");
+        if (status === 403) setError("Not allowed");
+        else if (status === 404) setError("Invalid link");
+        else setError("Something went wrong");
       } finally {
         setLoading(false);
       }
     };
 
-    joinInterview();
-  }, [authLoading, isAuthenticated, meetingLink, navigate]);
+    join();
+  }, [authLoading]);
 
-  if (authLoading || loading) return <p>Joining interview…</p>;
-
-  if (error) {
-    return (
-      <div>
-        <h2>Unable to join interview</h2>
-        <p>{error}</p>
-      </div>
-    );
-  }
+  if (loading || authLoading) return <p>Joining interview…</p>;
+  if (error) return <p>{error}</p>;
 
   return null;
 };

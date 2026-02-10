@@ -10,6 +10,7 @@ const Questions = lazy(() => import("./Components/Questions"));
 const InterviewRoom = lazy(() => import("./Components/InterviewRoom/InterviewRoom.jsx"));
 const CodingPanel = lazy(() => import("./Components/InterviewRoom/CodePanel.jsx"));
 import TestEditor from "./Components/TestEditor.jsx";
+const PreJoin = lazy(() => import("./Components/InterviewRoom/PreJoin.jsx"));
 const JoinInterview = lazy(() => import("./Components/InterviewRoom/JoinInterview.jsx"));
 const InterviewSchedule = lazy(() => import("./Components/HR/InterviewSchedule.jsx"));
 const History = lazy(() => import("./Components/HR/History.jsx"));
@@ -28,6 +29,7 @@ const router = createBrowserRouter([
       { path: "interviewschedule", element: <InterviewSchedule /> },
       { path: "/join/:meetingLink", element: <JoinInterview/> },
       { path: "history/:role", element: <History /> },
+      { path: "prejoin/:meetingLink", element: <PreJoin />}, 
     ],
   },
 ]);

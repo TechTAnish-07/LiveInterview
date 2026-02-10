@@ -197,5 +197,6 @@ export function useLiveInterviewStomp({ interviewId, token }) {
     updateQuestion,
     code,
     updateCode,
+    stompClient:  clientRef.current,
   };
 }

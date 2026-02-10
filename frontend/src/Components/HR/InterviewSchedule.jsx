@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import CreateInterview from "../InterviewRoom/CreateInterview";
 import api from "../Axios";
+import { Link } from "react-router-dom";
 
 const InterviewSchedule = () => {
     const [showCreateInterview, setShowCreateInterview] = useState(false);
     const [interviews, setInterviews] = useState([]);
-    const [meetingLink, setMeetingLink] = useState([]);
-    const [copy , setCopy] = useState(false);
+    const [copiedId, setCopiedId] = useState(null);
     useEffect(() => {
         const fetchSchedule = async () => {
             try {
@@ -22,7 +22,7 @@ const InterviewSchedule = () => {
 
     const handleInterviewCreated = (newInterview) => {
         setInterviews((prev) => [...prev, newInterview]);
-        setMeetingLink((prev) => [...prev, newInterview.meetingLink]);
+       
         setShowCreateInterview(false);
 
     };
@@ -47,17 +47,16 @@ const InterviewSchedule = () => {
         window.open(`https://wa.me/?text=${encodedMessage}`, "_blank");
     };
 
-    const copyLink = async (meetingLink) => {
-        const interviewUrl = getInterviewUrl(meetingLink);
-        try {
-            await navigator.clipboard.writeText(interviewUrl);
-            setCopy(true);
-            setTimeout(() => setCopy(false), 2000);
-            
-        } catch (err) {
-            alert("Failed to copy link");
-        }
-    };
+   const copyLink = async (meetingLink, interviewId) => {
+  const interviewUrl = getInterviewUrl(meetingLink);
+  try {
+    await navigator.clipboard.writeText(interviewUrl);
+    setCopiedId(interviewId);
+    setTimeout(() => setCopiedId(null), 2000);
+  } catch {
+    alert("Failed to copy link");
+  }
+};
 
     return (
         <div>
@@ -96,13 +95,12 @@ const InterviewSchedule = () => {
 
                             {i.meetingLink && (
                                 <>
-                                    <a
-                                        href={`/join/${i.meetingLink}`}
-                                       
+                                    <Link
+                                        to={`/prejoin/${i.meetingLink}`}
                                         rel="noopener noreferrer"
                                     >
                                         Join Interview
-                                    </a>
+                                    </Link>
 
                                     <div style={{ marginTop: "8px" }}>
                                         <button onClick={() => shareOnWhatsApp(i.meetingLink)}>
@@ -110,10 +108,10 @@ const InterviewSchedule = () => {
                                         </button>
 
                                         <button
-                                            onClick={() => copyLink(i.meetingLink)}
+                                            onClick={() => copyLink(i.meetingLink, i.interviewId)}
                                             style={{ marginLeft: "8px" }}
                                         >
-                                         { copy ? (  "Copied!" ) : ( "📋 Copy Link") }
+                                         { copiedId === i.interviewId ? (  "Copied!" ) : ( "📋 Copy Link") }
                                         </button>
                                     </div>
                                 </>
