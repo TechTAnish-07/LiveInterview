@@ -28,6 +28,8 @@ public class InterviewCreationController {
             Authentication authentication
             ) {
         String userEmail = authentication.getName();
+
+
         InterviewCreateResponse response = interviewCreationService.createInterviewLink(req, userEmail);
         return ResponseEntity.ok(response);
     }

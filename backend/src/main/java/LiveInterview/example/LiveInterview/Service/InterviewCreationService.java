@@ -3,6 +3,7 @@ package LiveInterview.example.LiveInterview.Service;
 import LiveInterview.example.LiveInterview.DTO.InterviewCreateRequest;
 import LiveInterview.example.LiveInterview.DTO.InterviewCreateResponse;
 import LiveInterview.example.LiveInterview.DTO.InterviewScheduleResponse;
+import LiveInterview.example.LiveInterview.DTO.Role;
 import LiveInterview.example.LiveInterview.Entity.Interview;
 import LiveInterview.example.LiveInterview.Entity.UserEntity;
 import LiveInterview.example.LiveInterview.Repository.InterviewRepository;
@@ -30,6 +31,9 @@ public class InterviewCreationService {
         LocalDateTime now = LocalDateTime.now();
         UserEntity hr = userRepo.findByEmail(userEmail).orElseThrow(
                 () -> new RuntimeException("User not found"));
+        if(hr.getRole() != Role.HR){
+            throw new RuntimeException("Role not allowed to interview");
+        }
         if (req.getStartTime().isBefore(now)) {
             throw new IllegalArgumentException("Start time must be in future");
         }
