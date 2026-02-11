@@ -9,75 +9,43 @@ export default function PreJoin() {
 
   const [mic, setMic] = useState(true);
   const [camera, setCamera] = useState(true);
-
+ 
   // Start initial preview
-  useEffect(() => {
-    const startPreview = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: true
-        });
+  // useEffect(() => {
+  //   const startPreview = async () => {
+  //     try {
+  //       const stream = await navigator.mediaDevices.getUserMedia({
+  //         video: true,
+  //         audio: true
+  //       });
         
-        streamRef.current = stream;
+  //       streamRef.current = stream;
         
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
+  //       if (videoRef.current) {
+  //         videoRef.current.srcObject = stream;
+  //       }
 
-        // Set initial states
-        stream.getAudioTracks().forEach(track => {
-          track.enabled = mic;
-        });
-        stream.getVideoTracks().forEach(track => {
-          track.enabled = camera;
-        });
-      } catch (error) {
-        console.error("Error accessing media devices:", error);
-      }
-    };
+  //       // Set initial states
+  //       stream.getAudioTracks().forEach(track => {
+  //         track.enabled = mic;
+  //       });
+  //       stream.getVideoTracks().forEach(track => {
+  //         track.enabled = camera;
+  //       });
+  //     } catch (error) {
+  //       console.error("Error accessing media devices:", error);
+  //     }
+  //   };
 
-    startPreview();
+  //   startPreview();
 
-    return () => {
-      // Cleanup stream on unmount
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-      }
-    };
-  }, []);
-
-  // Handle camera toggle - stop/start track
-  const toggleCamera = async () => {
-    if (camera) {
-      // Turn OFF - stop video track
-      if (streamRef.current) {
-        streamRef.current.getVideoTracks().forEach(track => {
-          track.stop();
-          streamRef.current.removeTrack(track);
-        });
-        setCamera(false);
-      }
-    } else {
-      // Turn ON - get new video track
-      try {
-        const newStream = await navigator.mediaDevices.getUserMedia({
-          video: true
-        });
-        
-        const videoTrack = newStream.getVideoTracks()[0];
-        streamRef.current.addTrack(videoTrack);
-        
-        if (videoRef.current) {
-          videoRef.current.srcObject = streamRef.current;
-        }
-        
-        setCamera(true);
-      } catch (error) {
-        console.error("Error restarting camera:", error);
-      }
-    }
-  };
+  //   return () => {
+  //     // Cleanup stream on unmount
+  //     if (streamRef.current) {
+  //       streamRef.current.getTracks().forEach(track => track.stop());
+  //     }
+  //   };
+  // }, []);
 
   // Handle mic toggle - just enable/disable
   const toggleMic = () => {
@@ -89,12 +57,23 @@ export default function PreJoin() {
     }
   };
 
+ // Handle camera toggle - just enable/disable
+  const toggleCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getVideoTracks().forEach(track => {
+        track.enabled = !camera;
+      });
+      setCamera(!camera);
+    }
+  };
+
   const joinInterview = () => {
     // Stop preview stream before joining
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-    }
+    // if (streamRef.current) {
+    //   streamRef.current.getTracks().forEach(track => track.stop());
+    // }
 
+    // Navigate with mic and camera preferences
     navigate(`/join/${meetingLink}`, {
       state: { mic, camera }
     });
@@ -126,39 +105,53 @@ export default function PreJoin() {
           marginBottom: "24px",
           backgroundColor: "#000",
           borderRadius: "8px",
-          overflow: "hidden"
+          overflow: "hidden",
+          height: "300px"
         }}>
-          <video 
-            ref={videoRef}
-            autoPlay 
-            muted 
-            playsInline
-            style={{ 
-              width: "100%",
-              height: "300px",
-              objectFit: "cover"
-            }}
-          />
-          {!camera && (
+          {camera ? (
+            <video 
+              ref={videoRef}
+              autoPlay 
+              muted 
+              playsInline
+              style={{ 
+                width: "100%",
+                height: "100%",
+                objectFit: "cover"
+              }}
+            />
+          ) : (
             <div style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
+              width: "100%",
+              height: "100%",
               display: "flex",
+              flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              backgroundColor: "#333",
+              backgroundColor: "#1f1f1f",
               color: "white",
-              fontSize: "18px"
+              gap: "10px"
             }}>
-              Camera is off
+              <div style={{ fontSize: "48px" }}>👤</div>
+              <div style={{ fontSize: "16px", opacity: 0.8 }}>Camera is off</div>
             </div>
+          )}
+          
+          {/* Always render video element (hidden) to maintain stream */}
+          {!camera && (
+            <video 
+              ref={videoRef}
+              autoPlay 
+              muted 
+              playsInline
+              style={{ 
+                display: "none"
+              }}
+            />
           )}
         </div>
 
-       
+        {/* Controls */}
         <div style={{ 
           display: "flex", 
           gap: "12px",
