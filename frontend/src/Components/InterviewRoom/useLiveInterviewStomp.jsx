@@ -11,7 +11,7 @@ export function useLiveInterviewStomp({ interviewId, token }) {
   const readyRef = useRef(false);
   const questionTimerRef = useRef(null);
   const codeTimerRef = useRef(null);
-
+   const [stompClientState, setStompClientState] = useState(null);
   const [question, setQuestion] = useState("");
   const [code, setCode] = useState("");
   const [connected, setConnected] = useState(false);
@@ -74,6 +74,7 @@ export function useLiveInterviewStomp({ interviewId, token }) {
 
       readyRef.current = true;
       setConnected(true);
+      setStompClientState(client);
     };
 
     client.onStompError = (frame) => {
@@ -197,6 +198,6 @@ export function useLiveInterviewStomp({ interviewId, token }) {
     updateQuestion,
     code,
     updateCode,
-    stompClient:  clientRef.current,
+    stompClient: stompClientState,
   };
 }

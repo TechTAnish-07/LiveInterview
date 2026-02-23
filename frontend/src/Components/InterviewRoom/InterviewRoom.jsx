@@ -1,17 +1,17 @@
 import React from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { useLiveInterviewStomp } from "./useLiveInterviewStomp";
-import TestEditor from "../TestEditor";
 import VideoCall from "./VideoCall";
 import { useAuth } from "../AuthProvider";
+import Compiler from "./Compiler";
 
 const LiveInterview = () => {
-  const { id } = useParams();     
-  const {isHR } = useAuth();         
-  const interviewId = Number(id);         
+  const { id } = useParams();
+  const { isHR, user } = useAuth();
+  const interviewId = Number(id);
   const token = localStorage.getItem("accessToken");
   const location = useLocation();
-
+   const userId = user?.email || user?.username;   
   // Get mic and camera preferences from PreJoin
   const mic = location.state?.mic ?? true;  // Default to true if not provided
   const camera = location.state?.camera ?? true;
@@ -35,9 +35,7 @@ const LiveInterview = () => {
     return <div>Connecting to interview...</div>;
   }
 
-  // Extract userId from interview data
-  // Adjust this based on your actual data structure
-  const userId = interview?.candidateId || interview?.userId || "user_" + Date.now();
+
 
   return (
     <div style={{ display: "flex", height: "100vh", flexDirection: "column" }}>
@@ -52,35 +50,33 @@ const LiveInterview = () => {
             style={{ width: "100%", height: "90%" }}
           />
         </div>
-
+     
+       {/* Divider */}
         <div style={{ width: "65%" }}>
-          <TestEditor value={code} onChange={updateCode} />
+          <Compiler value={code} onChange={updateCode} />
         </div>
       </div>
-    {/* <div cladsName ="viewResume" style={{ padding: "16px", borderTop: "1px solid #ccc" }}>
-        <h3>Candidate Resume</h3>
-        {interview?.resumeUrl ? (
-          <iframe
-            src={interview.resumeUrl}
-            title="Candidate Resume"
-            style={{ width: "100%", height: "400px", border: "none" }}
+
+      {/* Add this right before the VideoCall render: */}
+      {console.log("LiveInterview render — isHR:", isHR, "userId:", userId, "stompClient:", !!stompClient)}
+      <div
+        style={{
+          height: "220px",
+          borderTop: "1px solid #334155",
+          flexShrink: 0,
+        }}
+      >
+        {stompClient && ( // ✅ only render when stompClient is ready
+          <VideoCall
+            stompClient={stompClient}
+            interviewId={interviewId}
+            userId={String(userId)}
+            mic={mic}
+            camera={camera}
+            isHost={isHR} // ✅ HR creates the offer
           />
-        ) : (
-          <p>No resume available</p>
         )}
-    </div> */}
-      {/* VIDEO CALL AREA */}
-      {/* <div style={{ height: "260px", borderTop: "1px solid #ccc" }}>
-        <VideoCall
-          stompClient={stompClient}
-          interviewId={interviewId}
-          userId={userId}
-          mic={mic}
-          camera={camera}
-          isHost={isHR}
-        />
-      </div> */}
-  
+      </div>
     </div>
   );
 };

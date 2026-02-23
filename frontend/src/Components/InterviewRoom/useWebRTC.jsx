@@ -1,17 +1,18 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useCallback } from "react";
 
 export function useWebRTC(stompClient, interviewId, userId, isHost) {
   const pcRef = useRef(null);
   const localStreamRef = useRef(null);
   const callStartedRef = useRef(false);
+  const iceCandidateQueue = useRef([]); // ✅ ICE queue fix
 
   const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
+  const [micEnabled, setMicEnabled] = useState(true);       // ✅ NEW
+  const [cameraEnabled, setCameraEnabled] = useState(true);  // ✅ NEW
+  const [connectionState, setConnectionState] = useState("idle");
 
-  // -----------------------
-  // Create PeerConnection
-  // -----------------------
-  const createPeerConnection = () => {
+  const createPeerConnection = useCallback(() => {
     if (pcRef.current && pcRef.current.signalingState !== "closed") {
       return pcRef.current;
     }
@@ -47,7 +48,7 @@ export function useWebRTC(stompClient, interviewId, userId, isHost) {
     };
 
     pc.onicecandidate = (event) => {
-      if (event.candidate) {
+      if (event.candidate && stompClient?.connected) {
         stompClient.publish({
           destination: `/app/signal/${interviewId}`,
           body: JSON.stringify({
@@ -59,9 +60,16 @@ export function useWebRTC(stompClient, interviewId, userId, isHost) {
       }
     };
 
+    pc.onconnectionstatechange = () => {
+      setConnectionState(pc.connectionState);
+      if (pc.connectionState === "failed") {
+        console.error("WebRTC connection failed");
+      }
+    };
+
     pcRef.current = pc;
     return pc;
-  };
+  }, [stompClient, interviewId, userId]);
 
   // -----------------------
   // Start Media
@@ -69,104 +77,166 @@ export function useWebRTC(stompClient, interviewId, userId, isHost) {
   const startMedia = async ({ mic = true, camera = true } = {}) => {
     if (localStreamRef.current) return;
 
-    const pc = createPeerConnection();
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true,
+      });
 
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: true,
-      audio: true,
-    });
+      stream.getAudioTracks().forEach((t) => (t.enabled = mic));
+      stream.getVideoTracks().forEach((t) => (t.enabled = camera));
 
-    stream.getAudioTracks().forEach((track) => {
-      track.enabled = mic;
-    });
+      localStreamRef.current = stream;
+      setLocalStream(stream);
+      setMicEnabled(mic);
+      setCameraEnabled(camera);
 
-    stream.getVideoTracks().forEach((track) => {
-      track.enabled = camera;
-    });
-
-    localStreamRef.current = stream;
-    setLocalStream(stream);
-
-    stream.getTracks().forEach((track) => {
-      pc.addTrack(track, stream);
-    });
+      const pc = createPeerConnection();
+      stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+    } catch (err) {
+      console.error("Failed to access media devices:", err);
+    }
   };
 
   // -----------------------
-  // Create Offer (HOST ONLY)
+  // ✅ Toggle Mic
+  // -----------------------
+  const toggleMic = useCallback(() => {
+    if (!localStreamRef.current) return;
+    localStreamRef.current.getAudioTracks().forEach((t) => {
+      t.enabled = !t.enabled;
+    });
+    setMicEnabled((prev) => !prev);
+  }, []);
+
+  // -----------------------
+  // ✅ Toggle Camera
+  // -----------------------
+  const toggleCamera = useCallback(() => {
+    if (!localStreamRef.current) return;
+    localStreamRef.current.getVideoTracks().forEach((t) => {
+      t.enabled = !t.enabled;
+    });
+    setCameraEnabled((prev) => !prev);
+  }, []);
+
+  // -----------------------
+  // Create Offer (HOST = HR)
   // -----------------------
   const createOffer = async () => {
-    if (!isHost) return;
-    if (callStartedRef.current) return;
+    if (!isHost || callStartedRef.current) return;
 
-    const pc = createPeerConnection();
+    try {
+      if (!localStreamRef.current) await startMedia();
 
-    if (!localStreamRef.current) {
-      await startMedia();
-    }
+      const pc = createPeerConnection();
+      callStartedRef.current = true;
 
-    callStartedRef.current = true;
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
 
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
-
-    stompClient.publish({
+      stompClient.publish({
       destination: `/app/signal/${interviewId}`,
-      body: JSON.stringify({
-        type: "OFFER",
-        from: userId,
-        payload: offer,
-      }),
-    });
+        body: JSON.stringify({
+          type: "OFFER",
+          from: userId,
+          payload: offer,
+        }),
+      });
+    } catch (err) {
+      console.error("Create offer error:", err);
+      callStartedRef.current = false;
+    }
+  };
+
+  // -----------------------
+  // ✅ Flush ICE Queue
+  // -----------------------
+  const flushIceCandidateQueue = async (pc) => {
+    while (iceCandidateQueue.current.length > 0) {
+      const candidate = iceCandidateQueue.current.shift();
+      try {
+        await pc.addIceCandidate(candidate);
+      } catch (err) {
+        console.error("Failed to add queued ICE candidate:", err);
+      }
+    }
   };
 
   // -----------------------
   // Handle Signaling
   // -----------------------
   const handleSignal = async (signal) => {
+    
+     console.log(`🔍 Filter check — signal.from: "${signal.from}" | myUserId: "${userId}" | skip: ${signal.from === userId}`);
+  if (signal.from === userId) return;
+
     const pc = createPeerConnection();
-    if (signal.from === userId) return;
 
-    if (signal.type === "OFFER") {
-      await pc.setRemoteDescription(signal.payload);
+    try {
+      if (signal.type === "OFFER") {
+        // ✅ Candidate: start media if not yet started
+        if (!localStreamRef.current) {
+          await startMedia();
+        }
 
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
+        await pc.setRemoteDescription(new RTCSessionDescription(signal.payload));
+        await flushIceCandidateQueue(pc); // ✅ drain queue
 
-      stompClient.publish({
-        destination: `/app/signal/${interviewId}`,
-        body: JSON.stringify({
-          type: "ANSWER",
-          from: userId,
-          payload: answer,
-        }),
-      });
-    }
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
 
-    if (signal.type === "ANSWER") {
-      await pc.setRemoteDescription(signal.payload);
-    }
+        stompClient.publish({
+          destination: `/app/signal/${interviewId}`,
+          body: JSON.stringify({
+            type: "ANSWER",
+            from: userId,
+            payload: answer,
+          }),
+        });
+      }
 
-    if (signal.type === "CANDIDATE") {
-      await pc.addIceCandidate(signal.payload);
+      if (signal.type === "ANSWER") {
+        if (pc.signalingState === "have-local-offer") {
+          await pc.setRemoteDescription(new RTCSessionDescription(signal.payload));
+          await flushIceCandidateQueue(pc); // ✅ drain queue
+        }
+      }
+
+      if (signal.type === "CANDIDATE") {
+        // ✅ Queue if remote description not set yet
+        if (pc.remoteDescription?.type) {
+          await pc.addIceCandidate(new RTCIceCandidate(signal.payload));
+        } else {
+          iceCandidateQueue.current.push(new RTCIceCandidate(signal.payload));
+        }
+      }
+    } catch (err) {
+      console.error("Signal handling error:", err);
     }
   };
 
   // -----------------------
   // Cleanup
   // -----------------------
-  const cleanup = () => {
+  const cleanup = useCallback(() => {
     callStartedRef.current = false;
+    iceCandidateQueue.current = [];
 
     if (pcRef.current && pcRef.current.signalingState !== "closed") {
       pcRef.current.close();
     }
-
     pcRef.current = null;
 
     localStreamRef.current?.getTracks().forEach((t) => t.stop());
     localStreamRef.current = null;
-  };
+
+    setLocalStream(null);
+    setRemoteStream(null);
+    setMicEnabled(true);
+    setCameraEnabled(true);
+    setConnectionState("idle");
+  }, []);
 
   return {
     createPeerConnection,
@@ -174,7 +244,12 @@ export function useWebRTC(stompClient, interviewId, userId, isHost) {
     createOffer,
     handleSignal,
     cleanup,
+    toggleMic,      
+    toggleCamera,   
     localStream,
     remoteStream,
+    micEnabled,      
+    cameraEnabled,  
+    connectionState,
   };
 }

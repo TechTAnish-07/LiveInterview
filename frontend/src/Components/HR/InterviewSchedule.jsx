@@ -36,7 +36,7 @@ const InterviewSchedule = () => {
         );
     });
     const getInterviewUrl = (meetingLink) => {
-        return `${window.location.origin}/join/${meetingLink}`;
+        return `${window.location.origin}/Prejoin/${meetingLink}`;
     };
 
     const shareOnWhatsApp = (meetingLink) => {

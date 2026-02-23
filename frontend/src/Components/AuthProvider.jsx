@@ -20,7 +20,7 @@ const login = (accessToken) => {
   const decoded = jwtDecode(accessToken);
   setRole(decoded.role);
 };
-
+//console.log(token);
 
   useEffect(() => {
     if (!token) {
@@ -87,7 +87,6 @@ const login = (accessToken) => {
     clearAuth();
     window.location.href = "/login";
   };
-
   const value = {
     user,
     role,
@@ -96,9 +95,9 @@ const login = (accessToken) => {
     fetchUser,
     logout,
     clearAuth,
-    isAdmin: role === "ROLE_ADMIN",
-    isHR: role === "ROLE_HR",
-    isCandidate: role === "ROLE_CANDIDATE",
+    isAdmin: role === "ADMIN",
+    isHR: role === "HR",
+    isCandidate: role === "CANDIDATE",
 
     isAuthenticated: !!user,
   };
