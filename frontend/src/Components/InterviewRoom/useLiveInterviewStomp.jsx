@@ -11,26 +11,32 @@ export function useLiveInterviewStomp({ interviewId, token }) {
   const readyRef = useRef(false);
   const questionTimerRef = useRef(null);
   const codeTimerRef = useRef(null);
-   const [stompClientState, setStompClientState] = useState(null);
+  const [stompClientState, setStompClientState] = useState(null);
   const [question, setQuestion] = useState("");
   const [code, setCode] = useState("");
   const [connected, setConnected] = useState(false);
+  const [output, setOutput] = useState("");
 
   useEffect(() => {
-  if (!interviewId) return;
+    if (!interviewId) return;
 
-  const loadInitialState = async () => {
-    try {
-      const res = await api.get(`/api/coding/interview/${interviewId}/state`);
-      setQuestion(res.data.question || "");
-      setCode(res.data.code || "");
-    } catch (e) {
-      console.error("Failed to load interview state", e);
-    }
-  };
+    const loadInitialState = async () => {
+      try {
+        const res = await api.get(`/api/coding/interview/${interviewId}/state`);
 
-  loadInitialState();
-}, [interviewId]);
+        setQuestion(res.data.question || "");
+        setCode(res.data.code || "");
+        setOutput(res.data.output || "");
+        setTimeout(() => {
+
+        }, 0);
+      } catch (e) {
+        console.error("Failed to load interview state", e);
+      }
+    };
+
+    loadInitialState();
+  }, [interviewId]);
 
   useEffect(() => {
     if (!interviewId) {
@@ -58,7 +64,39 @@ export function useLiveInterviewStomp({ interviewId, token }) {
         (message) => {
           const parsed = JSON.parse(message.body);
           isRemoteUpdate.current = true;
-          setQuestion(parsed.question); // ✅ FIX
+          setQuestion(parsed.question);
+        }
+      );
+
+
+      client.subscribe(
+        `/topic/interview/${interviewId}/run-output`,
+        (message) => {
+          const parsed = JSON.parse(message.body);
+
+          console.log("📩 Full message:", parsed);
+
+          const text = parsed.payload || "";
+
+          if (parsed.type === "STATUS") {
+            setOutput(prev => prev + "\n" + text);
+          }
+
+          if (parsed.type === "STDOUT") {
+            setOutput(prev => prev + text);
+          }
+
+          if (parsed.type === "ERROR") {
+            setOutput(prev => prev + "\nError: " + text);
+          }
+
+          if (parsed.type === "COMPILE_ERROR") {
+            setOutput(prev => prev + "\nCompile Error:\n" + text);
+          }
+
+          if (parsed.type === "DONE") {
+            setOutput(prev => prev + "\n\nExecution Finished");
+          }
         }
       );
 
@@ -71,7 +109,6 @@ export function useLiveInterviewStomp({ interviewId, token }) {
           setCode(parsed.code); // ✅ FIX
         }
       );
-
       readyRef.current = true;
       setConnected(true);
       setStompClientState(client);
@@ -163,19 +200,19 @@ export function useLiveInterviewStomp({ interviewId, token }) {
 
   /* ---------------- SAFE STATE UPDATERS ---------------- */
 
- const updateQuestion = useCallback((value) => {
-  setQuestion(value);
+  const updateQuestion = useCallback((value) => {
+    setQuestion(value);
 
-  if (isRemoteUpdate.current) {
-    isRemoteUpdate.current = false;
-    return;
-  }
+    if (isRemoteUpdate.current) {
+      isRemoteUpdate.current = false;
+      return;
+    }
 
-  clearTimeout(questionTimerRef.current);
-  questionTimerRef.current = setTimeout(() => {
-    sendQuestionUpdate(value);
-  }, 400);
-}, [sendQuestionUpdate]);
+    clearTimeout(questionTimerRef.current);
+    questionTimerRef.current = setTimeout(() => {
+      sendQuestionUpdate(value);
+    }, 400);
+  }, [sendQuestionUpdate]);
 
   const updateCode = useCallback((value) => {
     setCode(value);
@@ -198,6 +235,8 @@ export function useLiveInterviewStomp({ interviewId, token }) {
     updateQuestion,
     code,
     updateCode,
+    setOutput,
+    output,
     stompClient: stompClientState,
   };
 }

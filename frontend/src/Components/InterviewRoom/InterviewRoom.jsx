@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { useLiveInterviewStomp } from "./useLiveInterviewStomp";
 import VideoCall from "./VideoCall";
@@ -8,15 +8,15 @@ import Compiler from "./Compiler";
 const LiveInterview = () => {
   const { id } = useParams();
   const { isHR, user } = useAuth();
+ 
   const interviewId = Number(id);
   const token = localStorage.getItem("accessToken");
   const location = useLocation();
    const userId = user?.email || user?.username;   
-  // Get mic and camera preferences from PreJoin
-  const mic = location.state?.mic ?? true;  // Default to true if not provided
+ 
+  const mic = location.state?.mic ?? true;
   const camera = location.state?.camera ?? true;
 
-  // Get interview data (which includes userId)
   const interview = location.state?.interview;
 
   const {
@@ -26,6 +26,9 @@ const LiveInterview = () => {
     code,
     updateCode,
     stompClient,
+    output,
+    setOutput,
+
   } = useLiveInterviewStomp({
     interviewId,                         
     token,
@@ -50,32 +53,38 @@ const LiveInterview = () => {
             style={{ width: "100%", height: "90%" }}
           />
         </div>
+
      
        {/* Divider */}
         <div style={{ width: "65%" }}>
-          <Compiler value={code} onChange={updateCode} />
+          <Compiler
+          value={code}
+          onChange={(value) => updateCode(value)}
+         
+          output={output}
+          clearOutput={() => setOutput("")}
+          interviewId={interviewId}
+         />
         </div>
       </div>
-
+    
+     
       {/* Add this right before the VideoCall render: */}
       {console.log("LiveInterview render — isHR:", isHR, "userId:", userId, "stompClient:", !!stompClient)}
       <div
-        style={{
-          height: "220px",
-          borderTop: "1px solid #334155",
-          flexShrink: 0,
-        }}
+        
       >
-        {stompClient && ( // ✅ only render when stompClient is ready
-          <VideoCall
-            stompClient={stompClient}
-            interviewId={interviewId}
-            userId={String(userId)}
-            mic={mic}
-            camera={camera}
-            isHost={isHR} // ✅ HR creates the offer
-          />
-        )}
+          {stompClient && (
+            <VideoCall
+              stompClient={stompClient}
+              interviewId={interviewId}
+              userId={String(userId)}
+              mic={mic}
+              camera={camera}
+              isHost={isHR} // ✅ HR creates the offer
+            />
+          )}
+        
       </div>
     </div>
   );

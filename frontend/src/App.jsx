@@ -8,7 +8,7 @@ const ErrorPage = lazy(() => import("./Components/ErrorPage"));
 const AppLayout = lazy(() => import("./Components/Layout/AppLayout"));
 const Questions = lazy(() => import("./Components/Questions"));
 const InterviewRoom = lazy(() => import("./Components/InterviewRoom/InterviewRoom.jsx"));
-const CodingPanel = lazy(() => import("./Components/InterviewRoom/CodePanel.jsx"));
+
 import TestEditor from "./Components/TestEditor.jsx";
 const PreJoin = lazy(() => import("./Components/InterviewRoom/PreJoin.jsx"));
 const JoinInterview = lazy(() => import("./Components/InterviewRoom/JoinInterview.jsx"));
@@ -24,7 +24,6 @@ const router = createBrowserRouter([
       { path: "login", element: <Login /> },
       { path: "questions", element: <Questions /> },
       { path: "interview/:id", element: <InterviewRoom /> },
-      { path: "coding", element: <CodingPanel /> },
       { path: "codeeditor", element: <TestEditor /> },
       { path: "interviewschedule", element: <InterviewSchedule /> },
       { path: "/join/:meetingLink", element: <JoinInterview/> },
