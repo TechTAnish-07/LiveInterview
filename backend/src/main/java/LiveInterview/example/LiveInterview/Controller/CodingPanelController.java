@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -17,6 +18,7 @@ import java.security.Principal;
 public class CodingPanelController {
     private final InterviewService interviewService;
     private final Judge0LiveService judge0LiveService;
+    private  SimpMessagingTemplate messagingTemplate;
     public CodingPanelController(InterviewService interviewService,
                                   Judge0LiveService judge0LiveService
 
@@ -85,5 +87,38 @@ public class CodingPanelController {
        return ResponseEntity.accepted().build();
    }
 
+    @MessageMapping("/interview/{interviewId}/output")
+    public void outputSync(
+            @DestinationVariable Long interviewId,
+            RunResponse message,
+            Principal principal
+    ) {
 
+        interviewService.verifyUserInInterview(principal, interviewId);
+
+        if (message == null) {
+            return;
+        }
+
+        messagingTemplate.convertAndSend(
+                "/topic/interview/" + interviewId + "/output",
+                message
+        );
+    }
+    @GetMapping("/interview/{interviewId}/output")
+    public ResponseEntity<RunResponse> getOutput(
+            @PathVariable Long interviewId,
+            Principal principal
+    ) {
+
+        interviewService.verifyUserInInterview(principal, interviewId);
+
+        RunResponse response = interviewService.getLatestRunResponse(interviewId);
+
+        if (response == null) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(response);
+    }
 }
