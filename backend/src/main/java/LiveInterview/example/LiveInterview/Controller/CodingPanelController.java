@@ -105,20 +105,20 @@ public class CodingPanelController {
                 message
         );
     }
-    @GetMapping("/interview/{interviewId}/output")
-    public ResponseEntity<RunResponse> getOutput(
-            @PathVariable Long interviewId,
-            Principal principal
-    ) {
-
-        interviewService.verifyUserInInterview(principal, interviewId);
-
-        RunResponse response = interviewService.getLatestRunResponse(interviewId);
-
-        if (response == null) {
-            return ResponseEntity.noContent().build();
-        }
-
-        return ResponseEntity.ok(response);
-    }
+//    @GetMapping("/interview/{interviewId}/output")
+//    public ResponseEntity<RunResponse> getOutput(
+//            @PathVariable Long interviewId,
+//            Principal principal
+//    ) {
+//
+//        interviewService.verifyUserInInterview(principal, interviewId);
+//
+//        RunResponse response = interviewService.getLatestRunResponse(interviewId);
+//
+//        if (response == null) {
+//            return ResponseEntity.noContent().build();
+//        }
+//
+//        return ResponseEntity.ok(response);
+//    }
 }
