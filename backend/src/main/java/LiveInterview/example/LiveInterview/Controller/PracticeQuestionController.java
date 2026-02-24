@@ -53,7 +53,7 @@ public class PracticeQuestionController {
     public ResponseEntity<RunResponse> submitPracticeCode(
             @RequestBody PracticeRunRequest request,
             Principal principal
-    ) {
+    ) throws InterruptedException {
         UserEntity user = customUserDetailsService.getUserFromPrincipal(principal);
 
         PracticeQuestionResponse question =
@@ -67,7 +67,7 @@ public class PracticeQuestionController {
         String token = judge0Service.submit(codeExecutionRequest);
 
         RunResponse response = judge0Service.getResult(token);
-
+      // System.out.println("final response of judgeO " + response);
         practiceProgressService.updateProgress(
                 user.getId(),
                 question.getId(),

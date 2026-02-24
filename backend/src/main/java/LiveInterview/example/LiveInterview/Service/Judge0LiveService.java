@@ -1,9 +1,6 @@
 package LiveInterview.example.LiveInterview.Service;
 
-import LiveInterview.example.LiveInterview.DTO.CodeExecutionRequest;
-import LiveInterview.example.LiveInterview.DTO.Judge0Result;
-import LiveInterview.example.LiveInterview.DTO.LiveRunMessage;
-import LiveInterview.example.LiveInterview.DTO.RunRequest;
+import LiveInterview.example.LiveInterview.DTO.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
@@ -21,60 +18,58 @@ public class Judge0LiveService {
 
         String topic = "/topic/interview/" + interviewId + "/run-output";
 
-        messagingTemplate.convertAndSend(topic,
-                new LiveRunMessage("STATUS", "Submitting code..."));
-        CodeExecutionRequest execRequest =
-                new CodeExecutionRequest(
-                        request.getSourceCode(),
-                        request.getLanguage(),
-                        request.getStdin()
-                );
+        try {
 
-        String token = judge0Service.submit(execRequest);
+            messagingTemplate.convertAndSend(topic,
+                    new LiveRunMessage("STATUS", "Submitting code..."));
 
+            CodeExecutionRequest execRequest =
+                    new CodeExecutionRequest(
+                            request.getSourceCode(),
+                            request.getLanguage(),
+                            request.getStdin()
+                    );
 
-        String lastStdout = "";
-        String lastStderr = "";
+            String token = judge0Service.submit(execRequest);
 
-        while (true) {
+            messagingTemplate.convertAndSend(topic,
+                    new LiveRunMessage("STATUS", "Running code..."));
 
-            Judge0Result result = judge0Service.fetchRawResult(token);
+            Judge0Result result = judge0Service.waitForCompletion(token);
 
-            if (result.getStdout() != null &&
-                    !result.getStdout().equals(lastStdout)) {
-
-                String diff = result.getStdout().replace(lastStdout, "");
-                lastStdout = result.getStdout();
-
+            // Send stdout
+            if (result.getStdout() != null) {
                 messagingTemplate.convertAndSend(topic,
-                        new LiveRunMessage("STDOUT", diff));
+                        new LiveRunMessage("STDOUT", result.getStdout()));
             }
 
-            if (result.getStderr() != null &&
-                    !result.getStderr().equals(lastStderr)) {
-
-                String diff = result.getStderr().replace(lastStderr, "");
-                lastStderr = result.getStderr();
-
+            if (result.getStderr() != null) {
                 messagingTemplate.convertAndSend(topic,
-                        new LiveRunMessage("STDERR", diff));
+                        new LiveRunMessage("STDERR", result.getStderr()));
             }
 
-            int statusId = result.getStatus().getId();
 
-
-            if (statusId > 2) {
+            if (result.getCompile_output() != null) {
                 messagingTemplate.convertAndSend(topic,
-                        new LiveRunMessage("DONE",
-                                result.getStatus().getDescription()));
-                break;
+                        new LiveRunMessage("COMPILE_ERROR", result.getCompile_output()));
             }
 
-            sleep(1000);
+            String statusDescription =
+                    result.getStatus() != null ?
+                            result.getStatus().getDescription() :
+                            "Unknown";
+
+            messagingTemplate.convertAndSend(topic,
+                    new LiveRunMessage("DONE", statusDescription));
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            messagingTemplate.convertAndSend(topic,
+                    new LiveRunMessage("ERROR",
+                            "Execution failed: " + e.getMessage()));
         }
     }
 
-    private void sleep(long ms) {
-        try { Thread.sleep(ms); } catch (InterruptedException ignored) {}
-    }
 }

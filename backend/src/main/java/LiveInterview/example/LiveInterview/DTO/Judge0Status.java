@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class Judge0Status {
-    private int id;
+    private Integer id;
     private String description;
 }
 

@@ -1,22 +1,24 @@
 package LiveInterview.example.LiveInterview.Service;
 
 import LiveInterview.example.LiveInterview.DTO.*;
-import lombok.RequiredArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Service
-@RequiredArgsConstructor
 public class Judge0Service {
 
-    private static final String BASE_URL = "https://ce.judge0.com";
+    private final WebClient webClient;
 
-    private final WebClient.Builder webClientBuilder;
-
-    private WebClient client() {
-        return webClientBuilder.baseUrl(BASE_URL).build();
+    public Judge0Service(WebClient.Builder builder) {
+        this.webClient = builder
+                .baseUrl("https://ce.judge0.com")
+                .build();
     }
+
 
     public String submit(CodeExecutionRequest runRequest) {
 
@@ -28,12 +30,20 @@ public class Judge0Service {
                 runRequest.getStdin()
         );
 
-        var response = client()
+        TokenResponse response = webClient
                 .post()
-                .uri("/submissions?base64_encoded=false&wait=false")
+                .uri(uriBuilder -> uriBuilder
+                        .path("/submissions")
+                        .queryParam("base64_encoded", false)
+                        .queryParam("wait", false)
+                        .build())
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
                 .retrieve()
+                .onStatus(HttpStatusCode::isError, res ->
+                        res.bodyToMono(String.class)
+                                .map(body -> new RuntimeException(
+                                        "Judge0 submit error: " + body)))
                 .bodyToMono(TokenResponse.class)
                 .block();
 
@@ -45,24 +55,67 @@ public class Judge0Service {
     }
 
 
-    public RunResponse getResult(String token) {
+    public RunResponse getResult(String token) throws InterruptedException {
 
-        Judge0Result result = client()
-                .get()
-                .uri("/submissions/{token}?base64_encoded=false", token)
-                .retrieve()
-                .bodyToMono(Judge0Result.class)
-                .block();
-
-        if (result == null || result.getStatus() == null) {
-            throw new RuntimeException("Failed to fetch Judge0 result");
-        }
-
+        Judge0Result result = waitForCompletion(token);
         return mapToRunResponse(result);
     }
 
 
-    private RunResponse mapToRunResponse(Judge0Result result) {
+    public Judge0Result getRawResult(String token) {
+
+        Judge0Result result = webClient
+                .get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/submissions/{token}")
+                        .queryParam("base64_encoded", false)
+                        .build(token))
+                .retrieve()
+                .bodyToMono(Judge0Result.class)
+                .block();
+
+        if (result == null) {
+            throw new RuntimeException("Judge0 returned null response");
+        }
+
+        return result;
+    }
+
+    public Judge0Result waitForCompletion(String token) throws InterruptedException {
+
+        int maxAttempts = 25; // ~20 seconds
+        int attempts = 0;
+
+        while (attempts < maxAttempts) {
+
+            attempts++;
+
+            Judge0Result result = getRawResult(token);
+
+            if (result.getStatus() == null ||
+                    result.getStatus().getId() == null) {
+
+                Thread.sleep(800);
+                continue;
+            }
+
+            if (result.getStatus().getId() > 2) {
+                return result;
+            }
+
+            Thread.sleep(800);
+        }
+
+        throw new RuntimeException("Judge0 execution timeout");
+    }
+
+
+    public RunResponse mapToRunResponse(Judge0Result result) {
+
+        if (result.getStatus() == null) {
+            throw new RuntimeException("Invalid Judge0 status");
+        }
+
         return new RunResponse(
                 result.getStdout(),
                 result.getStderr(),
@@ -73,23 +126,10 @@ public class Judge0Service {
         );
     }
 
-    public Judge0Result fetchRawResult(String token) {
-        return client()
-                .get()
-                .uri("/submissions/{token}?base64_encoded=false", token)
-                .retrieve()
-                .bodyToMono(Judge0Result.class)
-                .block();
-    }
 
-
+    @Setter
+    @Getter
     private static class TokenResponse {
         private String token;
-        public String getToken() {
-            return token;
-        }
-        public void setToken(String token) {
-            this.token = token;
-        }
     }
 }

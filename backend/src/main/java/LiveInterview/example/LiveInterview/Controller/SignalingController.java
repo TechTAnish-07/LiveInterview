@@ -14,7 +14,7 @@ public class SignalingController {
     @MessageMapping("/signal/{interviewId}")
     @SendTo("/topic/interview/{interviewId}")
     public SignalMessage signal(
-            @DestinationVariable String roomId,
+            @DestinationVariable String interviewId,
             SignalMessage message,
             Principal principal
     ) {
