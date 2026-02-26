@@ -28,8 +28,6 @@ public class InterviewCreationController {
             Authentication authentication
             ) {
         String userEmail = authentication.getName();
-
-
         InterviewCreateResponse response = interviewCreationService.createInterviewLink(req, userEmail);
         return ResponseEntity.ok(response);
     }
@@ -39,7 +37,14 @@ public class InterviewCreationController {
         return ResponseEntity.ok(responses);
     }
 
+    @PostMapping("/interview/{interviewId}/end")
+    public ResponseEntity<?> endInterview(
+            @PathVariable Long interviewId,
+            Principal principal) {
 
+        interviewCreationService.endInterview(interviewId, principal);
+        return ResponseEntity.ok("Interview ended successfully");
+    }
 
 }
 
