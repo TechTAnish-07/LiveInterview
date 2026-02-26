@@ -52,7 +52,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         try {
             email = jwtService.extractEmail(token);
         } catch (Exception e) {
-            // ❌ Invalid token → reject request cleanly
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }

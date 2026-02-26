@@ -46,7 +46,6 @@ public class SecurityConfig {
 
         config.setAllowCredentials(true);
 
-        // ✅ SET ONCE
         config.setAllowedOriginPatterns(List.of("http://localhost:*"));
 
         config.setAllowedHeaders(List.of("*"));
@@ -70,8 +69,8 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/api/hr/**").hasRole("HR")
 
-                        // ✅ EVERYTHING ELSE LAST
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->
