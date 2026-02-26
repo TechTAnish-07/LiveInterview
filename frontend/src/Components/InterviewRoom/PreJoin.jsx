@@ -11,7 +11,7 @@ export default function PreJoin() {
   const [camera, setCamera] = useState(true);
   const [mediaReady, setMediaReady] = useState(false);
   const [error, setError] = useState(null);
-
+ const token = localStorage.getItem("accessToken");
   // ✅ Start preview on mount
   useEffect(() => {
     const startPreview = async () => {
@@ -70,6 +70,7 @@ export default function PreJoin() {
 
   const joinInterview = () => {
     // ✅ Stop preview tracks — VideoCall will request its own stream
+     if ( !token) return;
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;

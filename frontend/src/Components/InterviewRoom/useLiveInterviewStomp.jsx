@@ -16,7 +16,7 @@ export function useLiveInterviewStomp({ interviewId, token }) {
   const [code, setCode] = useState("");
   const [connected, setConnected] = useState(false);
   const [output, setOutput] = useState("");
-
+ const [interviewEnded, setInterviewEnded] = useState(false);
   useEffect(() => {
     if (!interviewId) return;
 
@@ -109,10 +109,22 @@ export function useLiveInterviewStomp({ interviewId, token }) {
           setCode(parsed.code); // ✅ FIX
         }
       );
+        client.subscribe(
+      `/topic/interview/${interviewId}/ended`,
+      
+      (message) => {
+        console.log("Interview ended");
+        setInterviewEnded(true);
+      }
+    );
+
       readyRef.current = true;
       setConnected(true);
       setStompClientState(client);
     };
+
+
+  
 
     client.onStompError = (frame) => {
       console.error("[STOMP ERROR]", frame.headers["message"]);
@@ -238,5 +250,6 @@ export function useLiveInterviewStomp({ interviewId, token }) {
     setOutput,
     output,
     stompClient: stompClientState,
+    interviewEnded,
   };
 }

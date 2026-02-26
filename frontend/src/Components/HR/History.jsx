@@ -21,8 +21,8 @@ const History = () => {
     const now = new Date();
     const historyInterviews = interviews.filter((i) => {
         return (
-            i.status === "EXPIRED" &&
-            new Date(i.endTime) <= now
+(           ( i.status === "EXPIRED" &&
+            new Date(i.endTime) <= now) || i.status === "COMPLETED" )
         );
     });
 
@@ -38,6 +38,7 @@ const History = () => {
                             {i.candidateEmail} — {i.startTime} to {i.endTime} — Status: {i.status}
                         </li>
                     ))}
+                   
                 </ul>
             )}
 
