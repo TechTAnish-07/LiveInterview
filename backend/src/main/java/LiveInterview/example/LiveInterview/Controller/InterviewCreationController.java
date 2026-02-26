@@ -37,7 +37,7 @@ public class InterviewCreationController {
         return ResponseEntity.ok(responses);
     }
 
-    @PostMapping("/interview/{interviewId}/end")
+    @PutMapping("/interview/{interviewId}/end")
     public ResponseEntity<?> endInterview(
             @PathVariable Long interviewId,
             Principal principal) {

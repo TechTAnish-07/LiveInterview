@@ -20,12 +20,13 @@ import java.util.UUID;
 public class InterviewCreationService {
     private final UserRepo userRepo;
     private final InterviewRepository interviewRepository;
-    private SimpMessagingTemplate messagingTemplate;
+    private final SimpMessagingTemplate messagingTemplate;
     @Autowired
-    public InterviewCreationService( UserRepo userRepo,  InterviewRepository interviewRepository) {
+    public InterviewCreationService( UserRepo userRepo,  InterviewRepository interviewRepository ,SimpMessagingTemplate messagingTemplate ) {
 
         this.userRepo = userRepo;
         this.interviewRepository = interviewRepository;
+        this.messagingTemplate = messagingTemplate;
 
     }
     public InterviewCreateResponse createInterviewLink(InterviewCreateRequest req ,  String userEmail) {
