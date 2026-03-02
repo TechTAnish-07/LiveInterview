@@ -21,7 +21,7 @@ const login = (accessToken) => {
   setRole(decoded.role);
 };
 //console.log(token);
-
+//console.log(user);
   useEffect(() => {
     if (!token) {
       clearAuth();

@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import api from "../Axios";
 
-const Schedule = () => {
+const CandidateSchedule = () => {
   const [copiedId, setCopiedId] = useState(null);
   const [interviews, setInterviews] = useState([]);
-
+ 
   useEffect(() => {
     const fetchSchedule = async () => {
       try {
-        const res = await api.get("/api/interview/my-interviews");
+        const res = await api.get("/api/interview/candidate/my-interviews");
         setInterviews(res.data);
       } catch (error) {
         console.error("Error fetching interview schedule:", error);
@@ -97,4 +98,4 @@ const Schedule = () => {
   );
 };
 
-export default Schedule;
+export default CandidateSchedule;
