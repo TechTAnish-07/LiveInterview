@@ -47,16 +47,16 @@ const InterviewSchedule = () => {
         window.open(`https://wa.me/?text=${encodedMessage}`, "_blank");
     };
 
-   const copyLink = async (meetingLink, interviewId) => {
-  const interviewUrl = getInterviewUrl(meetingLink);
-  try {
+    const copyLink = async (meetingLink, interviewId) => {
+    const interviewUrl = getInterviewUrl(meetingLink);
+     try {
     await navigator.clipboard.writeText(interviewUrl);
-    setCopiedId(interviewId);
-    setTimeout(() => setCopiedId(null), 2000);
-  } catch {
-    alert("Failed to copy link");
-  }
-};
+     setCopiedId(interviewId);
+     setTimeout(() => setCopiedId(null), 2000);
+     } catch {
+     alert("Failed to copy link");
+      }
+    };
 
     return (
         <div>
