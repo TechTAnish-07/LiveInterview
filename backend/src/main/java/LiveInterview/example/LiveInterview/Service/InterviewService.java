@@ -250,7 +250,24 @@ public class InterviewService {
                 interview.getEndTime()
         );
     }
-    public List<Interview> getInterviewByCandidate(String candidateEmail) {
-        return interviewRepository.findByCandidate(candidateEmail);
+    public List<ScheduleResponseDTO> getInterviewByCandidate(String candidateEmail) {
+
+        List<Interview> interviews =
+                interviewRepository.findByCandidate(candidateEmail);
+
+        return interviews.stream()
+                .map(this::mapToDTO)
+                .toList();
+    }
+    public ScheduleResponseDTO mapToDTO(Interview interview) {
+        return ScheduleResponseDTO.builder()
+                .interviewId(interview.getId())
+                .hrEmail(interview.getHr().getEmail())
+                .candidateEmail(interview.getCandidateEmail())
+                .startTime(interview.getStartTime())
+                .endTime(interview.getEndTime())
+                .status(interview.getStatus())
+                .meetingLink(interview.getMeetingLink())
+                .build();
     }
 }
