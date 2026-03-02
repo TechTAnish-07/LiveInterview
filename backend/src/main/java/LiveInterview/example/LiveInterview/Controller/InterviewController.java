@@ -1,12 +1,14 @@
 package LiveInterview.example.LiveInterview.Controller;
 
 import LiveInterview.example.LiveInterview.DTO.InterviewJoinResponse;
+import LiveInterview.example.LiveInterview.Entity.Interview;
 import LiveInterview.example.LiveInterview.Service.InterviewService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.List;
 import java.util.Map;
 
 
@@ -47,6 +49,19 @@ public class InterviewController {
                     )
             );
         }
+    }
+    @GetMapping("/candidate/{email}")
+    public ResponseEntity<?> getInterviewByCandidate(@PathVariable String email) {
+
+        List<Interview> interviews =
+                interviewService.getInterviewByCandidate(email);
+
+        if (interviews.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("No interviews found.");
+        }
+
+        return ResponseEntity.ok(interviews);
     }
 
 

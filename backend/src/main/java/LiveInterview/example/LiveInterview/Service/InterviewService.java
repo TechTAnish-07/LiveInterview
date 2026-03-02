@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -249,5 +250,7 @@ public class InterviewService {
                 interview.getEndTime()
         );
     }
-
+    public List<Interview> getInterviewByCandidate(String candidateEmail) {
+        return interviewRepository.findByCandidate(candidateEmail);
+    }
 }
