@@ -11,7 +11,8 @@ export default function PreJoin() {
   const [camera, setCamera] = useState(true);
   const [mediaReady, setMediaReady] = useState(false);
   const [error, setError] = useState(null);
- const token = localStorage.getItem("accessToken");
+  const token = localStorage.getItem("accessToken");
+
   // ✅ Start preview on mount
   useEffect(() => {
     const startPreview = async () => {
@@ -48,7 +49,7 @@ export default function PreJoin() {
     if (videoRef.current && streamRef.current) {
       videoRef.current.srcObject = streamRef.current;
     }
-  }, [camera]); // re-attach when camera toggles back on
+  }, [camera]);
 
   const toggleMic = () => {
     if (streamRef.current) {
@@ -68,12 +69,21 @@ export default function PreJoin() {
     }
   };
 
-  const joinInterview = () => {
-    // ✅ Stop preview tracks — VideoCall will request its own stream
-     if ( !token) return;
+  const joinInterview = async () => {
+    if (!token) return;
+
+    // ✅ Stop preview tracks
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
+    }
+
+    // 🔒 Request fullscreen before navigating
+    try {
+      await document.documentElement.requestFullscreen();
+    } catch (err) {
+      console.warn("Fullscreen request failed:", err);
+      // Continue anyway - fullscreen is not critical
     }
 
     navigate(`/join/${meetingLink}`, {
@@ -134,7 +144,6 @@ export default function PreJoin() {
             border: "1px solid #334155",
           }}
         >
-          {/* Always render video, just hide when camera is off */}
           <video
             ref={videoRef}
             autoPlay
@@ -149,7 +158,6 @@ export default function PreJoin() {
             }}
           />
 
-          {/* Camera off overlay */}
           {!camera && (
             <div
               style={{
@@ -174,7 +182,6 @@ export default function PreJoin() {
             </div>
           )}
 
-          {/* Mic status indicator */}
           <div
             style={{
               position: "absolute",
@@ -248,6 +255,17 @@ export default function PreJoin() {
         >
           {mediaReady ? "Join Interview" : "Setting up devices..."}
         </button>
+
+        <div
+          style={{
+            fontSize: "12px",
+            color: "#94a3b8",
+            textAlign: "center",
+            marginTop: "-10px",
+          }}
+        >
+          🔒 Interview will open in fullscreen mode
+        </div>
       </div>
     </div>
   );

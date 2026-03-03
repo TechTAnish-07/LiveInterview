@@ -11,12 +11,16 @@ export function useLiveInterviewStomp({ interviewId, token }) {
   const readyRef = useRef(false);
   const questionTimerRef = useRef(null);
   const codeTimerRef = useRef(null);
+  
   const [stompClientState, setStompClientState] = useState(null);
   const [question, setQuestion] = useState("");
   const [code, setCode] = useState("");
   const [connected, setConnected] = useState(false);
   const [output, setOutput] = useState("");
- const [interviewEnded, setInterviewEnded] = useState(false);
+  const [interviewEnded, setInterviewEnded] = useState(false);
+  
+  const [securityFlags, setSecurityFlags] = useState([]);
+
   useEffect(() => {
     if (!interviewId) return;
 
@@ -27,9 +31,7 @@ export function useLiveInterviewStomp({ interviewId, token }) {
         setQuestion(res.data.question || "");
         setCode(res.data.code || "");
         setOutput(res.data.output || "");
-        setTimeout(() => {
-
-        }, 0);
+        setTimeout(() => {}, 0);
       } catch (e) {
         console.error("Failed to load interview state", e);
       }
@@ -59,6 +61,7 @@ export function useLiveInterviewStomp({ interviewId, token }) {
     client.onConnect = () => {
       console.log("✅ STOMP CONNECTED");
 
+      // Subscribe to question updates
       client.subscribe(
         `/topic/interview/${interviewId}/question`,
         (message) => {
@@ -68,7 +71,7 @@ export function useLiveInterviewStomp({ interviewId, token }) {
         }
       );
 
-
+      // Subscribe to code execution output
       client.subscribe(
         `/topic/interview/${interviewId}/run-output`,
         (message) => {
@@ -100,31 +103,46 @@ export function useLiveInterviewStomp({ interviewId, token }) {
         }
       );
 
-
+    
       client.subscribe(
         `/topic/interview/${interviewId}/code`,
         (message) => {
           const parsed = JSON.parse(message.body);
           isRemoteUpdate.current = true;
-          setCode(parsed.code); // ✅ FIX
+          setCode(parsed.code);
         }
       );
-        client.subscribe(
-      `/topic/interview/${interviewId}/ended`,
-      
-      (message) => {
-        console.log("Interview ended");
-        setInterviewEnded(true);
-      }
-    );
+
+     
+      client.subscribe(
+        `/topic/interview/${interviewId}/ended`,
+        (message) => {
+          console.log("Interview ended");
+          setInterviewEnded(true);
+        }
+      );
+
+     
+      client.subscribe(
+        `/topic/interview/${interviewId}/security`,
+        (message) => {
+          const flag = JSON.parse(message.body);
+          console.log("🚩 Security flag received:", flag);
+          
+          setSecurityFlags((prev) => [
+            ...prev,
+            {
+              ...flag,
+              timestamp: new Date(flag.timestamp),
+            },
+          ]);
+        }
+      );
 
       readyRef.current = true;
       setConnected(true);
       setStompClientState(client);
     };
-
-
-  
 
     client.onStompError = (frame) => {
       console.error("[STOMP ERROR]", frame.headers["message"]);
@@ -183,7 +201,6 @@ export function useLiveInterviewStomp({ interviewId, token }) {
 
   const sendCodeUpdate = useCallback(
     (value) => {
-
       if (!readyRef.current || !clientRef.current) {
         console.warn("Cannot send code: client not ready");
         return;
@@ -205,6 +222,38 @@ export function useLiveInterviewStomp({ interviewId, token }) {
         });
       } catch (e) {
         console.error("Error sending code:", e);
+      }
+    },
+    [interviewId]
+  );
+
+  // 🚩 Send security flag (candidate sends to HR)
+  const sendSecurityFlag = useCallback(
+    (type, message, metadata = {}) => {
+      if (!readyRef.current || !clientRef.current) {
+        console.warn("Cannot send security flag: client not ready");
+        return;
+      }
+
+      const destination = `/app/interview/${interviewId}/security`;
+      console.log("🚩 Sending security flag to:", destination);
+
+      try {
+        const flag = {
+          type,
+          message,
+          timestamp: new Date().toISOString(),
+          metadata,
+        };
+
+        clientRef.current.publish({
+          destination: destination,
+          body: JSON.stringify(flag),
+        });
+
+        console.log("🚩 Security flag sent:", flag);
+      } catch (e) {
+        console.error("Error sending security flag:", e);
       }
     },
     [interviewId]
@@ -240,8 +289,8 @@ export function useLiveInterviewStomp({ interviewId, token }) {
     }, 400);
   }, [sendCodeUpdate]);
 
-
   return {
+    // Existing returns
     connected,
     question,
     updateQuestion,
@@ -251,5 +300,7 @@ export function useLiveInterviewStomp({ interviewId, token }) {
     output,
     stompClient: stompClientState,
     interviewEnded,
+    securityFlags,
+    sendSecurityFlag,
   };
 }
