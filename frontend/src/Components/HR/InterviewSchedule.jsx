@@ -22,7 +22,7 @@ const InterviewSchedule = () => {
 
     const handleInterviewCreated = (newInterview) => {
         setInterviews((prev) => [...prev, newInterview]);
-       
+
         setShowCreateInterview(false);
 
     };
@@ -48,81 +48,270 @@ const InterviewSchedule = () => {
     };
 
     const copyLink = async (meetingLink, interviewId) => {
-    const interviewUrl = getInterviewUrl(meetingLink);
-     try {
-    await navigator.clipboard.writeText(interviewUrl);
-     setCopiedId(interviewId);
-     setTimeout(() => setCopiedId(null), 2000);
-     } catch {
-     alert("Failed to copy link");
-      }
+        const interviewUrl = getInterviewUrl(meetingLink);
+        try {
+            await navigator.clipboard.writeText(interviewUrl);
+            setCopiedId(interviewId);
+            setTimeout(() => setCopiedId(null), 2000);
+        } catch {
+            alert("Failed to copy link");
+        }
     };
 
     return (
-        <div>
-            <h1>Interview Schedule</h1>
+        <> <style>{`
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
 
-            {!showCreateInterview && (
-                <button onClick={() => setShowCreateInterview(true)}>
-                    Create Interview
-                </button>
-            )}
+  * { box-sizing: border-box; }
 
-            {showCreateInterview && (
-                <CreateInterview
-                    onSuccess={handleInterviewCreated}
-                    onClose={() => setShowCreateInterview(false)}
-                />
-            )}
+  /* ========================= */
+  /* CONTAINER */
+  /* ========================= */
+
+  .schedule-container {
+    min-height: 100vh;
+    padding: 50px 60px;
+    font-family: 'Outfit', sans-serif;
+      background: linear-gradient(180deg, rgb(96, 106, 142) 0%, #60698d 100%);
+    color: #e2e8f0;
+  }
+
+  /* ========================= */
+  /* HEADER */
+  /* ========================= */
+
+  .schedule-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 50px;
+  }
+
+  .schedule-title {
+    font-size: 30px;
+    font-weight: 700;
+    color: #f8fafc;
+    letter-spacing: 0.5px;
+  }
+
+  .primary-btn {
+    background: linear-gradient(135deg, #4f5bd5, #7b8cff);
+    padding: 12px 24px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 8px 25px rgba(79, 91, 213, 0.4);
+  }
+
+  .primary-btn:hover {
+    transform: translateY(-3px);
+  }
+
+  /* ========================= */
+  /* GRID */
+  /* ========================= */
+
+  .interview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 28px;
+  }
+
+  /* ========================= */
+  /* CARD */
+  /* ========================= */
+
+  .interview-card {
+    background: #1e293b;
+    border-radius: 18px;
+    padding: 26px;
+    border: 1px solid rgba(255,255,255,0.06);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+    transition: all 0.25s ease;
+  }
+
+  .interview-card:hover {
+    transform: translateY(-6px);
+  }
+
+  .candidate-email {
+    font-weight: 600;
+    font-size: 16px;
+    color: #ffffff;
+    margin-bottom: 6px;
+  }
+
+  .time-text {
+    font-size: 13px;
+    color: #94a3b8;
+    margin-bottom: 10px;
+    line-height: 1.4;
+  }
+
+  /* ========================= */
+  /* STATUS */
+  /* ========================= */
+
+  .status-badge {
+    display: inline-block;
+    padding: 5px 14px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+
+  .status-SCHEDULED {
+    background: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+  }
+
+  .status-LIVE {
+    background: rgba(239, 68, 68, 0.18);
+    color: #ef4444;
+  }
+
+  /* ========================= */
+  /* ACTIONS */
+  /* ========================= */
+
+  .card-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .action-btn {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+  }
+
+  .join-btn {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: white;
+  }
+
+  .join-btn:hover {
+    transform: translateY(-2px);
+  }
+
+  .share-btn,
+  .copy-btn {
+    background: #334155;
+    color: #e2e8f0;
+  }
+
+  .share-btn:hover,
+  .copy-btn:hover {
+    background: #3f4f6b;
+  }
+
+  /* ========================= */
+  /* EMPTY STATE */
+  /* ========================= */
+
+  .empty-text {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #94a3b8;
+  }
+
+`}</style>
+            <div className="schedule-container">
+                <div className="schedule-header">
+                    <div className="schedule-title">Interview Schedule</div>
+
+                    {!showCreateInterview && (
+                        <button
+                            className="primary-btn"
+                            onClick={() => setShowCreateInterview(true)}
+                        >
+                            Create Interview
+                        </button>
+                    )}
+                </div>
+                    {showCreateInterview && (
+                        <CreateInterview
+                            onSuccess={handleInterviewCreated}
+                            onClose={() => setShowCreateInterview(false)}
+                        />
+                    )}
+                
 
 
-            <h2>Upcoming Interviews</h2>
 
-            {upcomingInterviews.length === 0 ? (
-                <p>No upcoming interviews</p>
-            ) : (
-                <ul>
-                    {upcomingInterviews.map((i) => (
-                        <li key={i.interviewId}>
+                <h2 style={{ marginBottom: "20px", fontWeight: "600" }}>
+                    Upcoming Interviews
+                </h2>
 
-                            <strong>{i.candidateEmail}</strong>
-                            <br />
-                            🕒 {new Date(i.startTime).toLocaleString()} –{" "}
-                            {new Date(i.endTime).toLocaleString()}
-                            <br />
-                            <span>Status: {i.status}</span>
-                            <br />
+                {upcomingInterviews.length === 0 ? (
+                    <div className="empty-text">No upcoming interviews scheduled.</div>
+                ) : (
+                    <div className="interview-grid">
+                        {upcomingInterviews.map((i) => (
+                            <div className="interview-card" key={i.interviewId}>
 
-                            {i.meetingLink && (
-                                <>
-                                    <Link
-                                        to={`/prejoin/${i.meetingLink}`}
-                                        rel="noopener noreferrer"
-                                    >
-                                        Join Interview
-                                    </Link>
+                                <div className="candidate-email">
+                                    {i.candidateEmail}
+                                </div>
 
-                                    <div style={{ marginTop: "8px" }}>
-                                        <button onClick={() => shareOnWhatsApp(i.meetingLink)}>
-                                            📲 Share via WhatsApp
+                                <div className="time-text">
+                                    🕒 {new Date(i.startTime).toLocaleString()}
+                                    <br />
+                                    → {new Date(i.endTime).toLocaleString()}
+                                </div>
+
+                                <div className={`status-badge status-${i.status}`}>
+                                    {i.status}
+                                </div>
+
+                                {i.meetingLink && (
+                                    <div className="card-actions">
+
+                                        <Link
+                                            to={`/prejoin/${i.meetingLink}`}
+                                            className="action-btn join-btn"
+                                        >
+                                            Join
+                                        </Link>
+
+                                        <button
+                                            onClick={() => shareOnWhatsApp(i.meetingLink)}
+                                            className="action-btn share-btn"
+                                        >
+                                            📲 WhatsApp
                                         </button>
 
                                         <button
-                                            onClick={() => copyLink(i.meetingLink, i.interviewId)}
-                                            style={{ marginLeft: "8px" }}
+                                            onClick={() =>
+                                                copyLink(i.meetingLink, i.interviewId)
+                                            }
+                                            className="action-btn copy-btn"
                                         >
-                                         { copiedId === i.interviewId ? (  "Copied!" ) : ( "📋 Copy Link") }
+                                            {copiedId === i.interviewId
+                                                ? "Copied!"
+                                                : "📋 Copy"}
                                         </button>
+
                                     </div>
-                                </>
-                            )}
+                                )}
 
-
-                        </li>
-                    ))}
-                </ul>
-            )}
-        </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </>
     );
 };
 

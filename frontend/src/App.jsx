@@ -5,7 +5,8 @@ import CandidateHistory from "./Components/Candidate/CandidateHistory";
 import CandidateSchedule from "./Components/Candidate/CandidateSchedule";
 import HRDashboard from "./Components/HR/HRDashboard";
 import CandidateDashBoard from "./Components/Candidate/CandidateDashBoard";
-
+import "./App.css";
+import Practice from "./Components/Candidate/Practice";
 const Home = lazy(() => import("./Components/Home"));
 const Login = lazy(() => import("./Components/Login"));
 const ErrorPage = lazy(() => import("./Components/ErrorPage"));
@@ -25,7 +26,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Home /> },
       { path: "login", element: <Login /> },
-      { path: "questions", element: <Questions /> },
+      { path: "practice", element: <Practice /> },
       { path: "interview/:id", element: <InterviewRoom /> },
       { path: "prejoin/:meetingLink", element: <PreJoin /> },
       { path: "join/:meetingLink", element: <JoinInterview /> },

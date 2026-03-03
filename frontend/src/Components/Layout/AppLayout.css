@@ -1,15 +1,7 @@
-.app-layout {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+body{
+    background: linear-gradient(180deg,rgb(96, 106, 142) 0%, #1a1f35 100%);
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
-
-.main-content {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-}
-
 

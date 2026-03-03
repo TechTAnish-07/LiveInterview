@@ -4,7 +4,9 @@
   display: flex;
   align-items: center;
   padding: 1rem 2rem;
-  background: #ffffff;
+
+  background: linear-gradient(180deg, rgb(96, 106, 142) 0%, #60698d 100%);
+  color: #fff;
 }
 
 /* LOGO */
@@ -17,11 +19,11 @@
 .logo {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, #000, #333);
+  background: linear-gradient(135deg, #ffffff, #cfd6ff);
   border-radius: 10px;
   display: grid;
   place-items: center;
-  color: #fff;
+  color: #1a1f35;
   font-weight: 700;
   cursor: pointer;
 }
@@ -29,7 +31,7 @@
 .brand-name {
   font-size: 1.4rem;
   font-weight: 700;
-  color: #111;
+  color: #ffffff;
   cursor: pointer;
 }
 
@@ -42,24 +44,24 @@
   gap: 3rem;
   list-style: none;
 
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
   padding: 1rem 2.5rem;
   border-radius: 1200px;
 
   box-shadow:
-    0 8px 20px rgba(0, 0, 0, 0.08),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+    0 8px 20px rgba(0, 0, 0, 0.3),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 /* NAV LINK */
 .nav-link {
   text-decoration: none;
-  color: #222;
-  font-size: 1.2rem;
+  color: #e0e6ff;
+  font-size: 1.1rem;
   font-weight: 500;
   position: relative;
-  transition: color 0.25s ease;
+  transition: all 0.25s ease;
 }
 
 .nav-link::after {
@@ -69,7 +71,7 @@
   bottom: -4px;
   width: 0%;
   height: 2px;
-  background-color: #007bff;
+  background-color: #7fa9ff;
   transition: width 0.3s ease;
 }
 
@@ -78,10 +80,10 @@
 .nav-link.active::after {
   width: 100%;
 }
-.nav-link:hover {
-  color: #000;
-}
 
+.nav-link:hover {
+  color: #ffffff;
+}
 
 /* RIGHT ACTIONS */
 .nav-actions {
@@ -93,7 +95,7 @@
 /* LOGOUT BUTTON */
 .logout-button {
   padding: 0.45rem 1.2rem;
-  background: linear-gradient(135deg, #10011a, #2a043f);
+  background: linear-gradient(135deg, #010414, #000216);
   color: #fff;
   border: none;
   border-radius: 999px;
@@ -104,8 +106,8 @@
 }
 
 .logout-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(16, 1, 26, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(1, 2, 21, 0.4);
 }
 
 /* MOBILE */

@@ -98,7 +98,7 @@ export default function PreJoin() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#0f172a",
+        background: "linear-gradient(135deg, rgb(96, 106, 142) 0%,#60698d 100%)",
       }}
     >
       <div

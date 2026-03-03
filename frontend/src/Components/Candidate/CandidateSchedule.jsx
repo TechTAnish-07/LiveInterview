@@ -47,55 +47,206 @@ const CandidateSchedule = () => {
   };
 
   return (
-    <div>
-      <h2>Upcoming Interviews</h2>
+  <>
+    <style>{`
+      @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
+
+      * { box-sizing: border-box; }
+
+      .candidate-container {
+        min-height: 100vh;
+        padding: 50px 60px;
+        font-family: 'Outfit', sans-serif;
+        background: linear-gradient(180deg, rgb(96, 106, 142) 0%, #60698d 100%);
+        color: #e2e8f0;
+      }
+
+      .page-title {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 40px;
+        color: #f8fafc;
+      }
+
+      .interview-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 28px;
+      }
+
+      .interview-card {
+        background: #1e293b;
+        border-radius: 18px;
+        padding: 24px;
+        border: 1px solid rgba(255,255,255,0.06);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.45);
+        transition: all 0.25s ease;
+      }
+
+      .interview-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .card-header {
+        margin-bottom: 10px;
+      }
+
+      .email-text {
+        font-weight: 600;
+        font-size: 15px;
+        color: #ffffff;
+      }
+
+      .sub-email {
+        font-size: 13px;
+        color: #94a3b8;
+        margin-top: 4px;
+      }
+
+      .time-text {
+        font-size: 13px;
+        color: #94a3b8;
+        margin: 12px 0;
+        line-height: 1.5;
+      }
+
+      .status-badge {
+        display: inline-block;
+        padding: 5px 14px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+        margin-bottom: 14px;
+      }
+
+      .status-SCHEDULED {
+        background: rgba(56, 189, 248, 0.15);
+        color: #38bdf8;
+      }
+
+      .status-LIVE {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+        animation: pulseLive 1.5s infinite;
+      }
+
+      .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        flex: 1;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+      }
+
+      .join-btn {
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        color: white;
+      }
+
+      .join-btn:hover {
+        transform: translateY(-2px);
+      }
+
+      .share-btn,
+      .copy-btn {
+        background: #334155;
+        color: #e2e8f0;
+      }
+
+      .share-btn:hover,
+      .copy-btn:hover {
+        background: #3f4f6b;
+      }
+
+      .empty-state {
+        font-size: 14px;
+        color: #94a3b8;
+      }
+
+      @keyframes pulseLive {
+        0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.5); }
+        70% { box-shadow: 0 0 0 8px rgba(239,68,68,0); }
+        100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+      }
+
+    `}</style>
+
+    <div className="candidate-container">
+      <div className="page-title">Upcoming Interviews</div>
 
       {upcomingInterviews.length === 0 ? (
-        <p>No upcoming interviews</p>
+        <div className="empty-state">No upcoming interviews scheduled.</div>
       ) : (
-        <ul>
+        <div className="interview-grid">
           {upcomingInterviews.map((i) => (
-            <li key={i.interviewId}>
-              <strong>{i.candidateEmail}</strong>
-              <strong> {i.hrEmail}</strong> 
-              <br />
-              🕒 {new Date(i.startTime).toLocaleString()} –{" "}
-              {new Date(i.endTime).toLocaleString()}
-              <br />
-              <span>Status: {i.status}</span>
-              <br />
-              
+            <div key={i.interviewId} className="interview-card">
+
+              <div className="card-header">
+                <div className="email-text">
+                  HR: {i.hrEmail}
+                </div>
+                <div className="sub-email">
+                  Candidate: {i.candidateEmail}
+                </div>
+              </div>
+
+              <div className="time-text">
+                🕒 {new Date(i.startTime).toLocaleString()}
+                <br />
+                → {new Date(i.endTime).toLocaleString()}
+              </div>
+
+              <div className={`status-badge status-${i.status}`}>
+                {i.status}
+              </div>
 
               {i.meetingLink && (
-                <>
-                  <Link to={`/prejoin/${i.meetingLink}`}>
+                <div className="actions">
+
+                  <Link
+                    to={`/prejoin/${i.meetingLink}`}
+                    className="btn join-btn"
+                  >
                     Join Interview
                   </Link>
 
-                  <div style={{ marginTop: "8px" }}>
-                    <button onClick={() => shareOnWhatsApp(i.meetingLink)}>
-                      📲 Share via WhatsApp
-                    </button>
+                  <button
+                    onClick={() => shareOnWhatsApp(i.meetingLink)}
+                    className="btn share-btn"
+                  >
+                    📲 WhatsApp
+                  </button>
 
-                    <button
-                      onClick={() =>
-                        copyLink(i.meetingLink, i.interviewId)
-                      }
-                      style={{ marginLeft: "8px" }}
-                    >
-                      {copiedId === i.interviewId
-                        ? "Copied!"
-                        : "📋 Copy Link"}
-                    </button>
-                  </div>
-                </>
+                  <button
+                    onClick={() =>
+                      copyLink(i.meetingLink, i.interviewId)
+                    }
+                    className="btn copy-btn"
+                  >
+                    {copiedId === i.interviewId
+                      ? "Copied!"
+                      : "📋 Copy"}
+                  </button>
+
+                </div>
               )}
-            </li>
+
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </div>
-  );
+  </>
+);
 };
 
 export default CandidateSchedule;

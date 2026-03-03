@@ -41,7 +41,7 @@ const Navbar = () => {
         {role !== "HR" && (
           <li>
             <NavLink
-              to="/questions"
+              to="/practice"
               className={({ isActive }) =>
                 isActive ? "nav-link active" : "nav-link"
               }
@@ -94,6 +94,17 @@ const Navbar = () => {
         {/* Candidate Routes */}
         {isLoggedIn && role === "CANDIDATE" && (
           <>
+             <li>
+              <NavLink
+                to="/schedule/candidate"
+                className={({ isActive }) =>
+                  isActive ? "nav-link active" : "nav-link"
+                }
+              >
+                Schedule
+              </NavLink>
+            </li>
+        
             <li>
               <NavLink
                 to="/dashboard/candidate"
