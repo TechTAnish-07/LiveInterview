@@ -180,7 +180,8 @@ useEffect(() => {
       if (document.fullscreenElement) {
         document.exitFullscreen();
       }
-      navigate(`/dashboard/${user?.role}`);
+
+      isHR ? navigate(`/feedback/${interviewId}`) : navigate(`/dashboard/${user?.role}`);
     }
   }, [interviewEnded, navigate, user]);
 
