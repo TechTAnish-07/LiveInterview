@@ -74,22 +74,22 @@ const Home = () => {
               <span style={styles.badgeDot}>●</span>
               <span style={styles.badgeText}>Live Interview Platform</span>
             </div>
-            
+
             <h1 style={styles.heroTitle}>
               Conduct Technical
               <span style={styles.heroTitleAccent}> Interviews</span>
               <br />
               That Actually Work
             </h1>
-            
+
             <p style={styles.heroDescription}>
-              The only platform that combines video calling, code compilation, 
-              and advanced security monitoring in one seamless experience. 
+              The only platform that combines video calling, code compilation,
+              and advanced security monitoring in one seamless experience.
               Stop juggling multiple tools and start hiring better talent.
             </p>
-            
+
             <div style={styles.heroButtons}>
-              <button 
+              <button
                 onClick={handleGetStarted}
                 style={styles.primaryButton}
                 onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
@@ -98,9 +98,9 @@ const Home = () => {
                 Get Started Free
                 <span style={styles.buttonArrow}>→</span>
               </button>
-              
-              <button 
-                onClick={() => navigate('/demo')}
+
+              <button
+                onClick={() => navigate('/demoVideo')}
                 style={styles.secondaryButton}
                 onMouseEnter={(e) => e.target.style.background = 'rgba(255,255,255,0.15)'}
                 onMouseLeave={(e) => e.target.style.background = 'rgba(255,255,255,0.1)'}
@@ -109,7 +109,7 @@ const Home = () => {
                 <span style={styles.playIcon}>▶</span>
               </button>
             </div>
-            
+
             <div style={styles.socialProof}>
               <div style={styles.avatarGroup}>
                 {[1, 2, 3, 4].map((i) => (
@@ -134,7 +134,7 @@ const Home = () => {
               </p>
             </div>
           </div>
-          
+
           <div style={styles.heroRight}>
             <div style={{
               ...styles.floatingCard,
@@ -143,9 +143,9 @@ const Home = () => {
               <div style={styles.mockInterview}>
                 <div style={styles.mockHeader}>
                   <div style={styles.mockDots}>
-                    <span style={{...styles.dot, background: '#ff5f56'}} />
-                    <span style={{...styles.dot, background: '#ffbd2e'}} />
-                    <span style={{...styles.dot, background: '#27c93f'}} />
+                    <span style={{ ...styles.dot, background: '#ff5f56' }} />
+                    <span style={{ ...styles.dot, background: '#ffbd2e' }} />
+                    <span style={{ ...styles.dot, background: '#27c93f' }} />
                   </div>
                   <span style={styles.mockTitle}>Live Interview</span>
                   <div style={styles.recordingBadge}>
@@ -153,32 +153,52 @@ const Home = () => {
                     REC
                   </div>
                 </div>
-                
+
                 <div style={styles.mockVideo}>
                   <div style={styles.videoPlaceholder}>
                     <div style={styles.videoIcon}>👨‍💼</div>
                     <p style={styles.videoLabel}>Interviewer</p>
                   </div>
-                  <div style={{...styles.videoPlaceholder, gridColumn: '2'}}>
+                  <div style={{ ...styles.videoPlaceholder, gridColumn: '2' }}>
                     <div style={styles.videoIcon}>👨‍💻</div>
                     <p style={styles.videoLabel}>Candidate</p>
                   </div>
                 </div>
-                
+
                 <div style={styles.mockCode}>
                   <div style={styles.codeLine}>
-                    <span style={{color: '#ff79c6'}}>function</span>{' '}
-                    <span style={{color: '#50fa7b'}}>reverseString</span>
-                    <span style={{color: '#f8f8f2'}}>(str) {'{'}</span>
+                    <span style={{ color: '#ff79c6' }}>function</span>{' '}
+                    <span style={{ color: '#50fa7b' }}>createInterview</span>
+                    <span style={{ color: '#f8f8f2' }}>(candidateEmail, interviewTime) {'{'}</span>
                   </div>
-                  <div style={{...styles.codeLine, paddingLeft: '20px'}}>
-                    <span style={{color: '#ff79c6'}}>return</span>{' '}
-                    <span style={{color: '#f8f8f2'}}>str.split('').reverse().join('');</span>
+
+                  <div style={{ ...styles.codeLine, paddingLeft: '20px' }}>
+                    <span style={{ color: '#ff79c6' }}>const</span>{' '}
+                    <span style={{ color: '#8be9fd' }}>interview</span>{' '}
+                    <span style={{ color: '#f8f8f2' }}>= {'{'}</span>
                   </div>
+
+                  <div style={{ ...styles.codeLine, paddingLeft: '40px' }}>
+                    <span style={{ color: '#f8f8f2' }}>email: candidateEmail,</span>
+                  </div>
+
+                  <div style={{ ...styles.codeLine, paddingLeft: '40px' }}>
+                    <span style={{ color: '#f8f8f2' }}>time: interviewTime</span>
+                  </div>
+
+                  <div style={{ ...styles.codeLine, paddingLeft: '20px' }}>
+                    <span style={{ color: '#f8f8f2' }}>{'}'};</span>
+                  </div>
+
+                  <div style={{ ...styles.codeLine, paddingLeft: '20px' }}>
+                    <span style={{ color: '#ff79c6' }}>return</span>{' '}
+                    <span style={{ color: '#f1fa8c' }}>'created'</span>;
+                  </div>
+
                   <div style={styles.codeLine}>
-                    <span style={{color: '#f8f8f2'}}>{'}'}</span>
+                    <span style={{ color: '#f8f8f2' }}>{'}'}</span>
                   </div>
-                  
+
                   <div style={styles.securityIndicator}>
                     <span style={styles.securityIcon}>🔒</span>
                     <span style={styles.securityText}>Secure Session Active</span>
@@ -188,18 +208,18 @@ const Home = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Floating decorative elements */}
-        <div style={{...styles.floatingOrb, top: '10%', left: '5%', animation: 'orbit 20s linear infinite'}} />
-        <div style={{...styles.floatingOrb, top: '70%', right: '10%', animation: 'orbit 15s linear infinite reverse'}} />
+        <div style={{ ...styles.floatingOrb, top: '10%', left: '5%', animation: 'orbit 20s linear infinite' }} />
+        <div style={{ ...styles.floatingOrb, top: '70%', right: '10%', animation: 'orbit 15s linear infinite reverse' }} />
       </section>
 
       {/* Stats Section */}
       <section style={styles.statsSection}>
         <div style={styles.statsGrid}>
           {stats.map((stat, idx) => (
-            <div 
-              key={idx} 
+            <div
+              key={idx}
               style={{
                 ...styles.statCard,
                 animationDelay: `${idx * 0.1}s`,
@@ -222,14 +242,14 @@ const Home = () => {
             <span style={styles.sectionTitleAccent}>Run Perfect Interviews</span>
           </h2>
         </div>
-        
+
         <div style={styles.featuresGrid}>
           {features.map((feature, idx) => (
             <div
               key={idx}
               style={{
                 ...styles.featureCard,
-                background: activeFeature === idx 
+                background: activeFeature === idx
                   ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1))'
                   : 'rgba(255, 255, 255, 0.03)',
                 borderColor: activeFeature === idx ? '#3b82f6' : 'rgba(255, 255, 255, 0.1)',
@@ -255,7 +275,7 @@ const Home = () => {
             <span style={styles.sectionTitleAccent}>In Three Simple Steps</span>
           </h2>
         </div>
-        
+
         <div style={styles.stepsContainer}>
           {[
             {
@@ -278,7 +298,7 @@ const Home = () => {
             },
           ].map((item, idx) => (
             <div key={idx} style={styles.stepCard}>
-              <div style={{...styles.stepNumber, background: item.color}}>
+              <div style={{ ...styles.stepNumber, background: item.color }}>
                 {item.step}
               </div>
               <div style={styles.stepContent}>
@@ -302,7 +322,7 @@ const Home = () => {
           <p style={styles.ctaDescription}>
             Join hundreds of companies conducting better technical interviews
           </p>
-          <button 
+          <button
             onClick={handleGetStarted}
             style={styles.ctaButton}
             onMouseEnter={(e) => {
@@ -367,7 +387,7 @@ const styles = {
     overflow: 'hidden',
     width: '100%',
   },
-  
+
   hero: {
     padding: '120px 60px',
     position: 'relative',
@@ -375,7 +395,7 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
   },
-  
+
   heroContent: {
     maxWidth: '1400px',
     margin: '0 auto',
@@ -386,11 +406,11 @@ const styles = {
     zIndex: 2,
     position: 'relative',
   },
-  
+
   heroLeft: {
     animation: 'slideUp 0.8s ease-out',
   },
-  
+
   badge: {
     display: 'inline-flex',
     alignItems: 'center',
@@ -401,20 +421,20 @@ const styles = {
     borderRadius: '100px',
     marginBottom: '24px',
   },
-  
+
   badgeDot: {
     color: 'red',
     fontSize: '13px',
     animation: 'pulse 2s ease-in-out infinite',
   },
-  
+
   badgeText: {
     fontSize: '18px',
     fontWeight: '800',
     color: 'red',
     letterSpacing: '0.5px',
   },
-  
+
   heroTitle: {
     fontFamily: "'Bricolage Grotesque', sans-serif",
     fontSize: '72px',
@@ -423,14 +443,14 @@ const styles = {
     marginBottom: '24px',
     letterSpacing: '-0.02em',
   },
-  
+
   heroTitleAccent: {
     background: 'linear-gradient(135deg,rgb(6, 71, 176),rgb(187, 178, 206))',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
     backgroundClip: 'text',
   },
-  
+
   heroDescription: {
     fontSize: '20px',
     lineHeight: '1.6',
@@ -438,13 +458,13 @@ const styles = {
     marginBottom: '40px',
     maxWidth: '540px',
   },
-  
+
   heroButtons: {
     display: 'flex',
     gap: '16px',
     marginBottom: '48px',
   },
-  
+
   primaryButton: {
     background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
     color: '#fff',
@@ -460,11 +480,11 @@ const styles = {
     transition: 'all 0.3s ease',
     boxShadow: '0 10px 30px rgba(59, 130, 246, 0.3)',
   },
-  
+
   buttonArrow: {
     transition: 'transform 0.3s ease',
   },
-  
+
   secondaryButton: {
     background: 'rgba(255, 255, 255, 0.1)',
     color: '#fff',
@@ -480,22 +500,22 @@ const styles = {
     transition: 'all 0.3s ease',
     backdropFilter: 'blur(10px)',
   },
-  
+
   playIcon: {
     fontSize: '12px',
   },
-  
+
   socialProof: {
     display: 'flex',
     alignItems: 'center',
     gap: '16px',
   },
-  
+
   avatarGroup: {
     display: 'flex',
     alignItems: 'center',
   },
-  
+
   avatar: {
     width: '44px',
     height: '44px',
@@ -503,17 +523,17 @@ const styles = {
     border: '3px solid #0a0e1a',
     overflow: 'hidden',
   },
-  
+
   socialProofText: {
     fontSize: '15px',
     color: '#94a3b8',
   },
-  
+
   heroRight: {
     position: 'relative',
     animation: 'slideUp 0.8s ease-out 0.2s backwards',
   },
-  
+
   floatingCard: {
     background: 'rgba(255, 255, 255, 0.03)',
     backdropFilter: 'blur(20px)',
@@ -522,11 +542,11 @@ const styles = {
     overflow: 'hidden',
     boxShadow: '0 30px 80px rgba(0, 0, 0, 0.4)',
   },
-  
+
   mockInterview: {
     padding: '0',
   },
-  
+
   mockHeader: {
     display: 'flex',
     alignItems: 'center',
@@ -535,24 +555,24 @@ const styles = {
     background: 'rgba(255, 255, 255, 0.05)',
     borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
   },
-  
+
   mockDots: {
     display: 'flex',
     gap: '8px',
   },
-  
+
   dot: {
     width: '12px',
     height: '12px',
     borderRadius: '50%',
   },
-  
+
   mockTitle: {
     fontSize: '14px',
     fontWeight: '600',
     color: '#94a3b8',
   },
-  
+
   recordingBadge: {
     display: 'flex',
     alignItems: 'center',
@@ -565,7 +585,7 @@ const styles = {
     fontWeight: '600',
     color: '#ef4444',
   },
-  
+
   recordingDot: {
     width: '6px',
     height: '6px',
@@ -573,7 +593,7 @@ const styles = {
     background: '#ef4444',
     animation: 'pulse 2s ease-in-out infinite',
   },
-  
+
   mockVideo: {
     display: 'grid',
     gridTemplateColumns: '1fr 1fr',
@@ -581,7 +601,7 @@ const styles = {
     padding: '24px',
     background: 'rgba(0, 0, 0, 0.2)',
   },
-  
+
   videoPlaceholder: {
     background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1))',
     borderRadius: '12px',
@@ -593,17 +613,17 @@ const styles = {
     gap: '12px',
     border: '1px solid rgba(255, 255, 255, 0.1)',
   },
-  
+
   videoIcon: {
     fontSize: '48px',
   },
-  
+
   videoLabel: {
     fontSize: '13px',
     color: '#94a3b8',
     fontWeight: '500',
   },
-  
+
   mockCode: {
     background: '#1e1e2e',
     padding: '24px',
@@ -612,11 +632,11 @@ const styles = {
     lineHeight: '1.8',
     position: 'relative',
   },
-  
+
   codeLine: {
     marginBottom: '4px',
   },
-  
+
   securityIndicator: {
     marginTop: '20px',
     display: 'flex',
@@ -627,17 +647,17 @@ const styles = {
     border: '1px solid rgba(34, 197, 94, 0.2)',
     borderRadius: '8px',
   },
-  
+
   securityIcon: {
     fontSize: '16px',
   },
-  
+
   securityText: {
     fontSize: '12px',
     color: '#22c55e',
     fontWeight: '600',
   },
-  
+
   floatingOrb: {
     position: 'absolute',
     width: '300px',
@@ -647,14 +667,14 @@ const styles = {
     filter: 'blur(60px)',
     pointerEvents: 'none',
   },
-  
+
   statsSection: {
     padding: '80px 60px',
     background: 'rgba(255, 255, 255, 0.02)',
     borderTop: '1px solid rgba(255, 255, 255, 0.05)',
     borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
   },
-  
+
   statsGrid: {
     maxWidth: '1400px',
     margin: '0 auto',
@@ -662,12 +682,12 @@ const styles = {
     gridTemplateColumns: 'repeat(4, 1fr)',
     gap: '40px',
   },
-  
+
   statCard: {
     textAlign: 'center',
     animation: 'slideUp 0.6s ease-out',
   },
-  
+
   statValue: {
     fontFamily: "'Bricolage Grotesque', sans-serif",
     fontSize: '56px',
@@ -678,23 +698,23 @@ const styles = {
     backgroundClip: 'text',
     marginBottom: '8px',
   },
-  
+
   statLabel: {
     fontSize: '16px',
     color: '#64748b',
     fontWeight: '500',
   },
-  
+
   featuresSection: {
     padding: '120px 60px',
     position: 'relative',
   },
-  
+
   sectionHeader: {
     textAlign: 'center',
     marginBottom: '80px',
   },
-  
+
   sectionBadge: {
     display: 'inline-block',
     fontSize: '12px',
@@ -703,7 +723,7 @@ const styles = {
     color: '#3b82f6',
     marginBottom: '16px',
   },
-  
+
   sectionTitle: {
     fontFamily: "'Bricolage Grotesque', sans-serif",
     fontSize: '56px',
@@ -711,14 +731,14 @@ const styles = {
     lineHeight: '1.2',
     letterSpacing: '-0.02em',
   },
-  
+
   sectionTitleAccent: {
     background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
     backgroundClip: 'text',
   },
-  
+
   featuresGrid: {
     maxWidth: '1400px',
     margin: '0 auto',
@@ -726,7 +746,7 @@ const styles = {
     gridTemplateColumns: 'repeat(4, 1fr)',
     gap: '24px',
   },
-  
+
   featureCard: {
     padding: '40px 32px',
     borderRadius: '20px',
@@ -734,30 +754,30 @@ const styles = {
     transition: 'all 0.4s ease',
     cursor: 'pointer',
   },
-  
+
   featureIcon: {
     fontSize: '48px',
     marginBottom: '24px',
   },
-  
+
   featureTitle: {
     fontSize: '20px',
     fontWeight: '700',
     marginBottom: '12px',
     color: '#fff',
   },
-  
+
   featureDescription: {
     fontSize: '15px',
     lineHeight: '1.6',
     color: '#94a3b8',
   },
-  
+
   howItWorksSection: {
     padding: '120px 60px',
     background: 'rgba(255, 255, 255, 0.02)',
   },
-  
+
   stepsContainer: {
     maxWidth: '1200px',
     margin: '0 auto',
@@ -766,12 +786,12 @@ const styles = {
     alignItems: 'flex-start',
     position: 'relative',
   },
-  
+
   stepCard: {
     flex: 1,
     position: 'relative',
   },
-  
+
   stepNumber: {
     width: '80px',
     height: '80px',
@@ -785,24 +805,24 @@ const styles = {
     marginBottom: '24px',
     boxShadow: '0 10px 40px rgba(59, 130, 246, 0.3)',
   },
-  
+
   stepContent: {
     paddingRight: '40px',
   },
-  
+
   stepTitle: {
     fontSize: '24px',
     fontWeight: '700',
     marginBottom: '12px',
     color: '#fff',
   },
-  
+
   stepDescription: {
     fontSize: '16px',
     lineHeight: '1.6',
     color: '#94a3b8',
   },
-  
+
   stepConnector: {
     position: 'absolute',
     top: '40px',
@@ -811,13 +831,13 @@ const styles = {
     height: '2px',
     background: 'linear-gradient(90deg, rgba(59, 130, 246, 0.5), transparent)',
   },
-  
+
   ctaSection: {
     padding: '120px 60px',
     position: 'relative',
     overflow: 'hidden',
   },
-  
+
   ctaContent: {
     maxWidth: '800px',
     margin: '0 auto',
@@ -825,7 +845,7 @@ const styles = {
     position: 'relative',
     zIndex: 2,
   },
-  
+
   ctaTitle: {
     fontFamily: "'Bricolage Grotesque', sans-serif",
     fontSize: '64px',
@@ -834,13 +854,13 @@ const styles = {
     marginBottom: '24px',
     letterSpacing: '-0.02em',
   },
-  
+
   ctaDescription: {
     fontSize: '20px',
     color: '#94a3b8',
     marginBottom: '48px',
   },
-  
+
   ctaButton: {
     background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
     color: '#fff',
@@ -856,12 +876,12 @@ const styles = {
     transition: 'all 0.4s ease',
     boxShadow: '0 10px 40px rgba(59, 130, 246, 0.3)',
   },
-  
+
   ctaButtonArrow: {
     fontSize: '20px',
     transition: 'transform 0.3s ease',
   },
-  
+
   ctaNote: {
     marginTop: '24px',
     fontSize: '14px',

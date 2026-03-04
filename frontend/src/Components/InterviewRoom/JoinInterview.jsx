@@ -27,15 +27,16 @@ const JoinInterview = () => {
     const join = async () => {
       try {
         const res = await api.get(`/api/interview/join/${meetingLink}`);
-
-        navigate(`/interview/${res.data.interviewId}`, {
-          replace: true,
-          state: {
-            mic,
-            camera,
-            interview: res.data
-          }
-        });
+        if(res.data.status === "LIVE") {
+          navigate(`/interview/${res.data.interviewId}`, {
+            replace: true,
+            state: {
+              mic,
+              camera,
+              interview: res.data
+            }
+          });
+        }
       } catch (err) {
         const status = err.response?.status;
         if (status === 403) setError("Not allowed");

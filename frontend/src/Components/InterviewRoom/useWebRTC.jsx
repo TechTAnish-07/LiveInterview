@@ -4,12 +4,12 @@ export function useWebRTC(stompClient, interviewId, userId, isHost) {
   const pcRef = useRef(null);
   const localStreamRef = useRef(null);
   const callStartedRef = useRef(false);
-  const iceCandidateQueue = useRef([]); // ✅ ICE queue fix
+  const iceCandidateQueue = useRef([]); 
 
   const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
-  const [micEnabled, setMicEnabled] = useState(true);       // ✅ NEW
-  const [cameraEnabled, setCameraEnabled] = useState(true);  // ✅ NEW
+  const [micEnabled, setMicEnabled] = useState(true);       
+  const [cameraEnabled, setCameraEnabled] = useState(true); 
   const [connectionState, setConnectionState] = useState("idle");
 
   const createPeerConnection = useCallback(() => {
@@ -216,26 +216,44 @@ export function useWebRTC(stompClient, interviewId, userId, isHost) {
     }
   };
 
-  // -----------------------
-  // Cleanup
-  // -----------------------
   const cleanup = useCallback(() => {
+    console.log('🧹 WebRTC cleanup started...');
+    
     callStartedRef.current = false;
     iceCandidateQueue.current = [];
 
+    // Close peer connection
     if (pcRef.current && pcRef.current.signalingState !== "closed") {
+      console.log('Closing peer connection...');
+      
+      // Remove event listeners to prevent memory leaks
+      pcRef.current.ontrack = null;
+      pcRef.current.onicecandidate = null;
+      pcRef.current.onconnectionstatechange = null;
+      
       pcRef.current.close();
     }
     pcRef.current = null;
 
-    localStreamRef.current?.getTracks().forEach((t) => t.stop());
-    localStreamRef.current = null;
+    // CRITICAL: Stop all media tracks
+    if (localStreamRef.current) {
+      console.log('Stopping media tracks...');
+      localStreamRef.current.getTracks().forEach((track) => {
+        console.log(`Stopping ${track.kind} track: ${track.label}`);
+        track.stop();
+        track.enabled = false; // Extra safety
+      });
+      localStreamRef.current = null;
+    }
 
+    // Clear state
     setLocalStream(null);
     setRemoteStream(null);
     setMicEnabled(true);
     setCameraEnabled(true);
     setConnectionState("idle");
+    
+    console.log('✅ WebRTC cleanup complete');
   }, []);
 
   return {

@@ -5,6 +5,7 @@ import VideoCall from "./VideoCall";
 import { useAuth } from "../AuthProvider";
 import Compiler from "./Compiler";
 import api from "../Axios";
+import { useWebRTC } from "./useWebRTC";
 
 const LiveInterview = () => {
   const { id } = useParams();
@@ -23,7 +24,9 @@ const LiveInterview = () => {
   const [isTabVisible, setIsTabVisible] = useState(true);
   const [sessionTime, setSessionTime] = useState(0);
   const lastVisibilityChange = useRef(Date.now());
-
+  const [isInterviewActive, setIsInterviewActive] = useState(true);
+  const hasCleanedUp = useRef(false);
+  const navigate = useNavigate();
   const {
     connected,
     question,
@@ -40,8 +43,36 @@ const LiveInterview = () => {
     interviewId,
     token,
   });
+  const {cleanup} = useWebRTC(
+  {
+    stompClient,
+    interviewId,
+    userId,
+    isHost: isHR,
+  }
+)
+useEffect(() => {
+    const handleUnload = () => {
+      if (!hasCleanedUp.current && isInterviewActive) {
+        console.log('🚪 Page unloading, cleaning up...');
+        cleanup();
+        hasCleanedUp.current = true;
+      }
+    };
 
-  const navigate = useNavigate();
+    window.addEventListener('unload', handleUnload);
+
+    return () => {
+      window.removeEventListener('unload', handleUnload);
+      if (!hasCleanedUp.current) {
+        console.log('🔄 Component unmounting, cleaning up...');
+        cleanup();
+        hasCleanedUp.current = true;
+      }
+    };
+  }, [cleanup, isInterviewActive]);
+
+  
 
   // Session timer
   useEffect(() => {
@@ -163,14 +194,31 @@ const LiveInterview = () => {
   }
 
   const handleEndInterview = async (interviewId) => {
+  
+    console.log('🔴 Ending interview and cleaning up media...');
+    
     try {
+  
+      hasCleanedUp.current = true;
+      setIsInterviewActive(false);
+      
+      cleanup();
+      
+      await new Promise(resolve => setTimeout(resolve, 500));
       await api.put(`/api/hr/interview/${interviewId}/end`);
-     
+      
+      console.log('✅ Interview ended successfully');
+      
+      if (document.fullscreenElement) {
+        await document.exitFullscreen().catch(err => 
+          console.log('Fullscreen exit error:', err)
+        );
+      }
+      
     } catch (error) {
-      console.error("Error ending interview", error);
+      console.error("❌ Error ending interview:", error);
     }
   };
-
   const formatTime = (seconds) => {
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);

@@ -169,7 +169,7 @@ export default function Compiler({ value, onChange, output, clearOutput }) {
         }}
       >
         <strong style={{ color: "#888" }}>Output:</strong>
-        {console.log("Compiler output:", output)}
+        {/* {console.log("Compiler output:", output)} */}
         <pre style={{ marginTop: "8px" }}>{output}</pre>
       </div>
 

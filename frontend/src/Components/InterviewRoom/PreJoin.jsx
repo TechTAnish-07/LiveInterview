@@ -15,6 +15,10 @@ export default function PreJoin() {
 
   // ✅ Start preview on mount
   useEffect(() => {
+      if (!token) {
+      navigate(`/login?redirect=/join/${meetingLink}`, { replace: true });
+      return;
+     }
     const startPreview = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -36,7 +40,7 @@ export default function PreJoin() {
 
     startPreview();
 
-    // ✅ Cleanup on unmount
+   
     return () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
@@ -72,18 +76,15 @@ export default function PreJoin() {
   const joinInterview = async () => {
     if (!token) return;
 
-    // ✅ Stop preview tracks
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     }
 
-    // 🔒 Request fullscreen before navigating
     try {
       await document.documentElement.requestFullscreen();
     } catch (err) {
       console.warn("Fullscreen request failed:", err);
-      // Continue anyway - fullscreen is not critical
     }
 
     navigate(`/join/${meetingLink}`, {

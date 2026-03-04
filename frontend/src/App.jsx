@@ -7,6 +7,7 @@ import HRDashboard from "./Components/HR/HRDashboard";
 import CandidateDashBoard from "./Components/Candidate/CandidateDashBoard";
 import "./App.css";
 import Practice from "./Components/Candidate/Practice";
+import DemoVideo from "./DemoVideo";
 const Home = lazy(() => import("./Components/Home"));
 const Login = lazy(() => import("./Components/Login"));
 const ErrorPage = lazy(() => import("./Components/ErrorPage"));
@@ -30,6 +31,10 @@ const router = createBrowserRouter([
       { path: "interview/:id", element: <InterviewRoom /> },
       { path: "prejoin/:meetingLink", element: <PreJoin /> },
       { path: "join/:meetingLink", element: <JoinInterview /> },
+      {
+        path: "demoVideo",
+        element: <DemoVideo />,
+      },
 
       // HR
       {
