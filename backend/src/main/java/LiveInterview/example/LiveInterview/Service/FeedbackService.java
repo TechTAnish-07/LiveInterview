@@ -71,10 +71,9 @@ public class FeedbackService {
                 .orElseThrow(() -> new RuntimeException("Feedback not submitted yet"));
 
         boolean isHr = interview.getHr().getId().equals(user.getId());
-        boolean isCandidate = interview.getCandidate() != null &&
-                interview.getCandidate().getId().equals(user.getId());
-
-        if (isCandidate && interview.getStatus() != InterviewStatus.COMPLETED) {
+        boolean isCandidate = interview.getCandidateEmail() != null &&
+                interview.getCandidateEmail().equals(email);
+        if (isCandidate && interview.getStatus() != InterviewStatus.COMPLETED){
             throw new AccessDeniedException("Feedback not available yet");
         }
 
