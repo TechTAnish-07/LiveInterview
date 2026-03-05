@@ -40,7 +40,7 @@ export default function VideoCall({
     initializedRef.current = true;
 
     const initialize = async () => {
-      console.log("VideoCall initializing — isHost:", isHost, "userId:", userId);
+    //  console.log("VideoCall initializing — isHost:", isHost, "userId:", userId);
 
       createPeerConnection();
 
@@ -48,7 +48,7 @@ export default function VideoCall({
         `/topic/interview/${interviewId}`,
         (msg) => {
           const signal = JSON.parse(msg.body);
-          console.log("📨 Signal received:", signal.type, "from:", signal.from, "| myId:", userId);
+       //   console.log("📨 Signal received:", signal.type, "from:", signal.from, "| myId:", userId);
           handleSignalRef.current?.(signal);
         }
       );
@@ -56,7 +56,7 @@ export default function VideoCall({
       await startMedia({ mic, camera });
 
       if (isHost) {
-        console.log("✅ HR sending offer in 1s...");
+     //   console.log("✅ HR sending offer in 1s...");
         setTimeout(() => createOffer(), 1000);
       }
     };

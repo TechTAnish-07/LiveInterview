@@ -168,7 +168,7 @@ export function useWebRTC(stompClient, interviewId, userId, isHost) {
   // -----------------------
   const handleSignal = async (signal) => {
     
-     console.log(`🔍 Filter check — signal.from: "${signal.from}" | myUserId: "${userId}" | skip: ${signal.from === userId}`);
+   //  console.log(`🔍 Filter check — signal.from: "${signal.from}" | myUserId: "${userId}" | skip: ${signal.from === userId}`);
   if (signal.from === userId) return;
 
     const pc = createPeerConnection();
@@ -217,14 +217,14 @@ export function useWebRTC(stompClient, interviewId, userId, isHost) {
   };
 
   const cleanup = useCallback(() => {
-    console.log('🧹 WebRTC cleanup started...');
+  //  console.log('🧹 WebRTC cleanup started...');
     
     callStartedRef.current = false;
     iceCandidateQueue.current = [];
 
     // Close peer connection
     if (pcRef.current && pcRef.current.signalingState !== "closed") {
-      console.log('Closing peer connection...');
+   //   console.log('Closing peer connection...');
       
       // Remove event listeners to prevent memory leaks
       pcRef.current.ontrack = null;
@@ -237,9 +237,9 @@ export function useWebRTC(stompClient, interviewId, userId, isHost) {
 
     // CRITICAL: Stop all media tracks
     if (localStreamRef.current) {
-      console.log('Stopping media tracks...');
+     // console.log('Stopping media tracks...');
       localStreamRef.current.getTracks().forEach((track) => {
-        console.log(`Stopping ${track.kind} track: ${track.label}`);
+       // console.log(`Stopping ${track.kind} track: ${track.label}`);
         track.stop();
         track.enabled = false; // Extra safety
       });
@@ -253,7 +253,7 @@ export function useWebRTC(stompClient, interviewId, userId, isHost) {
     setCameraEnabled(true);
     setConnectionState("idle");
     
-    console.log('✅ WebRTC cleanup complete');
+    //console.log('✅ WebRTC cleanup complete');
   }, []);
 
   return {

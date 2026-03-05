@@ -5,7 +5,7 @@ import api from "../Axios";
 
 const WS_URL = "http://localhost:8080/ws";
 
-export function useLiveInterviewStomp({ interviewId, token }) {
+export function useLiveInterviewStomp({ interviewId, token, role }) {
   const clientRef = useRef(null);
   const isRemoteUpdate = useRef(false);
   const readyRef = useRef(false);
@@ -18,7 +18,7 @@ export function useLiveInterviewStomp({ interviewId, token }) {
   const [connected, setConnected] = useState(false);
   const [output, setOutput] = useState("");
   const [interviewEnded, setInterviewEnded] = useState(false);
-  
+  const [onlineUsers, setOnlineUsers] = useState(new Map());
   const [securityFlags, setSecurityFlags] = useState([]);
 
   useEffect(() => {
@@ -27,11 +27,9 @@ export function useLiveInterviewStomp({ interviewId, token }) {
     const loadInitialState = async () => {
       try {
         const res = await api.get(`/api/coding/interview/${interviewId}/state`);
-
         setQuestion(res.data.question || "");
         setCode(res.data.code || "");
         setOutput(res.data.output || "");
-        setTimeout(() => {}, 0);
       } catch (e) {
         console.error("Failed to load interview state", e);
       }
@@ -51,13 +49,15 @@ export function useLiveInterviewStomp({ interviewId, token }) {
       reconnectDelay: 3000,
       connectHeaders: token ? {
         Authorization: `Bearer ${token}`,
+        interviewId: String(interviewId),
+        role: role,
       } : {},
       debug: (str) => {
-        // Uncomment for debugging
-        // console.log('STOMP Debug:', str);
+     //   console.log('STOMP Debug:', str); // Enable for debugging
       },
     });
 
+    // ✅ SINGLE onConnect handler
     client.onConnect = () => {
       console.log("✅ STOMP CONNECTED");
 
@@ -76,34 +76,27 @@ export function useLiveInterviewStomp({ interviewId, token }) {
         `/topic/interview/${interviewId}/run-output`,
         (message) => {
           const parsed = JSON.parse(message.body);
-
-          console.log("📩 Full message:", parsed);
-
           const text = parsed.payload || "";
 
           if (parsed.type === "STATUS") {
             setOutput(prev => prev + "\n" + text);
           }
-
           if (parsed.type === "STDOUT") {
             setOutput(prev => prev + text);
           }
-
           if (parsed.type === "ERROR") {
             setOutput(prev => prev + "\nError: " + text);
           }
-
           if (parsed.type === "COMPILE_ERROR") {
             setOutput(prev => prev + "\nCompile Error:\n" + text);
           }
-
           if (parsed.type === "DONE") {
             setOutput(prev => prev + "\n\nExecution Finished");
           }
         }
       );
 
-    
+      // Subscribe to code updates
       client.subscribe(
         `/topic/interview/${interviewId}/code`,
         (message) => {
@@ -113,7 +106,7 @@ export function useLiveInterviewStomp({ interviewId, token }) {
         }
       );
 
-     
+      // Subscribe to interview end
       client.subscribe(
         `/topic/interview/${interviewId}/ended`,
         (message) => {
@@ -122,12 +115,12 @@ export function useLiveInterviewStomp({ interviewId, token }) {
         }
       );
 
-     
+      // Subscribe to security flags
       client.subscribe(
         `/topic/interview/${interviewId}/security`,
         (message) => {
           const flag = JSON.parse(message.body);
-          console.log("🚩 Security flag received:", flag);
+        //  console.log("🚩 Security flag received:", flag);
           
           setSecurityFlags((prev) => [
             ...prev,
@@ -138,6 +131,65 @@ export function useLiveInterviewStomp({ interviewId, token }) {
           ]);
         }
       );
+
+      // ✅ Subscribe to presence broadcasts
+      client.subscribe(
+        `/topic/interview/${interviewId}/presence`,
+        (message) => {
+          const data = JSON.parse(message.body);
+       //   console.log("👤 Presence broadcast:", data);
+          
+          setOnlineUsers((prevUsers) => {
+            const updated = new Map(prevUsers);
+            
+            if (data.status === "JOINED") {
+       //       console.log(`✅ User JOINED: ${data.user} (${data.role})`);
+              updated.set(data.user, {
+                role: data.role,
+                status: data.status,
+                joinedAt: new Date()
+              });
+            } else if (data.status === "LEFT") {
+      //        console.log(`👋 User LEFT: ${data.user}`);
+              updated.delete(data.user);
+            }
+            
+        //    console.log(`📊 Total online: ${updated.size}`);
+            return updated;
+          });
+        }
+      );
+
+      // ✅ Subscribe to personal presence snapshot
+      client.subscribe(
+        `/user/queue/presence/snapshot`,
+        (message) => {
+          const users = JSON.parse(message.body);
+       //   console.log("📋 Received user snapshot:", users);
+          
+          setOnlineUsers((prevUsers) => {
+            const updated = new Map();
+            users.forEach(presence => {
+              if (presence.status === "JOINED") {
+                updated.set(presence.user, {
+                  role: presence.role,
+                  status: presence.status,
+                  joinedAt: new Date()
+                });
+              }
+            });
+         //   console.log(`📊 Snapshot loaded: ${updated.size} users`);
+            return updated;
+          });
+        }
+      );
+
+      // ✅ Send join message AFTER subscriptions
+    //  console.log("📤 Sending presence join...");
+      client.publish({
+        destination: `/app/interview/${interviewId}/presence/join`,
+        body: JSON.stringify({ action: "join" })
+      });
 
       readyRef.current = true;
       setConnected(true);
@@ -159,6 +211,7 @@ export function useLiveInterviewStomp({ interviewId, token }) {
       console.log("🔌 STOMP DISCONNECTED");
       setConnected(false);
       readyRef.current = false;
+      setOnlineUsers(new Map()); // Clear users on disconnect
     };
 
     client.activate();
@@ -168,9 +221,10 @@ export function useLiveInterviewStomp({ interviewId, token }) {
       console.log("🧹 Cleaning up STOMP connection");
       readyRef.current = false;
       setConnected(false);
+      setOnlineUsers(new Map());
       client.deactivate();
     };
-  }, [interviewId, token]);
+  }, [interviewId, token, role]);
 
   /* ---------------- SENDERS ---------------- */
 
@@ -182,8 +236,7 @@ export function useLiveInterviewStomp({ interviewId, token }) {
       }
 
       const destination = `/app/interview/${interviewId}/question`;
-      console.log("📤 Sending question to:", destination);
-
+      
       try {
         clientRef.current.publish({
           destination: destination,
@@ -207,10 +260,8 @@ export function useLiveInterviewStomp({ interviewId, token }) {
       }
 
       const destination = `/app/interview/${interviewId}/code`;
-      console.log("📤 Sending code to:", destination);
-
+      
       try {
-        console.log(value);
         clientRef.current.publish({
           destination: destination,
           body: JSON.stringify({
@@ -227,7 +278,6 @@ export function useLiveInterviewStomp({ interviewId, token }) {
     [interviewId]
   );
 
-  // 🚩 Send security flag (candidate sends to HR)
   const sendSecurityFlag = useCallback(
     (type, message, metadata = {}) => {
       if (!readyRef.current || !clientRef.current) {
@@ -236,8 +286,7 @@ export function useLiveInterviewStomp({ interviewId, token }) {
       }
 
       const destination = `/app/interview/${interviewId}/security`;
-      console.log("🚩 Sending security flag to:", destination);
-
+      
       try {
         const flag = {
           type,
@@ -250,8 +299,6 @@ export function useLiveInterviewStomp({ interviewId, token }) {
           destination: destination,
           body: JSON.stringify(flag),
         });
-
-        console.log("🚩 Security flag sent:", flag);
       } catch (e) {
         console.error("Error sending security flag:", e);
       }
@@ -290,7 +337,6 @@ export function useLiveInterviewStomp({ interviewId, token }) {
   }, [sendCodeUpdate]);
 
   return {
-    // Existing returns
     connected,
     question,
     updateQuestion,
@@ -302,5 +348,6 @@ export function useLiveInterviewStomp({ interviewId, token }) {
     interviewEnded,
     securityFlags,
     sendSecurityFlag,
+    onlineUsers,
   };
 }

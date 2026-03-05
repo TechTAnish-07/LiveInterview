@@ -27,6 +27,7 @@ const LiveInterview = () => {
   const [isInterviewActive, setIsInterviewActive] = useState(true);
   const hasCleanedUp = useRef(false);
   const navigate = useNavigate();
+  const role = user?.role;
   const {
     connected,
     question,
@@ -39,9 +40,11 @@ const LiveInterview = () => {
     interviewEnded,
     securityFlags,
     sendSecurityFlag,
+     onlineUsers,
   } = useLiveInterviewStomp({
     interviewId,
     token,
+    role,
   });
   const {cleanup} = useWebRTC(
   {
@@ -54,7 +57,7 @@ const LiveInterview = () => {
 useEffect(() => {
     const handleUnload = () => {
       if (!hasCleanedUp.current && isInterviewActive) {
-        console.log('🚪 Page unloading, cleaning up...');
+      //  console.log('🚪 Page unloading, cleaning up...');
         cleanup();
         hasCleanedUp.current = true;
       }
@@ -65,7 +68,7 @@ useEffect(() => {
     return () => {
       window.removeEventListener('unload', handleUnload);
       if (!hasCleanedUp.current) {
-        console.log('🔄 Component unmounting, cleaning up...');
+      //  console.log('🔄 Component unmounting, cleaning up...');
         cleanup();
         hasCleanedUp.current = true;
       }
@@ -91,7 +94,7 @@ useEffect(() => {
             await document.documentElement.requestFullscreen();
           }
         } catch (err) {
-          console.warn("Fullscreen request failed:", err);
+      //    console.warn("Fullscreen request failed:", err);
           if (sendSecurityFlag) {
             sendSecurityFlag("FULLSCREEN_DENIED", "Failed to enter fullscreen mode");
           }
@@ -135,7 +138,6 @@ useEffect(() => {
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [isHR, sendSecurityFlag]);
-
   useEffect(() => {
     if (isHR || !sendSecurityFlag) return;
     const handleCopy = () => {
@@ -196,7 +198,7 @@ useEffect(() => {
 
   const handleEndInterview = async (interviewId) => {
   
-    console.log('🔴 Ending interview and cleaning up media...');
+   // console.log('🔴 Ending interview and cleaning up media...');
     
     try {
   
@@ -208,7 +210,7 @@ useEffect(() => {
       await new Promise(resolve => setTimeout(resolve, 500));
       await api.put(`/api/hr/interview/${interviewId}/end`);
       
-      console.log('✅ Interview ended successfully');
+    //  console.log('✅ Interview ended successfully');
       
       if (document.fullscreenElement) {
         await document.exitFullscreen().catch(err => 
@@ -238,6 +240,7 @@ useEffect(() => {
     };
     return severityMap[type] || "#64748b";
   };
+
 
   const getFlagIcon = (type) => {
     const iconMap = {
@@ -290,8 +293,20 @@ useEffect(() => {
           <div style={styles.statusLeft}>
             <div style={styles.liveBadge}>
               <span style={styles.liveDot} />
-              LIVE INTERVIEW
+               LIVE INTERVIEW
             </div>
+             <div className="presence-panel">
+           <h3>Online ({onlineUsers.size})</h3>
+           <ul>
+         
+          {Array.from(onlineUsers.entries()).map(([userName, info]) => (
+            <li key={userName}>
+              <span className="status-dot online"></span>
+              {userName} <span className="role-badge">({info.role})</span>
+             </li>
+          ))}
+          </ul>
+      </div>
             <div style={styles.sessionInfo}>
               <span style={styles.sessionLabel}>Session Time:</span>
               <span style={styles.sessionValue}>{formatTime(sessionTime)}</span>

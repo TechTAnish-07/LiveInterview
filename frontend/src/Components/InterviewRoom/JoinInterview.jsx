@@ -27,7 +27,7 @@ const JoinInterview = () => {
     const join = async () => {
       try {
         const res = await api.get(`/api/interview/join/${meetingLink}`);
-        if(res.data.status === "LIVE") {
+        if (res.data.status === "LIVE") {
           navigate(`/interview/${res.data.interviewId}`, {
             replace: true,
             state: {

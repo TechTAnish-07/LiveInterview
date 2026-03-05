@@ -1,7 +1,9 @@
-import React from "react";
+import React, { use } from "react";
 import History from "./History";
+import { useAuth } from "../AuthProvider";
 
 const HRDashboard = () => {
+  
   return (
     <>
       <style>{`
@@ -92,6 +94,7 @@ const HRDashboard = () => {
         {/* HEADER */}
         <div className="dashboard-header">
           <div className="dashboard-title">HR Dashboard</div>
+         
           <div className="dashboard-subtext">
             Manage interviews, track candidates, and monitor live sessions.
           </div>
