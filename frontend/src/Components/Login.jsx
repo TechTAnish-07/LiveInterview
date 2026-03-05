@@ -7,7 +7,7 @@ import { useAuth } from "./AuthProvider.jsx";
 
 const Login = () => {
   const navigate = useNavigate();
- const { login } = useAuth();
+  const { login } = useAuth();
   const [isSignIn, setIsSignIn] = useState(true);
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
@@ -38,19 +38,21 @@ const Login = () => {
       if (isSignIn) {
         const res = await api.post("/auth/login", { email, password });
         const { token: accessToken, refreshToken, user } = res.data;
-        console.log(accessToken);
+       // console.log(accessToken);
         login(accessToken);
         handleLoginSuccess();
       } else {
-        const res = await fetch("http://localhost:8080/auth/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, username, password }),
-        });
+        const payload = {
+          name: username,
+          email,
+          password,
+          role: "HR"
+        };
+        const res = await api.post("/auth/register", payload);
 
-        if (!res.ok) {
-          const msg = await res.text();
-          throw new Error(msg || "Registration failed");
+
+        if (!res) {
+          console.log("some error");
         }
 
         setError("Please check your email to verify your account.");
