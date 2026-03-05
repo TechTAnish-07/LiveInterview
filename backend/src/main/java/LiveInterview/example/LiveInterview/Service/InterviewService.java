@@ -206,9 +206,7 @@ public class InterviewService {
         LocalDateTime now = LocalDateTime.now();
 
 
-        if (now.isBefore(interview.getStartTime())) {
-            throw new IllegalStateException("Interview has not started yet");
-        }
+
 
         if (now.isAfter(interview.getEndTime())) {
             interview.setStatus(InterviewStatus.EXPIRED);

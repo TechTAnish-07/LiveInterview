@@ -4,7 +4,10 @@ import LiveInterview.example.LiveInterview.DTO.LoginReq;
 import LiveInterview.example.LiveInterview.DTO.RegisterRequest;
 import LiveInterview.example.LiveInterview.DTO.UserResponse;
 import LiveInterview.example.LiveInterview.Entity.UserEntity;
+import LiveInterview.example.LiveInterview.Entity.VerificationToken;
 import LiveInterview.example.LiveInterview.Repository.UserRepo;
+import LiveInterview.example.LiveInterview.Repository.VerificationTokenRepository;
+import LiveInterview.example.LiveInterview.Service.BrevoEmailService;
 import LiveInterview.example.LiveInterview.Service.CustomUserDetailsService;
 import LiveInterview.example.LiveInterview.Service.EmailService;
 import LiveInterview.example.LiveInterview.Service.JwtService;
@@ -35,14 +38,15 @@ public class AuthController {
    private final JwtService jwtService;
    private final PasswordEncoder passwordEncoder;
    private final CustomUserDetailsService customUserDetailsService;
-   private final EmailService emailService;
-
+   private final BrevoEmailService emailService;
+   private final VerificationTokenRepository verificationTokenRepository;
    @Autowired
    public AuthController(UserRepo userRepo, AuthenticationManager authManager,
                          JwtService jwtService ,
                          PasswordEncoder passwordEncoder,
                          CustomUserDetailsService customUserDetailsService,
-                         EmailService emailService
+                         BrevoEmailService emailService,
+                         VerificationTokenRepository verificationTokenRepository
                          ) {
       this.userRepo = userRepo;
       this.authManager = authManager;
@@ -50,6 +54,7 @@ public class AuthController {
       this.passwordEncoder = passwordEncoder;
       this.customUserDetailsService = customUserDetailsService;
       this.emailService = emailService;
+      this.verificationTokenRepository = verificationTokenRepository;
    }
 
    @PostMapping("/register")
@@ -93,8 +98,31 @@ public class AuthController {
    }
    @GetMapping("/verify")
    public ResponseEntity<String> verifyEmail(@RequestParam String token) {
-       emailService.verifyEmail(token);
-       return ResponseEntity.ok(" " );
+       Optional<VerificationToken> optionalToken =
+               verificationTokenRepository.findByToken(token);
+
+       if (optionalToken.isEmpty()) {
+           return ResponseEntity
+                   .status(HttpStatus.BAD_REQUEST)
+                   .body("Invalid or already used verification token");
+       }
+
+       VerificationToken vt = optionalToken.get();
+
+       if (vt.getExpiryDate().isBefore(LocalDateTime.now())) {
+           verificationTokenRepository.delete(vt);
+           return ResponseEntity
+                   .status(HttpStatus.BAD_REQUEST)
+                   .body("Verification token expired");
+       }
+
+       UserEntity user = vt.getUser();
+       user.setEnabled(true);
+       userRepo.save(user);
+
+       verificationTokenRepository.delete(vt);
+
+       return ResponseEntity.ok("Email verified successfully");
    }
 
     @PostMapping("/login")

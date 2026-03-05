@@ -2,6 +2,7 @@ package LiveInterview.example.LiveInterview.Config;
 
 import LiveInterview.example.LiveInterview.Service.CustomUserDetailsService;
 import LiveInterview.example.LiveInterview.Service.JwtService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.messaging.Message;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE + 99)
+@Slf4j
 public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
 
     private final JwtService jwtService;
@@ -76,6 +78,27 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
 
 
             accessor.setUser(authentication);
+            String interviewIdHeader = accessor.getFirstNativeHeader("interviewId");
+            String roleHeader = accessor.getFirstNativeHeader("role");
+
+            if (interviewIdHeader != null) {
+                try {
+                    Long interviewId = Long.parseLong(interviewIdHeader);
+                    accessor.getSessionAttributes().put(WsSessionKeys.INTERVIEW_ID, interviewId);
+                    log.info(" Set interviewId in session: {} for user: {}", interviewId, username);
+                } catch (NumberFormatException e) {
+                    log.error(" Invalid interviewId format: {}", interviewIdHeader);
+                }
+            } else {
+                log.warn("⚠ No interviewId header found for user: {}", username);
+            }
+
+            if (roleHeader != null) {
+                accessor.getSessionAttributes().put(WsSessionKeys.ROLE, roleHeader);
+                log.info(" Set role in session: {} for user: {}", roleHeader, username);
+            } else {
+                log.warn("⚠ No role header found for user: {}", username);
+            }
         }
 
         if (StompCommand.SEND.equals(command)

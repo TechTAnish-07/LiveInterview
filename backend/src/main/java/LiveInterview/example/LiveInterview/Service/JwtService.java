@@ -18,10 +18,10 @@ import java.util.Map;
 public class JwtService {
 
 
-    @Value("${spring.security.jwt.secret}")
+    @Value("${JWT_SECRET}")
     private String secret;
 
-    @Value("${spring.security.jwt.expiration}")
+    @Value("${JWT_EXPIRATION}")
     private long expirationMs;
 
     private Key signingKey;

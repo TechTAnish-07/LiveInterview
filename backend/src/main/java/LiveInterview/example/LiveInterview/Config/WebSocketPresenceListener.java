@@ -1,12 +1,9 @@
 package LiveInterview.example.LiveInterview.Config;
 
-import LiveInterview.example.LiveInterview.DTO.PresenceEvent;
+import LiveInterview.example.LiveInterview.Controller.PresenceController;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectedEvent;
@@ -20,42 +17,15 @@ import java.util.Map;
 @Slf4j
 public class WebSocketPresenceListener {
 
-    private final SimpMessagingTemplate messagingTemplate;
-
+    private final PresenceController presenceController;
 
     @EventListener
     public void handleConnect(SessionConnectedEvent event) {
-
-        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
-        Principal user = accessor.getUser();
-
-        if (user == null) return;
-
-        Map<String, Object> sessionAttrs = accessor.getSessionAttributes();
-        if (sessionAttrs == null) return;
-
-        Long interviewId = (Long) sessionAttrs.get(WsSessionKeys.INTERVIEW_ID);
-        String role = (String) sessionAttrs.get(WsSessionKeys.ROLE);
-
-        if (interviewId == null || role == null) return;
-
-        PresenceEvent presence = new PresenceEvent(
-                user.getName(),
-                role,
-                "JOINED"
-        );
-
-        log.info("User {} JOINED interview {}", user.getName(), interviewId);
-
-        messagingTemplate.convertAndSend(
-                "/app/topic/interview/" + interviewId + "/presence",
-                presence
-        );
+        log.info("🔌 WebSocket session connected");
     }
 
     @EventListener
     public void handleDisconnect(SessionDisconnectEvent event) {
-
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
         Principal user = accessor.getUser();
 
@@ -69,17 +39,7 @@ public class WebSocketPresenceListener {
 
         if (interviewId == null || role == null) return;
 
-        PresenceEvent presence = new PresenceEvent(
-                user.getName(),
-                role,
-                "LEFT"
-        );
 
-        log.info("User {} LEFT interview {}", user.getName(), interviewId);
-
-        messagingTemplate.convertAndSend(
-                "/topic/interview/" + interviewId + "/presence",
-                presence
-        );
+        presenceController.handleUserLeft(interviewId, user.getName(), role);
     }
 }

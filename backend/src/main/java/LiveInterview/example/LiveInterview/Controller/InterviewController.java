@@ -29,7 +29,7 @@ public class InterviewController {
             Principal principal
     ) {
         try {
-            System.out.println("Meeting link received = [" + meetingLink + "]");
+          //  System.out.println("Meeting link received = [" + meetingLink + "]");
             String normalized = meetingLink
                     .replace("{", "")
                     .replace("}", "")

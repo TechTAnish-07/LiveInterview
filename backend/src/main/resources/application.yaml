@@ -3,13 +3,13 @@ server:
 
 spring:
   application:
-    name: LiveInterview
+    name: ${SPRING_APP_NAME:LiveInterview}
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/live_interview
-    username: tanish
-    password: 12345678
-    driver-class-name: org.postgresql.Driver
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: ${DB_DRIVER}
 
   jpa:
     hibernate:
@@ -21,13 +21,11 @@ spring:
 
   security:
     jwt:
-      secret: mySuperSecretJwtKey_ChangeThisInProd_123456
-      expiration: 86400000
-
+      secret: ${JWT_SECRET}
+      expiration: ${JWT_EXPIRATION}
 
   sql:
     init:
-      platform: postgres
+      platform: ${SQL_PLATFORM}
 
-  debug: true
-
+debug: true
