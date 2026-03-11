@@ -1,6 +1,5 @@
-import React, { use } from "react";
-import History from "./History";
-import { useAuth } from "../AuthProvider";
+import React, { lazy, use } from "react";
+const History = lazy(()=> (import("./History"))) ;
 
 const HRDashboard = () => {
   
