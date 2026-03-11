@@ -1,8 +1,31 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import CandidateSchedule from "./CandidateSchedule";
 import CandidateHistory from "./CandidateHistory";
+import api from "../Axios";
 
 const CandidateDashBoard = () => {
+  const [interviews, setInterviews] = useState([]);
+
+  useEffect(() => {
+    const fetchInterviews = async () => {
+      try {
+        const res = await api.get("/api/interview/candidate/my-interviews");
+        const data = Array.isArray(res.data) ? res.data : res.data.data ?? [];
+        setInterviews(data);
+      } catch (error) {
+        console.error("Error fetching interviews:", error);
+      }
+    };
+    fetchInterviews();
+  }, []);
+
+  const now = new Date();
+  const liveCount = interviews.filter((i) => i.status === "LIVE").length;
+  const completedCount = interviews.filter((i) => i.status === "COMPLETED").length;
+  const upcomingCount = interviews.filter(
+    (i) => i.status === "SCHEDULED" && new Date(i.startTime) > now
+  ).length;
+
   return (
     <>
       <style>{`
@@ -14,12 +37,10 @@ const CandidateDashBoard = () => {
           min-height: 100vh;
           padding: 50px 60px;
           font-family: 'Outfit', sans-serif;
-  background: linear-gradient(180deg, rgb(96, 106, 142) 0%, #60698d 100%);
-        
+          background: linear-gradient(180deg, rgb(96, 106, 142) 0%, #60698d 100%);
           color: #e2e8f0;
         }
 
-        /* HEADER */
         .dashboard-header {
           margin-bottom: 40px;
         }
@@ -36,7 +57,6 @@ const CandidateDashBoard = () => {
           color: #94a3b8;
         }
 
-        /* STATS */
         .stats-grid {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -69,7 +89,6 @@ const CandidateDashBoard = () => {
           color: #ffffff;
         }
 
-        /* SECTION CARD */
         .section-card {
           background: #1e293b;
           padding: 30px;
@@ -95,36 +114,41 @@ const CandidateDashBoard = () => {
 
       <div className="candidate-dashboard">
 
-        {/* HEADER */}
         <div className="dashboard-header">
           <div className="dashboard-title">Candidate Dashboard</div>
           <div className="dashboard-subtext">
-            Check history, and manage your sessions.
+            Check your schedule, history, and manage your sessions.
           </div>
         </div>
 
-        {/* STATS (Static for now — can connect to API later) */}
         <div className="stats-grid">
-         
+          <div className="stat-card">
+            <div className="stat-title">Upcoming</div>
+            <div className="stat-value" style={{ color: "#38bdf8" }}>
+              {upcomingCount}
+            </div>
+          </div>
 
           <div className="stat-card">
             <div className="stat-title">Live Now</div>
             <div className="stat-value" style={{ color: "#ef4444" }}>
-              
+              {liveCount}
             </div>
           </div>
 
           <div className="stat-card">
             <div className="stat-title">Completed</div>
             <div className="stat-value" style={{ color: "#22c55e" }}>
-              
+              {completedCount}
             </div>
           </div>
         </div>
 
-        
+        <div className="section-card">
+          <div className="section-title">Upcoming Interviews</div>
+          <CandidateSchedule interviews={interviews} />
+        </div>
 
-        {/* HISTORY SECTION */}
         <div className="section-card">
           <div className="section-title">Interview History</div>
           <CandidateHistory />
