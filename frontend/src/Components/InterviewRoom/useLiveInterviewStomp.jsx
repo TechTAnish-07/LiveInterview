@@ -5,8 +5,8 @@ import api from "../Axios";
 
 const WS_URL =
   window.location.hostname === "localhost"
-    ? "ws://localhost:8080/ws"
-    : "ws://34.234.207.12:8080/ws";
+    ? "http://localhost:8080/ws"
+    : "http://34.234.207.12:8080/ws";
 
 export function useLiveInterviewStomp({ interviewId, token, role }) {
   const clientRef = useRef(null);
