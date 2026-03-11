@@ -144,10 +144,6 @@ const CandidateDashBoard = () => {
           </div>
         </div>
 
-        <div className="section-card">
-          <div className="section-title">Upcoming Interviews</div>
-          <CandidateSchedule interviews={interviews} />
-        </div>
 
         <div className="section-card">
           <div className="section-title">Interview History</div>
