@@ -146,7 +146,6 @@ const CandidateDashBoard = () => {
 
 
         <div className="section-card">
-          <div className="section-title">Interview History</div>
           <CandidateHistory />
         </div>
 
