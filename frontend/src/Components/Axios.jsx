@@ -1,8 +1,8 @@
 import React from 'react'
-import axios from "axios";
+import api from "axios";
 
 
-const api = axios.create({
+const api = api.create({
     baseURL: "http://34.234.207.12:8080",
     headers: {
         Accept: "application/json, text/plain, */*",
@@ -79,7 +79,7 @@ api.interceptors.response.use(
           return Promise.reject(error);
         }
 
-        const res = await axios.post(
+        const res = await api.post(
           "http://localhost:8080/auth/refresh",
           { refreshToken }
         );
