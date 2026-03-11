@@ -12,6 +12,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("HR");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [searchParams] = useSearchParams();
@@ -20,15 +21,16 @@ const Login = () => {
     setIsSignIn(!isSignIn);
     setError("");
   };
+
   const handleLoginSuccess = () => {
     const redirectTo = searchParams.get('redirect');
-
     if (redirectTo) {
       navigate(redirectTo, { replace: true });
     } else {
       navigate('/', { replace: true });
     }
   };
+
   const handleSubmitButton = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -38,7 +40,6 @@ const Login = () => {
       if (isSignIn) {
         const res = await api.post("/auth/login", { email, password });
         const { token: accessToken, refreshToken, user } = res.data;
-       // console.log(accessToken);
         login(accessToken);
         handleLoginSuccess();
       } else {
@@ -46,10 +47,9 @@ const Login = () => {
           name: username,
           email,
           password,
-          role: "HR"
+          role,
         };
         const res = await api.post("/auth/register", payload);
-
 
         if (!res) {
           console.log("some error");
@@ -98,9 +98,7 @@ const Login = () => {
           )}
 
           <div className="form-group">
-            <label htmlFor="email" className="form-label">
-              Email
-            </label>
+            <label htmlFor="email" className="form-label">Email</label>
             <input
               type="email"
               id="email"
@@ -113,26 +111,44 @@ const Login = () => {
           </div>
 
           {!isSignIn && (
-            <div className="form-group">
-              <label htmlFor="username" className="form-label">
-                Username
-              </label>
-              <input
-                type="text"
-                id="username"
-                className="form-input"
-                placeholder="Choose a username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-              />
-            </div>
+            <>
+              <div className="form-group">
+                <label htmlFor="username" className="form-label">Username</label>
+                <input
+                  type="text"
+                  id="username"
+                  className="form-input"
+                  placeholder="Choose a username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">I am a...</label>
+                <div className="role-toggle">
+                  <button
+                    type="button"
+                    className={`role-option ${role === "HR" ? "active" : ""}`}
+                    onClick={() => setRole("HR")}
+                  >
+                    HR / Recruiter
+                  </button>
+                  <button
+                    type="button"
+                    className={`role-option ${role === "CANDIDATE" ? "active" : ""}`}
+                    onClick={() => setRole("CANDIDATE")}
+                  >
+                    Candidate
+                  </button>
+                </div>
+              </div>
+            </>
           )}
 
           <div className="form-group">
-            <label htmlFor="password" className="form-label">
-              Password
-            </label>
+            <label htmlFor="password" className="form-label">Password</label>
             <input
               type="password"
               id="password"
@@ -144,11 +160,7 @@ const Login = () => {
             />
           </div>
 
-          <button
-            type="submit"
-            className="auth-button"
-            disabled={loading}
-          >
+          <button type="submit" className="auth-button" disabled={loading}>
             {loading ? (
               <span className="loading-spinner"></span>
             ) : isSignIn ? (

@@ -98,7 +98,39 @@
   border: 1px solid #7b8cff;
   box-shadow: 0 0 0 3px rgba(123,140,255,0.2);
 }
+/* Role Toggle */
+.role-toggle {
+  display: flex;
+  gap: 0;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  overflow: hidden;
+}
 
+.role-option {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  background: #f9fafb;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.role-option:first-child {
+  border-right: 1px solid #d1d5db;
+}
+
+.role-option.active {
+  background: #4f46e5;
+  color: #ffffff;
+}
+
+.role-option:hover:not(.active) {
+  background: #f3f4f6;
+}
 /* ========================= */
 /* MESSAGES */
 /* ========================= */
