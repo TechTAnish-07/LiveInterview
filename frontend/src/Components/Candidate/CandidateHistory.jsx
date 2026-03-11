@@ -10,33 +10,31 @@ const CandidateHistory = () => {
   const [selectedFeedback, setSelectedFeedback] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
-  useEffect(() => {
-    const fetchSchedule = async () => {
-      try {
-        const res = await api.get(
-          "/api/interview/candidate/my-interviews"
-        );
-        setInterviews(res.data);
-      } catch (error) {
-        console.error("Error fetching interview schedule:", error);
-      }
-    };
+ useEffect(() => {
+  const fetchSchedule = async () => {
+    try {
+      const res = await api.get("/api/interview/candidate/my-interviews");
+      const raw = res.data;
+      const data = Array.isArray(raw) ? raw : raw?.data ?? raw?.interviews ?? [];
+      setInterviews(data);
+    } catch (error) {
+      console.error("Error fetching interview schedule:", error);
+    }
+  };
 
-    fetchSchedule();
-  }, []);
-
+  fetchSchedule();
+}, []);
   const now = new Date();
 
   /* ========================= */
   /* FILTER HISTORY */
   /* ========================= */
 
-  let historyInterviews = interviews.filter(
-    (i) =>
-      (i.status === "EXPIRED" &&
-        new Date(i.endTime) <= now) ||
-      i.status === "COMPLETED"
-  );
+ let historyInterviews = Array.isArray(interviews) ? interviews.filter(
+  (i) =>
+    (i.status === "EXPIRED" && new Date(i.endTime) <= now) ||
+    i.status === "COMPLETED"
+) : [];
 
   const fetchFeedback = async (interviewId) => {
     try {
