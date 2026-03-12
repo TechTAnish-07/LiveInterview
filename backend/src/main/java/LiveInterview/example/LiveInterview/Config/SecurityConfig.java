@@ -48,6 +48,7 @@ public class SecurityConfig {
         config.setAllowCredentials(true);
         config.setAllowedOrigins(Arrays.asList(
                 "https://live-interview-ten.vercel.app",
+                "https://liveintervieww.tech",
                 "http://localhost:**"
         ));
 
