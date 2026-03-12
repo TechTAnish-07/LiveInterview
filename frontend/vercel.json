@@ -2,7 +2,11 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://liveintervieww.tech/api/:path*"
+      "destination": "https://liveintervieww.tech/:path*"
+    },
+    {
+      "source": "/ws/:path*",
+      "destination": "https://liveintervieww.tech/ws/:path*"
     },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
