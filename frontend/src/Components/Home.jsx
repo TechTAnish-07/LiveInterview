@@ -430,7 +430,7 @@ const styles = {
   badgeText: {
     fontSize: '18px',
     fontWeight: '800',
-    color: 'red',
+    color: 'black',
     letterSpacing: '0.5px',
   },
 
