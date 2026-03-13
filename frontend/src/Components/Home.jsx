@@ -414,7 +414,7 @@ const styles = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '10px',
-    background: 'hsla(13, 84.30%, 52.50%, 0.10)',
+    background: 'white',
     border: '1px solid rgba(0, 0, 0, 0.3)',
     padding: '8px 16px',
     borderRadius: '100px',
@@ -422,7 +422,7 @@ const styles = {
   },
 
   badgeDot: {
-    color: 'red',
+    color: 'black',
     fontSize: '13px',
     animation: 'pulse 2s ease-in-out infinite',
   },
