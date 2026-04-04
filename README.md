@@ -115,6 +115,6 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ## 👨‍💻 Author
 
-**Anish** — [@TechTAnish-07](https://github.com/TechTAnish-07)
+**TAnish** — [@TechTAnish-07](https://github.com/TechTAnish-07)
 
 > ⭐ If you found this project helpful, please consider giving it a star!
