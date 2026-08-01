@@ -1,891 +1,261 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from './AuthProvider';
-
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "./AuthProvider";
+import { ArrowRight, Video, Code, ShieldCheck, Calendar, Sparkles, CheckCircle2, User, Play, Award, Terminal } from "lucide-react";
 
 const Home = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, isHR } = useAuth();
-  const [activeFeature, setActiveFeature] = useState(0);
-  const [scrollY, setScrollY] = useState(0);
+  const { user, role } = useAuth();
+  const isLoggedIn = !!user;
 
-  useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveFeature((prev) => (prev + 1) % 4);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const features = [
-    {
-      icon: '🎥',
-      title: 'Live Video Interviews',
-      description: 'Crystal-clear HD video calls with real-time collaboration',
-    },
-    {
-      icon: '💻',
-      title: 'Integrated Code Editor',
-      description: 'Built-in compiler supporting multiple programming languages',
-    },
-    {
-      icon: '🔒',
-      title: 'Security Monitoring',
-      description: 'Advanced proctoring with tab switching and copy-paste detection',
-    },
-    {
-      icon: '📊',
-      title: 'Real-time Analytics',
-      description: 'Track performance, engagement, and security metrics instantly',
-    },
-  ];
-
-  const stats = [
-    { value: '50K+', label: 'Interviews Conducted' },
-    { value: '99.9%', label: 'Uptime Reliability' },
-    { value: '500+', label: 'Companies Trust Us' },
-    { value: '4.9/5', label: 'Average Rating' },
-  ];
-
-  const handleGetStarted = () => {
-    if (isAuthenticated) {
-      navigate(isHR ? '/dashboard/hr' : '/dashboard/candidate');
+  const handleGetStarted = (targetRole) => {
+    if (isLoggedIn) {
+      if (role === "HR") navigate("/dashboard/hr");
+      else navigate("/dashboard/candidate");
     } else {
-      navigate('/login');
+      navigate("/login", { state: { initialRole: targetRole || "HR" } });
     }
   };
 
   return (
-    <div style={styles.container}>
+    <div className="bg-[#f7f9fb] text-[#191c1e] min-h-screen font-sans selection:bg-[#d8e2ff]">
       {/* Hero Section */}
-      <section style={{
-        ...styles.hero,
-        transform: `translateY(${scrollY * 0.5}px)`,
-      }}>
-        <div style={styles.heroContent}>
-          <div style={styles.heroLeft}>
-            <div style={styles.badge}>
-              <span style={styles.badgeDot}>●</span>
-              <span style={styles.badgeText}>Live Interview Platform</span>
-            </div>
+      <section className="relative overflow-hidden pt-12 pb-24 px-6 md:px-12 bg-radial from-[#f7f9fb] via-[#eceef0] to-[#f7f9fb]">
+        {/* Background Ambient Glows */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-[#2170e4]/10 blur-[100px] rounded-full pointer-events-none"></div>
+        <div className="absolute top-1/3 left-1/4 w-[400px] h-[250px] bg-[#1a998d]/10 blur-[80px] rounded-full pointer-events-none"></div>
 
-            <h1 style={styles.heroTitle}>
-              Conduct Technical
-              <span style={styles.heroTitleAccent}> Interviews</span>
-              <br />
-              That Actually Work
-            </h1>
+        <div className="max-w-6xl mx-auto flex flex-col items-center text-center relative z-10">
+          
+          {/* Top Pill Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#e3dfff] text-[#181445] rounded-full mb-8 shadow-xs border border-[#c4c1fb]/50 animate-pulse">
+            <Sparkles className="w-4 h-4 text-[#0058be]" />
+            <span className="text-xs font-semibold font-mono tracking-wide uppercase">Next-Gen Evaluation Suite</span>
+          </div>
 
-            <p style={styles.heroDescription}>
-              The only platform that combines video calling, code compilation,
-              and advanced security monitoring in one seamless experience.
-              Stop juggling multiple tools and start hiring better talent.
-            </p>
+          {/* Main Headline */}
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-[#070235] max-w-4xl tracking-tight leading-[1.15] mb-6">
+            Technical Interviews. <br />
+            <span className="bg-gradient-to-r from-[#0058be] to-[#2170e4] bg-clip-text text-transparent">
+              Zero Friction. High Precision.
+            </span>
+          </h1>
 
-            <div style={styles.heroButtons}>
-              <button
-                onClick={handleGetStarted}
-                style={styles.primaryButton}
-                onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
-                onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
-              >
-                Get Started Free
-                <span style={styles.buttonArrow}>→</span>
-              </button>
+          <p className="text-base sm:text-lg text-[#47464f] max-w-2xl mb-10 leading-relaxed">
+            The unified workspace for real-time technical evaluations. Integrated video, collaborative Monaco code editor, Judge0 execution, and automated AI candidate reports in one place.
+          </p>
 
-              <button
-                onClick={() => navigate('/demoVideo')}
-                style={styles.secondaryButton}
-                onMouseEnter={(e) => e.target.style.background = 'rgba(255,255,255,0.15)'}
-                onMouseLeave={(e) => e.target.style.background = 'rgba(255,255,255,0.1)'}
-              >
-                Watch Demo
-                <span style={styles.playIcon}>▶</span>
-              </button>
-            </div>
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row items-center gap-4 mb-20 w-full sm:w-auto">
+            <button
+              onClick={() => handleGetStarted("HR")}
+              className="w-full sm:w-auto px-8 py-4 bg-[#070235] hover:bg-[#1e1b4b] text-white rounded-xl font-semibold text-sm flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all group cursor-pointer"
+            >
+              <span>Login as HR / Recruiter</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </button>
 
-            <div style={styles.socialProof}>
-              <div style={styles.avatarGroup}>
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} style={{
-                    ...styles.avatar,
-                    marginLeft: i > 1 ? '-12px' : '0',
-                    zIndex: 5 - i,
-                  }}>
-                    <div style={{
-                      width: '100%',
-                      height: '100%',
-                      borderRadius: '50%',
-                      background: `linear-gradient(135deg, 
-                        hsl(${i * 60}, 70%, 60%), 
-                        hsl(${i * 60 + 30}, 70%, 50%))`,
-                    }} />
-                  </div>
-                ))}
+            <button
+              onClick={() => handleGetStarted("CANDIDATE")}
+              className="w-full sm:w-auto px-8 py-4 border border-[#c8c5d0] hover:border-[#0058be] text-[#070235] rounded-xl font-semibold text-sm flex items-center justify-center gap-2 bg-white hover:bg-[#f2f4f6] transition-all shadow-xs cursor-pointer"
+            >
+              <User className="w-4 h-4 text-[#0058be]" />
+              <span>Login as Candidate</span>
+            </button>
+          </div>
+
+          {/* IDE Interactive Live Workspace Preview */}
+          <div className="relative w-full max-w-5xl mx-auto rounded-2xl overflow-hidden shadow-2xl border border-[#c8c5d0]/70 bg-white">
+            
+            {/* Top Editor Bar */}
+            <div className="h-11 bg-[#1e1b4b] text-white flex items-center justify-between px-4 font-mono text-xs border-b border-[#444173]">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-[#ba1a1a]"></div>
+                <div className="w-3 h-3 rounded-full bg-[#2170e4]"></div>
+                <div className="w-3 h-3 rounded-full bg-[#1a998d]"></div>
+                <span className="ml-2 text-[#8683ba] font-medium flex items-center gap-1.5">
+                  <Terminal className="w-3.5 h-3.5 text-[#6bd8cb]" />
+                  live_interview_session.py
+                </span>
               </div>
-              <p style={styles.socialProofText}>
-                <strong>2,847</strong> interviews conducted this week
+              <div className="flex items-center gap-3">
+                <span className="inline-flex items-center gap-1.5 text-[#89f5e7] bg-[#002723] px-2.5 py-1 rounded-md text-[11px]">
+                  <span className="w-2 h-2 rounded-full bg-[#1a998d] animate-ping"></span>
+                  Live Code Sync
+                </span>
+              </div>
+            </div>
+
+            {/* IDE Workspace Body */}
+            <div className="flex flex-col md:flex-row min-h-[420px] text-left">
+              
+              {/* Left Sidebar: Audio/Video & Notes */}
+              <div className="w-full md:w-80 bg-[#f7f9fb] border-r border-[#c8c5d0]/50 p-4 flex flex-col justify-between gap-4">
+                
+                <div className="space-y-3">
+                  <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#47464f]">
+                    Live Video Participants
+                  </span>
+                  
+                  {/* Interviewer Tile */}
+                  <div className="relative rounded-xl overflow-hidden aspect-video bg-gradient-to-br from-[#1e1b4b] to-[#070235] shadow-md border border-[#c8c5d0]/40 flex flex-col items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-[#8683ba]/20 text-[#89f5e7] flex items-center justify-center font-bold font-mono border border-[#444173] text-lg shadow-inner">
+                      SJ
+                    </div>
+                    <span className="text-[10px] font-mono text-[#8683ba] mt-1.5">HD Video Stream</span>
+                    <div className="absolute bottom-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur-md rounded text-white text-[11px] font-mono">
+                      Sarah Jenkins (HR Lead)
+                    </div>
+                  </div>
+
+                  {/* Candidate Tile */}
+                  <div className="relative rounded-xl overflow-hidden aspect-video bg-gradient-to-br from-[#070235] to-[#1e1b4b] shadow-md border-2 border-[#0058be] ring-2 ring-[#0058be]/20 flex flex-col items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-[#0058be]/30 text-white flex items-center justify-center font-bold font-mono border border-[#0058be] text-lg shadow-inner animate-pulse">
+                      AR
+                    </div>
+                    <span className="text-[10px] font-mono text-[#8683ba] mt-1.5">Mic Active • 48kHz</span>
+                    <div className="absolute bottom-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur-md rounded text-white text-[11px] font-mono">
+                      Alex Rivera (Candidate)
+                    </div>
+                    <div className="absolute top-2 right-2 px-2 py-0.5 bg-[#0058be] text-white rounded text-[10px] font-mono font-bold uppercase">
+                      Speaking
+                    </div>
+                  </div>
+                </div>
+
+                {/* Real-time Indicator */}
+                <div className="bg-white p-3 rounded-xl border border-[#c8c5d0]/50 shadow-xs">
+                  <div className="flex items-center justify-between text-xs mb-1.5">
+                    <span className="font-semibold text-[#070235]">Technical Precision Score</span>
+                    <span className="font-mono text-[#0058be] font-bold">94%</span>
+                  </div>
+                  <div className="w-full bg-[#eceef0] h-2 rounded-full overflow-hidden">
+                    <div className="bg-[#0058be] h-full w-[94%] transition-all duration-500"></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Main Editor Area */}
+              <div className="flex-1 bg-[#0f172a] p-6 font-mono text-xs text-slate-200 leading-relaxed overflow-x-auto relative">
+                <pre>
+                  <code>
+<span className="text-purple-400">def</span> <span className="text-blue-400 font-bold">two_sum_optimized</span>(nums: list[int], target: int) -&gt; list[int]:
+{"    "}<span className="text-slate-500"># Store compliment map for O(n) lookups</span>
+{"    "}seen = {}
+{"    "}<span className="text-purple-400">for</span> idx, num <span className="text-purple-400">in</span> <span className="text-yellow-300">enumerate</span>(nums):
+{"        "}compliment = target - num
+{"        "}<span className="text-purple-400">if</span> compliment <span className="text-purple-400">in</span> seen:
+{"            "}<span className="text-purple-400">return</span> [seen[compliment], idx]
+{"        "}seen[num] = idx
+{"    "}<span className="text-purple-400">return</span> []
+
+<span className="text-slate-500"># Live Execution Results:</span>
+<span className="text-emerald-400">✓ Test Case 1: Passed (Memory: 14.2MB, Time: 2ms)</span>
+<span className="text-emerald-400">✓ Test Case 2: Passed (All inputs verified)</span>
+                  </code>
+                </pre>
+
+                {/* Floating Typing Cursor */}
+                <div className="absolute top-28 right-24 hidden lg:flex items-center gap-1.5 bg-[#2170e4] text-white px-2 py-0.5 rounded shadow-lg text-[10px]">
+                  <span>Alex typing...</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* Feature Grid */}
+      <section className="py-20 px-6 md:px-12 bg-white border-t border-[#e0e3e5]">
+        <div className="max-w-6xl mx-auto">
+          
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-4">
+            <div>
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#0058be] block mb-2">
+                Capabilities
+              </span>
+              <h2 className="text-3xl font-extrabold text-[#070235]">Engineered for Modern Engineering Hiring</h2>
+            </div>
+            <p className="text-sm text-[#47464f] max-w-md">
+              Everything required to conduct end-to-end technical interviews without context switching.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            
+            {/* Feature 1 */}
+            <div className="p-6 rounded-2xl bg-[#f7f9fb] border border-[#e0e3e5] hover:border-[#0058be] hover:shadow-lg transition-all group">
+              <div className="w-12 h-12 rounded-xl bg-[#e3dfff] text-[#070235] flex items-center justify-center mb-6 group-hover:bg-[#070235] group-hover:text-white transition-colors">
+                <Video className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-bold text-[#070235] mb-2">Live WebRTC Video</h3>
+              <p className="text-xs text-[#47464f] leading-relaxed">
+                HD audio/video calling built into the workspace so candidate and interviewer communicate smoothly.
               </p>
             </div>
-          </div>
 
-          <div style={styles.heroRight}>
-            <div style={{
-              ...styles.floatingCard,
-              animation: 'float 6s ease-in-out infinite',
-            }}>
-              <div style={styles.mockInterview}>
-                <div style={styles.mockHeader}>
-                  <div style={styles.mockDots}>
-                    <span style={{ ...styles.dot, background: '#ff5f56' }} />
-                    <span style={{ ...styles.dot, background: '#ffbd2e' }} />
-                    <span style={{ ...styles.dot, background: '#27c93f' }} />
-                  </div>
-                  <span style={styles.mockTitle}>Live Interview</span>
-                  <div style={styles.recordingBadge}>
-                    <span style={styles.recordingDot} />
-                    REC
-                  </div>
-                </div>
-
-                <div style={styles.mockVideo}>
-                  <div style={styles.videoPlaceholder}>
-                    <div style={styles.videoIcon}>👨‍💼</div>
-                    <p style={styles.videoLabel}>Interviewer</p>
-                  </div>
-                  <div style={{ ...styles.videoPlaceholder, gridColumn: '2' }}>
-                    <div style={styles.videoIcon}>👨‍💻</div>
-                    <p style={styles.videoLabel}>Candidate</p>
-                  </div>
-                </div>
-
-                <div style={styles.mockCode}>
-                  <div style={styles.codeLine}>
-                    <span style={{ color: '#ff79c6' }}>function</span>{' '}
-                    <span style={{ color: '#50fa7b' }}>createInterview</span>
-                    <span style={{ color: '#f8f8f2' }}>(candidateEmail, interviewTime) {'{'}</span>
-                  </div>
-
-                  <div style={{ ...styles.codeLine, paddingLeft: '20px' }}>
-                    <span style={{ color: '#ff79c6' }}>const</span>{' '}
-                    <span style={{ color: '#8be9fd' }}>interview</span>{' '}
-                    <span style={{ color: '#f8f8f2' }}>= {'{'}</span>
-                  </div>
-
-                  <div style={{ ...styles.codeLine, paddingLeft: '40px' }}>
-                    <span style={{ color: '#f8f8f2' }}>email: candidateEmail,</span>
-                  </div>
-
-                  <div style={{ ...styles.codeLine, paddingLeft: '40px' }}>
-                    <span style={{ color: '#f8f8f2' }}>time: interviewTime</span>
-                  </div>
-
-                  <div style={{ ...styles.codeLine, paddingLeft: '20px' }}>
-                    <span style={{ color: '#f8f8f2' }}>{'}'};</span>
-                  </div>
-
-                  <div style={{ ...styles.codeLine, paddingLeft: '20px' }}>
-                    <span style={{ color: '#ff79c6' }}>return</span>{' '}
-                    <span style={{ color: '#f1fa8c' }}>'created'</span>;
-                  </div>
-
-                  <div style={styles.codeLine}>
-                    <span style={{ color: '#f8f8f2' }}>{'}'}</span>
-                  </div>
-
-                  <div style={styles.securityIndicator}>
-                    <span style={styles.securityIcon}>🔒</span>
-                    <span style={styles.securityText}>Secure Session Active</span>
-                  </div>
-                </div>
+            {/* Feature 2 */}
+            <div className="p-6 rounded-2xl bg-[#f7f9fb] border border-[#e0e3e5] hover:border-[#0058be] hover:shadow-lg transition-all group">
+              <div className="w-12 h-12 rounded-xl bg-[#d8e2ff] text-[#0058be] flex items-center justify-center mb-6 group-hover:bg-[#0058be] group-hover:text-white transition-colors">
+                <Code className="w-6 h-6" />
               </div>
+              <h3 className="text-lg font-bold text-[#070235] mb-2">Monaco Code Editor</h3>
+              <p className="text-xs text-[#47464f] leading-relaxed">
+                Multi-language editor with syntax highlighting, live WebSocket code sync, and instant compilation.
+              </p>
             </div>
+
+            {/* Feature 3 */}
+            <div className="p-6 rounded-2xl bg-[#f7f9fb] border border-[#e0e3e5] hover:border-[#0058be] hover:shadow-lg transition-all group">
+              <div className="w-12 h-12 rounded-xl bg-[#89f5e7]/40 text-[#005049] flex items-center justify-center mb-6 group-hover:bg-[#002723] group-hover:text-[#89f5e7] transition-colors">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-bold text-[#070235] mb-2">Tab Proctoring</h3>
+              <p className="text-xs text-[#47464f] leading-relaxed">
+                Automated security logs track tab switches and copy-paste events to maintain high evaluation integrity.
+              </p>
+            </div>
+
+            {/* Feature 4 */}
+            <div className="p-6 rounded-2xl bg-[#f7f9fb] border border-[#e0e3e5] hover:border-[#0058be] hover:shadow-lg transition-all group">
+              <div className="w-12 h-12 rounded-xl bg-[#e3dfff] text-[#181445] flex items-center justify-center mb-6 group-hover:bg-[#181445] group-hover:text-white transition-colors">
+                <Award className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-bold text-[#070235] mb-2">AI Summary & Feedback</h3>
+              <p className="text-xs text-[#47464f] leading-relaxed">
+                Generates scorecards for technical skills, code quality, and problem-solving with hiring recommendations.
+              </p>
+            </div>
+
           </div>
         </div>
-
-        {/* Floating decorative elements */}
-        <div style={{ ...styles.floatingOrb, top: '10%', left: '5%', animation: 'orbit 20s linear infinite' }} />
-        <div style={{ ...styles.floatingOrb, top: '70%', right: '10%', animation: 'orbit 15s linear infinite reverse' }} />
       </section>
 
-      {/* Stats Section */}
-      <section style={styles.statsSection}>
-        <div style={styles.statsGrid}>
-          {stats.map((stat, idx) => (
-            <div
-              key={idx}
-              style={{
-                ...styles.statCard,
-                animationDelay: `${idx * 0.1}s`,
-              }}
-            >
-              <div style={styles.statValue}>{stat.value}</div>
-              <div style={styles.statLabel}>{stat.label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section style={styles.featuresSection}>
-        <div style={styles.sectionHeader}>
-          <span style={styles.sectionBadge}>FEATURES</span>
-          <h2 style={styles.sectionTitle}>
-            Everything You Need to
-            <br />
-            <span style={styles.sectionTitleAccent}>Run Perfect Interviews</span>
+      {/* Social Proof / Call to Action */}
+      <section className="py-20 px-6 bg-[#070235] text-white relative overflow-hidden">
+        <div className="max-w-4xl mx-auto text-center relative z-10">
+          <h2 className="text-3xl sm:text-4xl font-extrabold mb-6 tracking-tight">
+            Ready to elevate your engineering interviews?
           </h2>
-        </div>
-
-        <div style={styles.featuresGrid}>
-          {features.map((feature, idx) => (
-            <div
-              key={idx}
-              style={{
-                ...styles.featureCard,
-                background: activeFeature === idx
-                  ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1))'
-                  : 'rgba(255, 255, 255, 0.03)',
-                borderColor: activeFeature === idx ? '#3b82f6' : 'rgba(255, 255, 255, 0.1)',
-                transform: activeFeature === idx ? 'translateY(-8px)' : 'translateY(0)',
-              }}
-              onMouseEnter={() => setActiveFeature(idx)}
-            >
-              <div style={styles.featureIcon}>{feature.icon}</div>
-              <h3 style={styles.featureTitle}>{feature.title}</h3>
-              <p style={styles.featureDescription}>{feature.description}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* How It Works Section */}
-      <section style={styles.howItWorksSection}>
-        <div style={styles.sectionHeader}>
-          <span style={styles.sectionBadge}>HOW IT WORKS</span>
-          <h2 style={styles.sectionTitle}>
-            From Setup to Hire
-            <br />
-            <span style={styles.sectionTitleAccent}>In Three Simple Steps</span>
-          </h2>
-        </div>
-
-        <div style={styles.stepsContainer}>
-          {[
-            {
-              step: '01',
-              title: 'Schedule Interview',
-              description: 'Create your interview room and send the link to your candidate',
-              color: '#3b82f6',
-            },
-            {
-              step: '02',
-              title: 'Conduct Interview',
-              description: 'Use video, code editor, and real-time collaboration tools',
-              color: '#8b5cf6',
-            },
-            {
-              step: '03',
-              title: 'Review & Decide',
-              description: 'Access recordings, code submissions, and security reports',
-              color: '#06b6d4',
-            },
-          ].map((item, idx) => (
-            <div key={idx} style={styles.stepCard}>
-              <div style={{ ...styles.stepNumber, background: item.color }}>
-                {item.step}
-              </div>
-              <div style={styles.stepContent}>
-                <h3 style={styles.stepTitle}>{item.title}</h3>
-                <p style={styles.stepDescription}>{item.description}</p>
-              </div>
-              {idx < 2 && <div style={styles.stepConnector} />}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section style={styles.ctaSection}>
-        <div style={styles.ctaContent}>
-          <h2 style={styles.ctaTitle}>
-            Ready to Transform Your
-            <br />
-            Hiring Process?
-          </h2>
-          <p style={styles.ctaDescription}>
-            Join hundreds of companies conducting better technical interviews
+          <p className="text-sm sm:text-base text-[#8683ba] max-w-xl mx-auto mb-8">
+            Join hundreds of recruiters and candidates conducting structured, high-precision technical evaluations.
           </p>
-          <button
-            onClick={handleGetStarted}
-            style={styles.ctaButton}
-            onMouseEnter={(e) => {
-              e.target.style.transform = 'scale(1.05)';
-              e.target.style.boxShadow = '0 20px 60px rgba(59, 130, 246, 0.4)';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.transform = 'scale(1)';
-              e.target.style.boxShadow = '0 10px 40px rgba(59, 130, 246, 0.3)';
-            }}
-          >
-            Start Your Free Trial
-            <span style={styles.ctaButtonArrow}>→</span>
-          </button>
-          <p style={styles.ctaNote}>No credit card required • 14-day free trial</p>
+
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+            <button
+              onClick={() => handleGetStarted("HR")}
+              className="w-full sm:w-auto px-8 py-3.5 bg-[#2170e4] hover:bg-[#0058be] text-white rounded-xl font-semibold text-sm transition-all shadow-md cursor-pointer"
+            >
+              Get Started Free
+            </button>
+          </div>
         </div>
       </section>
 
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Bricolage+Grotesque:wght@600;700;800&display=swap');
-        
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-20px) rotate(2deg); }
-        }
-        
-        @keyframes orbit {
-          0% { transform: rotate(0deg) translateX(50px) rotate(0deg); }
-          100% { transform: rotate(360deg) translateX(50px) rotate(-360deg); }
-        }
-        
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
-        }
-        
-        @keyframes slideUp {
-          from { 
-            opacity: 0; 
-            transform: translateY(30px); 
-          }
-          to { 
-            opacity: 1; 
-            transform: translateY(0); 
-          }
-        }
-        
-        * {
-          font-family: 'DM Sans', sans-serif;
-        }
-      `}</style>
     </div>
   );
-};
-
-const styles = {
-
-  container: {
-    background: 'linear-gradient(180deg,rgb(96, 106, 142) 0%, #1a1f35 100%)',
-    minHeight: '100vh',
-    color: '#fff',
-    overflow: 'hidden',
-    width: '100%',
-  },
-
-  hero: {
-    padding: '120px 60px',
-    position: 'relative',
-    minHeight: '90vh',
-    display: 'flex',
-    alignItems: 'center',
-  },
-
-  heroContent: {
-    maxWidth: '1400px',
-    margin: '0 auto',
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '80px',
-    alignItems: 'center',
-    zIndex: 2,
-    position: 'relative',
-  },
-
-  heroLeft: {
-    animation: 'slideUp 0.8s ease-out',
-  },
-
-  badge: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '10px',
-    background: 'white',
-    border: '1px solid rgba(0, 0, 0, 0.3)',
-    padding: '8px 16px',
-    borderRadius: '100px',
-    marginBottom: '24px',
-  },
-
-  badgeDot: {
-    color: 'black',
-    fontSize: '13px',
-    animation: 'pulse 2s ease-in-out infinite',
-  },
-
-  badgeText: {
-    fontSize: '18px',
-    fontWeight: '800',
-    color: 'black',
-    letterSpacing: '0.5px',
-  },
-
-  heroTitle: {
-    fontFamily: "'Bricolage Grotesque', sans-serif",
-    fontSize: '72px',
-    fontWeight: '800',
-    lineHeight: '1.1',
-    marginBottom: '24px',
-    letterSpacing: '-0.02em',
-  },
-
-  heroTitleAccent: {
-    background: 'linear-gradient(135deg,rgb(6, 71, 176),rgb(187, 178, 206))',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
-  },
-
-  heroDescription: {
-    fontSize: '20px',
-    lineHeight: '1.6',
-    color: '#94a3b8',
-    marginBottom: '40px',
-    maxWidth: '540px',
-  },
-
-  heroButtons: {
-    display: 'flex',
-    gap: '16px',
-    marginBottom: '48px',
-  },
-
-  primaryButton: {
-    background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-    color: '#fff',
-    border: 'none',
-    padding: '18px 36px',
-    borderRadius: '12px',
-    fontSize: '16px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    transition: 'all 0.3s ease',
-    boxShadow: '0 10px 30px rgba(59, 130, 246, 0.3)',
-  },
-
-  buttonArrow: {
-    transition: 'transform 0.3s ease',
-  },
-
-  secondaryButton: {
-    background: 'rgba(255, 255, 255, 0.1)',
-    color: '#fff',
-    border: '1px solid rgba(255, 255, 255, 0.2)',
-    padding: '18px 36px',
-    borderRadius: '12px',
-    fontSize: '16px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    transition: 'all 0.3s ease',
-    backdropFilter: 'blur(10px)',
-  },
-
-  playIcon: {
-    fontSize: '12px',
-  },
-
-  socialProof: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '16px',
-  },
-
-  avatarGroup: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-
-  avatar: {
-    width: '44px',
-    height: '44px',
-    borderRadius: '50%',
-    border: '3px solid #0a0e1a',
-    overflow: 'hidden',
-  },
-
-  socialProofText: {
-    fontSize: '15px',
-    color: '#94a3b8',
-  },
-
-  heroRight: {
-    position: 'relative',
-    animation: 'slideUp 0.8s ease-out 0.2s backwards',
-  },
-
-  floatingCard: {
-    background: 'rgba(255, 255, 255, 0.03)',
-    backdropFilter: 'blur(20px)',
-    borderRadius: '24px',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    overflow: 'hidden',
-    boxShadow: '0 30px 80px rgba(0, 0, 0, 0.4)',
-  },
-
-  mockInterview: {
-    padding: '0',
-  },
-
-  mockHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '20px 24px',
-    background: 'rgba(255, 255, 255, 0.05)',
-    borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-  },
-
-  mockDots: {
-    display: 'flex',
-    gap: '8px',
-  },
-
-  dot: {
-    width: '12px',
-    height: '12px',
-    borderRadius: '50%',
-  },
-
-  mockTitle: {
-    fontSize: '14px',
-    fontWeight: '600',
-    color: '#94a3b8',
-  },
-
-  recordingBadge: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    background: 'rgba(239, 68, 68, 0.1)',
-    border: '1px solid rgba(239, 68, 68, 0.3)',
-    padding: '4px 10px',
-    borderRadius: '6px',
-    fontSize: '11px',
-    fontWeight: '600',
-    color: '#ef4444',
-  },
-
-  recordingDot: {
-    width: '6px',
-    height: '6px',
-    borderRadius: '50%',
-    background: '#ef4444',
-    animation: 'pulse 2s ease-in-out infinite',
-  },
-
-  mockVideo: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '12px',
-    padding: '24px',
-    background: 'rgba(0, 0, 0, 0.2)',
-  },
-
-  videoPlaceholder: {
-    background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1))',
-    borderRadius: '12px',
-    padding: '40px 20px',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '12px',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-  },
-
-  videoIcon: {
-    fontSize: '48px',
-  },
-
-  videoLabel: {
-    fontSize: '13px',
-    color: '#94a3b8',
-    fontWeight: '500',
-  },
-
-  mockCode: {
-    background: '#1e1e2e',
-    padding: '24px',
-    fontFamily: 'monospace',
-    fontSize: '14px',
-    lineHeight: '1.8',
-    position: 'relative',
-  },
-
-  codeLine: {
-    marginBottom: '4px',
-  },
-
-  securityIndicator: {
-    marginTop: '20px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '12px',
-    background: 'rgba(34, 197, 94, 0.1)',
-    border: '1px solid rgba(34, 197, 94, 0.2)',
-    borderRadius: '8px',
-  },
-
-  securityIcon: {
-    fontSize: '16px',
-  },
-
-  securityText: {
-    fontSize: '12px',
-    color: '#22c55e',
-    fontWeight: '600',
-  },
-
-  floatingOrb: {
-    position: 'absolute',
-    width: '300px',
-    height: '300px',
-    borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(59, 130, 246, 0.3), transparent)',
-    filter: 'blur(60px)',
-    pointerEvents: 'none',
-  },
-
-  statsSection: {
-    padding: '80px 60px',
-    background: 'rgba(255, 255, 255, 0.02)',
-    borderTop: '1px solid rgba(255, 255, 255, 0.05)',
-    borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-  },
-
-  statsGrid: {
-    maxWidth: '1400px',
-    margin: '0 auto',
-    display: 'grid',
-    gridTemplateColumns: 'repeat(4, 1fr)',
-    gap: '40px',
-  },
-
-  statCard: {
-    textAlign: 'center',
-    animation: 'slideUp 0.6s ease-out',
-  },
-
-  statValue: {
-    fontFamily: "'Bricolage Grotesque', sans-serif",
-    fontSize: '56px',
-    fontWeight: '800',
-    background: 'linear-gradient(135deg, #fff, #94a3b8)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
-    marginBottom: '8px',
-  },
-
-  statLabel: {
-    fontSize: '16px',
-    color: '#64748b',
-    fontWeight: '500',
-  },
-
-  featuresSection: {
-    padding: '120px 60px',
-    position: 'relative',
-  },
-
-  sectionHeader: {
-    textAlign: 'center',
-    marginBottom: '80px',
-  },
-
-  sectionBadge: {
-    display: 'inline-block',
-    fontSize: '12px',
-    fontWeight: '600',
-    letterSpacing: '2px',
-    color: '#3b82f6',
-    marginBottom: '16px',
-  },
-
-  sectionTitle: {
-    fontFamily: "'Bricolage Grotesque', sans-serif",
-    fontSize: '56px',
-    fontWeight: '800',
-    lineHeight: '1.2',
-    letterSpacing: '-0.02em',
-  },
-
-  sectionTitleAccent: {
-    background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
-  },
-
-  featuresGrid: {
-    maxWidth: '1400px',
-    margin: '0 auto',
-    display: 'grid',
-    gridTemplateColumns: 'repeat(4, 1fr)',
-    gap: '24px',
-  },
-
-  featureCard: {
-    padding: '40px 32px',
-    borderRadius: '20px',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    transition: 'all 0.4s ease',
-    cursor: 'pointer',
-  },
-
-  featureIcon: {
-    fontSize: '48px',
-    marginBottom: '24px',
-  },
-
-  featureTitle: {
-    fontSize: '20px',
-    fontWeight: '700',
-    marginBottom: '12px',
-    color: '#fff',
-  },
-
-  featureDescription: {
-    fontSize: '15px',
-    lineHeight: '1.6',
-    color: '#94a3b8',
-  },
-
-  howItWorksSection: {
-    padding: '120px 60px',
-    background: 'rgba(255, 255, 255, 0.02)',
-  },
-
-  stepsContainer: {
-    maxWidth: '1200px',
-    margin: '0 auto',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    position: 'relative',
-  },
-
-  stepCard: {
-    flex: 1,
-    position: 'relative',
-  },
-
-  stepNumber: {
-    width: '80px',
-    height: '80px',
-    borderRadius: '20px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontFamily: "'Bricolage Grotesque', sans-serif",
-    fontSize: '32px',
-    fontWeight: '800',
-    marginBottom: '24px',
-    boxShadow: '0 10px 40px rgba(59, 130, 246, 0.3)',
-  },
-
-  stepContent: {
-    paddingRight: '40px',
-  },
-
-  stepTitle: {
-    fontSize: '24px',
-    fontWeight: '700',
-    marginBottom: '12px',
-    color: '#fff',
-  },
-
-  stepDescription: {
-    fontSize: '16px',
-    lineHeight: '1.6',
-    color: '#94a3b8',
-  },
-
-  stepConnector: {
-    position: 'absolute',
-    top: '40px',
-    right: '-20px',
-    width: '40px',
-    height: '2px',
-    background: 'linear-gradient(90deg, rgba(59, 130, 246, 0.5), transparent)',
-  },
-
-  ctaSection: {
-    padding: '120px 60px',
-    position: 'relative',
-    overflow: 'hidden',
-  },
-
-  ctaContent: {
-    maxWidth: '800px',
-    margin: '0 auto',
-    textAlign: 'center',
-    position: 'relative',
-    zIndex: 2,
-  },
-
-  ctaTitle: {
-    fontFamily: "'Bricolage Grotesque', sans-serif",
-    fontSize: '64px',
-    fontWeight: '800',
-    lineHeight: '1.2',
-    marginBottom: '24px',
-    letterSpacing: '-0.02em',
-  },
-
-  ctaDescription: {
-    fontSize: '20px',
-    color: '#94a3b8',
-    marginBottom: '48px',
-  },
-
-  ctaButton: {
-    background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-    color: '#fff',
-    border: 'none',
-    padding: '24px 48px',
-    borderRadius: '16px',
-    fontSize: '18px',
-    fontWeight: '700',
-    cursor: 'pointer',
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '12px',
-    transition: 'all 0.4s ease',
-    boxShadow: '0 10px 40px rgba(59, 130, 246, 0.3)',
-  },
-
-  ctaButtonArrow: {
-    fontSize: '20px',
-    transition: 'transform 0.3s ease',
-  },
-
-  ctaNote: {
-    marginTop: '24px',
-    fontSize: '14px',
-    color: '#64748b',
-  },
 };
 
 export default Home;

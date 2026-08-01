@@ -1,24 +1,25 @@
 import { Outlet, useLocation } from "react-router-dom";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
-import "./AppLayout.css";
 
 const AppLayout = () => {
   const location = useLocation();
 
-  // routes where layout should be hidden
-  const authRoutes = ["/login", "/signup"];
-  const hideLayout = authRoutes.includes(location.pathname);
+  const isInterviewRoom = location.pathname.startsWith("/interview/");
+  const isPrejoinRoom = location.pathname.startsWith("/prejoin/");
+  const isLogin = location.pathname === "/login";
+
+  const hideHeaderFooter = isInterviewRoom || isPrejoinRoom || isLogin;
 
   return (
-    <div className="app-layout">
-      {<Navbar />}
+    <div className="min-h-screen flex flex-col bg-[#f7f9fb] text-[#191c1e] font-sans antialiased">
+      {!hideHeaderFooter && <Navbar />}
 
-      <main className="main-content">
+      <main className="flex-1">
         <Outlet />
       </main>
 
-      {<Footer />}
+      {!hideHeaderFooter && <Footer />}
     </div>
   );
 };
