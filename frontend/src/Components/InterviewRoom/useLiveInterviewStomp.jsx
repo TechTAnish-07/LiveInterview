@@ -8,13 +8,14 @@ const WS_URL =
     ? "http://localhost:8080/ws"
     : "https://liveintervieww.tech/ws";
 
-export function useLiveInterviewStomp({ interviewId, token, role }) {
+export function useLiveInterviewStomp({ interviewId, token, role, userId }) {
   const clientRef = useRef(null);
   const isRemoteUpdate = useRef(false);
   const readyRef = useRef(false);
   const questionTimerRef = useRef(null);
   const codeTimerRef = useRef(null);
   
+  const [language, setLanguage] = useState("python");
   const [stompClientState, setStompClientState] = useState(null);
   const [question, setQuestion] = useState("");
   const [code, setCode] = useState("");
@@ -23,6 +24,9 @@ export function useLiveInterviewStomp({ interviewId, token, role }) {
   const [interviewEnded, setInterviewEnded] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState(new Map());
   const [securityFlags, setSecurityFlags] = useState([]);
+  const [startTime, setStartTime] = useState(null);
+  const [endTime, setEndTime] = useState(null);
+  const [interviewStatus, setInterviewStatus] = useState(null);
 
   useEffect(() => {
     if (!interviewId) return;
@@ -33,6 +37,10 @@ export function useLiveInterviewStomp({ interviewId, token, role }) {
         setQuestion(res.data.question || "");
         setCode(res.data.code || "");
         setOutput(res.data.output || "");
+        if (res.data.language) setLanguage(res.data.language);
+        if (res.data.startTime) setStartTime(res.data.startTime);
+        if (res.data.endTime) setEndTime(res.data.endTime);
+        if (res.data.status) setInterviewStatus(res.data.status);
       } catch (e) {
         console.error("Failed to load interview state", e);
       }
@@ -104,8 +112,13 @@ export function useLiveInterviewStomp({ interviewId, token, role }) {
         `/topic/interview/${interviewId}/code`,
         (message) => {
           const parsed = JSON.parse(message.body);
-          isRemoteUpdate.current = true;
-          setCode(parsed.code);
+          if (parsed.code !== undefined) {
+            isRemoteUpdate.current = true;
+            setCode(parsed.code);
+          }
+          if (parsed.language) {
+            setLanguage(parsed.language);
+          }
         }
       );
 
@@ -187,6 +200,14 @@ export function useLiveInterviewStomp({ interviewId, token, role }) {
         }
       );
 
+      // ✅ Subscribe to interview ended topic
+      client.subscribe(
+        `/topic/interview/${interviewId}/ended`,
+        () => {
+          setInterviewEnded(true);
+        }
+      );
+
       // ✅ Send join message AFTER subscriptions
     //  console.log("📤 Sending presence join...");
       client.publish({
@@ -256,9 +277,8 @@ export function useLiveInterviewStomp({ interviewId, token, role }) {
   );
 
   const sendCodeUpdate = useCallback(
-    (value) => {
+    (value, langVal) => {
       if (!readyRef.current || !clientRef.current) {
-        console.warn("Cannot send code: client not ready");
         return;
       }
 
@@ -269,8 +289,8 @@ export function useLiveInterviewStomp({ interviewId, token, role }) {
           destination: destination,
           body: JSON.stringify({
             code: value,
-            language: "cpp",
-            sender: "HR",
+            language: langVal || language,
+            sender: role || "USER",
             timestamp: Date.now(),
           }),
         });
@@ -278,13 +298,20 @@ export function useLiveInterviewStomp({ interviewId, token, role }) {
         console.error("Error sending code:", e);
       }
     },
-    [interviewId]
+    [interviewId, role, language]
+  );
+
+  const updateLanguage = useCallback(
+    (newLang) => {
+      setLanguage(newLang);
+      sendCodeUpdate(code, newLang);
+    },
+    [code, sendCodeUpdate]
   );
 
   const sendSecurityFlag = useCallback(
     (type, message, metadata = {}) => {
       if (!readyRef.current || !clientRef.current) {
-        console.warn("Cannot send security flag: client not ready");
         return;
       }
 
@@ -294,8 +321,10 @@ export function useLiveInterviewStomp({ interviewId, token, role }) {
         const flag = {
           type,
           message,
+          userId: userId || role || "CANDIDATE",
           timestamp: new Date().toISOString(),
           metadata,
+          severity: type === "TAB_SWITCH" || type === "FOCUS_LOST" ? "HIGH" : "MEDIUM"
         };
 
         clientRef.current.publish({
@@ -306,7 +335,7 @@ export function useLiveInterviewStomp({ interviewId, token, role }) {
         console.error("Error sending security flag:", e);
       }
     },
-    [interviewId]
+    [interviewId, userId, role]
   );
 
   /* ---------------- SAFE STATE UPDATERS ---------------- */
@@ -335,9 +364,9 @@ export function useLiveInterviewStomp({ interviewId, token, role }) {
 
     clearTimeout(codeTimerRef.current);
     codeTimerRef.current = setTimeout(() => {
-      sendCodeUpdate(value);
+      sendCodeUpdate(value, language);
     }, 400);
-  }, [sendCodeUpdate]);
+  }, [sendCodeUpdate, language]);
 
   return {
     connected,
@@ -345,6 +374,8 @@ export function useLiveInterviewStomp({ interviewId, token, role }) {
     updateQuestion,
     code,
     updateCode,
+    language,
+    updateLanguage,
     setOutput,
     output,
     stompClient: stompClientState,
@@ -352,5 +383,8 @@ export function useLiveInterviewStomp({ interviewId, token, role }) {
     securityFlags,
     sendSecurityFlag,
     onlineUsers,
+    startTime,
+    endTime,
+    interviewStatus,
   };
 }

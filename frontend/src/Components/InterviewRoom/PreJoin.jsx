@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { Mic, MicOff, Video, VideoOff, ArrowRight, ShieldCheck, Camera, Terminal, AlertCircle } from "lucide-react";
 
 export default function PreJoin() {
   const { meetingLink } = useParams();
@@ -13,12 +14,11 @@ export default function PreJoin() {
   const [error, setError] = useState(null);
   const token = localStorage.getItem("accessToken");
 
-  // ✅ Start preview on mount
   useEffect(() => {
-      if (!token) {
+    if (!token) {
       navigate(`/login?redirect=/join/${meetingLink}`, { replace: true });
       return;
-     }
+    }
     const startPreview = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -34,21 +34,19 @@ export default function PreJoin() {
         }
       } catch (err) {
         console.error("Error accessing media devices:", err);
-        setError("Could not access camera/microphone. Please check permissions.");
+        setError("Could not access camera or microphone. Please enable permissions in your browser.");
       }
     };
 
     startPreview();
 
-   
     return () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
       }
     };
-  }, []);
+  }, [token, meetingLink, navigate]);
 
-  // ✅ Attach stream to video when ref is ready
   useEffect(() => {
     if (videoRef.current && streamRef.current) {
       videoRef.current.srcObject = streamRef.current;
@@ -93,181 +91,103 @@ export default function PreJoin() {
   };
 
   return (
-    <div
-      style={{
-        height: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "linear-gradient(135deg, rgb(96, 106, 142) 0%,#60698d 100%)",
-      }}
-    >
-      <div
-        style={{
-          padding: "40px",
-          backgroundColor: "#1e293b",
-          borderRadius: "16px",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-          maxWidth: "500px",
-          width: "100%",
-          display: "flex",
-          flexDirection: "column",
-          gap: "20px",
-        }}
-      >
-        <h2 style={{ textAlign: "center", color: "#f1f5f9", margin: 0 }}>
-          Ready to Join?
-        </h2>
+    <div className="min-h-screen bg-[#070235] text-white font-sans flex items-center justify-center p-4 relative overflow-hidden selection:bg-[#d8e2ff]">
+      
+      {/* Background Glows */}
+      <div className="absolute top-1/4 left-1/3 w-[500px] h-[300px] bg-[#2170e4]/20 blur-[120px] rounded-full pointer-events-none"></div>
 
-        {error && (
-          <div
-            style={{
-              background: "#450a0a",
-              color: "#fca5a5",
-              padding: "12px",
-              borderRadius: "8px",
-              fontSize: "14px",
-              textAlign: "center",
-            }}
-          >
-            {error}
+      <div className="relative z-10 w-full max-w-lg bg-[#1e1b4b] border border-[#444173] rounded-2xl shadow-2xl overflow-hidden">
+        
+        {/* Header */}
+        <div className="p-6 text-center border-b border-[#444173] bg-[#070235]">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#1e1b4b] border border-[#8683ba]/40 rounded-full text-[11px] font-mono text-[#89f5e7] mb-3">
+            <Terminal className="w-3.5 h-3.5" />
+            <span>LiveInterview Environment Check</span>
           </div>
-        )}
+          <h2 className="text-xl font-bold tracking-tight text-white">Pre-Session Readiness</h2>
+          <p className="text-xs text-[#8683ba] mt-1">Verify your video and audio inputs before entering the interview room.</p>
+        </div>
 
-        {/* ✅ Camera Preview */}
-        <div
-          style={{
-            position: "relative",
-            backgroundColor: "#0f172a",
-            borderRadius: "12px",
-            overflow: "hidden",
-            height: "280px",
-            border: "1px solid #334155",
-          }}
-        >
-          <video
-            ref={videoRef}
-            autoPlay
-            muted
-            playsInline
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              transform: "scaleX(-1)",
-              display: camera ? "block" : "none",
-            }}
-          />
-
-          {!camera && (
-            <div
-              style={{
-                width: "100%",
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "white",
-                gap: "10px",
-                position: "absolute",
-                top: 0,
-                left: 0,
-                background: "#0f172a",
-              }}
-            >
-              <div style={{ fontSize: "52px" }}>👤</div>
-              <div style={{ fontSize: "14px", color: "#94a3b8" }}>
-                Camera is off
-              </div>
+        <div className="p-6 space-y-5">
+          
+          {error && (
+            <div className="p-3 bg-[#ffdad6] text-[#93000a] text-xs font-medium rounded-lg border border-[#ba1a1a]/20 flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{error}</span>
             </div>
           )}
 
-          <div
-            style={{
-              position: "absolute",
-              bottom: "10px",
-              left: "10px",
-              background: "rgba(0,0,0,0.6)",
-              borderRadius: "6px",
-              padding: "4px 10px",
-              color: mic ? "#22c55e" : "#ef4444",
-              fontSize: "12px",
-              fontWeight: 600,
-            }}
-          >
-            {mic ? "🎙 Mic On" : "🔇 Mic Off"}
+          {/* Camera Box */}
+          <div className="relative aspect-video bg-[#0f172a] rounded-xl overflow-hidden border border-[#444173] shadow-inner flex items-center justify-center">
+            <video
+              ref={videoRef}
+              autoPlay
+              muted
+              playsInline
+              className={`w-full h-full object-cover -scale-x-100 ${camera ? "block" : "hidden"}`}
+            />
+
+            {!camera && (
+              <div className="flex flex-col items-center justify-center text-slate-400 gap-2">
+                <Camera className="w-10 h-10 text-slate-500" />
+                <span className="text-xs font-mono">Camera Feed Disabled</span>
+              </div>
+            )}
+
+            <div className="absolute bottom-3 left-3 px-2.5 py-1 bg-black/60 backdrop-blur-md rounded text-[11px] font-mono flex items-center gap-1.5 border border-white/10">
+              <span className={`w-2 h-2 rounded-full ${mic ? "bg-emerald-400" : "bg-red-400"}`}></span>
+              <span>{mic ? "Audio Active" : "Muted"}</span>
+            </div>
           </div>
-        </div>
 
-        {/* Toggle Controls */}
-        <div style={{ display: "flex", gap: "12px" }}>
+          {/* Controls */}
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={toggleMic}
+              className={`py-2.5 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border transition-all cursor-pointer ${
+                mic 
+                  ? "bg-[#3b82f6]/20 border-[#3b82f6] text-white" 
+                  : "bg-red-500/20 border-red-500 text-red-300"
+              }`}
+            >
+              {mic ? <Mic className="w-4 h-4 text-emerald-400" /> : <MicOff className="w-4 h-4 text-red-400" />}
+              <span>{mic ? "Mic On" : "Mic Muted"}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={toggleCamera}
+              className={`py-2.5 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border transition-all cursor-pointer ${
+                camera 
+                  ? "bg-[#3b82f6]/20 border-[#3b82f6] text-white" 
+                  : "bg-red-500/20 border-red-500 text-red-300"
+              }`}
+            >
+              {camera ? <Video className="w-4 h-4 text-emerald-400" /> : <VideoOff className="w-4 h-4 text-red-400" />}
+              <span>{camera ? "Camera On" : "Camera Off"}</span>
+            </button>
+          </div>
+
+          {/* Enter Room Button */}
           <button
-            onClick={toggleMic}
-            style={{
-              flex: 1,
-              padding: "12px",
-              borderRadius: "8px",
-              border: "none",
-              backgroundColor: mic ? "#22c55e" : "#ef4444",
-              color: "white",
-              cursor: "pointer",
-              fontWeight: "600",
-              fontSize: "14px",
-            }}
+            onClick={joinInterview}
+            disabled={!mediaReady && !error}
+            className="w-full py-3.5 bg-[#2170e4] hover:bg-[#0058be] text-white font-bold text-sm rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
           >
-            {mic ? "🎤 Mic On" : "🔇 Mic Off"}
+            <span>{mediaReady ? "Enter Interview Room" : "Initialising Hardware..."}</span>
+            <ArrowRight className="w-4 h-4" />
           </button>
 
-          <button
-            onClick={toggleCamera}
-            style={{
-              flex: 1,
-              padding: "12px",
-              borderRadius: "8px",
-              border: "none",
-              backgroundColor: camera ? "#22c55e" : "#ef4444",
-              color: "white",
-              cursor: "pointer",
-              fontWeight: "600",
-              fontSize: "14px",
-            }}
-          >
-            {camera ? "📷 Cam On" : "🚫 Cam Off"}
-          </button>
+          <p className="text-[11px] text-[#8683ba] text-center font-mono flex items-center justify-center gap-1">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#1a998d]" />
+            Session will open in proctored evaluation workspace
+          </p>
+
         </div>
 
-        {/* Join Button */}
-        <button
-          onClick={joinInterview}
-          disabled={!mediaReady && !error}
-          style={{
-            width: "100%",
-            padding: "16px",
-            borderRadius: "10px",
-            border: "none",
-            backgroundColor: mediaReady || error ? "#3b82f6" : "#1e40af",
-            color: "white",
-            cursor: mediaReady || error ? "pointer" : "not-allowed",
-            fontWeight: "700",
-            fontSize: "16px",
-            opacity: mediaReady || error ? 1 : 0.6,
-          }}
-        >
-          {mediaReady ? "Join Interview" : "Setting up devices..."}
-        </button>
-
-        <div
-          style={{
-            fontSize: "12px",
-            color: "#94a3b8",
-            textAlign: "center",
-            marginTop: "-10px",
-          }}
-        >
-          🔒 Interview will open in fullscreen mode
-        </div>
       </div>
+
     </div>
   );
 }

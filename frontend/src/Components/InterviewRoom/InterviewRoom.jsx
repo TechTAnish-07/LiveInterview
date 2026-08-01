@@ -6,6 +6,7 @@ import { useAuth } from "../AuthProvider";
 import Compiler from "./Compiler";
 import api from "../Axios";
 import { useWebRTC } from "./useWebRTC";
+import { PhoneOff, Clock, ShieldAlert, FileText, Code2, Users, CheckCircle2, Award, AlertTriangle, Terminal } from "lucide-react";
 
 const LiveInterview = () => {
   const { id } = useParams();
@@ -19,15 +20,14 @@ const LiveInterview = () => {
   const interview = location.state?.interview;
   const interviewId = interview?.interviewId || id;
   
-  const [tabSwitchCount, setTabSwitchCount] = useState(0);
-  const [copyPasteCount, setCopyPasteCount] = useState(0);
-  const [isTabVisible, setIsTabVisible] = useState(true);
   const [sessionTime, setSessionTime] = useState(0);
-  const lastVisibilityChange = useRef(Date.now());
+  const [activeTab, setActiveTab] = useState("problem"); // 'problem', 'notes', 'security'
+  const [notes, setNotes] = useState("");
   const [isInterviewActive, setIsInterviewActive] = useState(true);
   const hasCleanedUp = useRef(false);
   const navigate = useNavigate();
   const role = user?.role;
+
   const {
     connected,
     question,
@@ -40,879 +40,338 @@ const LiveInterview = () => {
     interviewEnded,
     securityFlags,
     sendSecurityFlag,
-     onlineUsers,
+    onlineUsers,
+    startTime,
+    endTime,
+    interviewStatus,
+    language,
+    updateLanguage,
   } = useLiveInterviewStomp({
     interviewId,
     token,
     role,
+    userId,
   });
-  const {cleanup} = useWebRTC(
-  {
+
+  const { cleanup } = useWebRTC({
     stompClient,
     interviewId,
     userId,
     isHost: isHR,
-  }
-)
-useEffect(() => {
+  });
+
+  useEffect(() => {
     const handleUnload = () => {
       if (!hasCleanedUp.current && isInterviewActive) {
-      //  console.log('🚪 Page unloading, cleaning up...');
         cleanup();
         hasCleanedUp.current = true;
       }
     };
 
-    window.addEventListener('unload', handleUnload);
+    window.addEventListener("unload", handleUnload);
 
     return () => {
-      window.removeEventListener('unload', handleUnload);
+      window.removeEventListener("unload", handleUnload);
       if (!hasCleanedUp.current) {
-      //  console.log('🔄 Component unmounting, cleaning up...');
         cleanup();
         hasCleanedUp.current = true;
       }
     };
   }, [cleanup, isInterviewActive]);
 
-  
-
-  // Session timer
+  // Synchronized Timer based on Backend startTime
   useEffect(() => {
-    const interval = setInterval(() => {
-      setSessionTime((prev) => prev + 1);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Fullscreen logic
-  useEffect(() => {
-    if (!isHR) {
-      const requestFullscreen = async () => {
-        try {
-          if (!document.fullscreenElement) {
-            await document.documentElement.requestFullscreen();
-          }
-        } catch (err) {
-      //    console.warn("Fullscreen request failed:", err);
-          if (sendSecurityFlag) {
-            sendSecurityFlag("FULLSCREEN_DENIED", "Failed to enter fullscreen mode");
-          }
-        }
-      };
-      requestFullscreen();
-    }
-  }, [isHR, sendSecurityFlag]);
-
-  // Security monitoring effects
-  useEffect(() => {
-    if (isHR || !sendSecurityFlag) return;
-    const handleFullscreenChange = () => {
-      if (!document.fullscreenElement) {
-        sendSecurityFlag("FULLSCREEN_EXIT", "Candidate exited fullscreen mode");
-      }
-    };
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
-  }, [isHR, sendSecurityFlag]);
-
-  useEffect(() => {
-    if (isHR || !sendSecurityFlag) return;
-    const handleVisibilityChange = () => {
-      const now = Date.now();
-      const timeSinceLastChange = now - lastVisibilityChange.current;
-      if (document.hidden) {
-        setIsTabVisible(false);
-        if (timeSinceLastChange > 1000) {
-          setTabSwitchCount((prev) => {
-            const newCount = prev + 1;
-            sendSecurityFlag("TAB_SWITCH", `Candidate switched tabs/windows (${newCount} times)`, { count: newCount });
-            return newCount;
-          });
-        }
+    const updateTimer = () => {
+      if (startTime) {
+        const startMs = new Date(startTime).getTime();
+        const nowMs = Date.now();
+        const elapsed = Math.max(0, Math.floor((nowMs - startMs) / 1000));
+        setSessionTime(elapsed);
       } else {
-        setIsTabVisible(true);
+        setSessionTime((prev) => prev + 1);
       }
-      lastVisibilityChange.current = now;
     };
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-  }, [isHR, sendSecurityFlag]);
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [startTime]);
+
+  // Proctoring Security Event Listeners (Triggers for Candidate)
   useEffect(() => {
-    if (isHR || !sendSecurityFlag) return;
-    const handleCopy = () => {
-      setCopyPasteCount((prev) => {
-        const newCount = prev + 1;
-        sendSecurityFlag("COPY_DETECTED", `Candidate copied text (${newCount} times)`, { count: newCount, type: "copy" });
-        return newCount;
-      });
-    };
-    const handlePaste = (e) => {
-      const pastedText = e.clipboardData.getData("text");
-      setCopyPasteCount((prev) => {
-        const newCount = prev + 1;
-        sendSecurityFlag("PASTE_DETECTED", `Candidate pasted text (${newCount} times)`, {
-          count: newCount,
-          type: "paste",
-          length: pastedText.length,
-          preview: pastedText.substring(0, 50),
+    if (isHR || !connected) return;
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        sendSecurityFlag("TAB_SWITCH", "Candidate switched tab or minimized window", {
+          hidden: true,
         });
-        return newCount;
+      }
+    };
+
+    const handleBlur = () => {
+      sendSecurityFlag("FOCUS_LOST", "Candidate window lost focus", {
+        blurred: true,
       });
     };
-    document.addEventListener("copy", handleCopy);
-    document.addEventListener("paste", handlePaste);
+
+    const handleFullscreen = () => {
+      if (!document.fullscreenElement) {
+        sendSecurityFlag("FULLSCREEN_EXIT", "Candidate exited fullscreen mode", {
+          fullscreen: false,
+        });
+      }
+    };
+
+    const handleCopyPaste = (e) => {
+      sendSecurityFlag(e.type.toUpperCase(), `Candidate triggered ${e.type} action`, {
+        action: e.type,
+      });
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("blur", handleBlur);
+    document.addEventListener("fullscreenchange", handleFullscreen);
+    document.addEventListener("copy", handleCopyPaste);
+    document.addEventListener("paste", handleCopyPaste);
+
     return () => {
-      document.removeEventListener("copy", handleCopy);
-      document.removeEventListener("paste", handlePaste);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("blur", handleBlur);
+      document.removeEventListener("fullscreenchange", handleFullscreen);
+      document.removeEventListener("copy", handleCopyPaste);
+      document.removeEventListener("paste", handleCopyPaste);
     };
-  }, [isHR, sendSecurityFlag]);
+  }, [isHR, connected, sendSecurityFlag]);
 
-  useEffect(() => {
-    if (isHR || !sendSecurityFlag) return;
-    const handleWindowBlur = () => {
-      sendSecurityFlag("WINDOW_BLUR", "Candidate switched to another application");
-    };
-    window.addEventListener("blur", handleWindowBlur);
-    return () => window.removeEventListener("blur", handleWindowBlur);
-  }, [isHR, sendSecurityFlag]);
+  const formatTime = (secs) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  };
 
-  useEffect(() => {
-    if (interviewEnded) {
-      if (document.fullscreenElement) {
-        document.exitFullscreen();
+  const handleEndInterview = async () => {
+    if (isHR) {
+      try {
+        await api.put(`/api/hr/interview/${interviewId}/end`);
+      } catch (err) {
+        console.error("Error ending interview:", err);
       }
-
-      isHR ? navigate(`/feedback/${interviewId}`) : navigate(`/dashboard/${user?.role}`);
-    }
-  }, [interviewEnded, navigate, user]);
-
-  if (!connected) {
-    return (
-      <div style={styles.loadingContainer}>
-        <div style={styles.loadingSpinner} />
-        <div style={styles.loadingText}>Establishing secure connection...</div>
-      </div>
-    );
-  }
-
-  const handleEndInterview = async (interviewId) => {
-  
-   // console.log('🔴 Ending interview and cleaning up media...');
-    
-    try {
-  
-      hasCleanedUp.current = true;
-      setIsInterviewActive(false);
-      
-      cleanup();
-      
-      await new Promise(resolve => setTimeout(resolve, 500));
-      await api.put(`/api/hr/interview/${interviewId}/end`);
-      
-    //  console.log('✅ Interview ended successfully');
-      
-      if (document.fullscreenElement) {
-        await document.exitFullscreen().catch(err => 
-          console.log('Fullscreen exit error:', err)
-        );
-      }
-      
-    } catch (error) {
-      console.error("❌ Error ending interview:", error);
+      navigate(`/feedback/${interviewId}`);
+    } else {
+      navigate("/dashboard/candidate");
     }
   };
-  const formatTime = (seconds) => {
-    const hrs = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
 
-  const getFlagColor = (type) => {
-    const severityMap = {
-      TAB_SWITCH: "#ef4444",
-      COPY_DETECTED: "#f59e0b",
-      PASTE_DETECTED: "#ef4444",
-      WINDOW_BLUR: "#eab308",
-      FULLSCREEN_EXIT: "#dc2626",
-      FULLSCREEN_DENIED: "#dc2626",
-    };
-    return severityMap[type] || "#64748b";
-  };
-
-
-  const getFlagIcon = (type) => {
-    const iconMap = {
-      TAB_SWITCH: "⚠️",
-      COPY_DETECTED: "📋",
-      PASTE_DETECTED: "📝",
-      WINDOW_BLUR: "🔄",
-      FULLSCREEN_EXIT: "⛔",
-      FULLSCREEN_DENIED: "🚫",
-    };
-    return iconMap[type] || "🚩";
-  };
+  useEffect(() => {
+    if (interviewEnded && !isHR) {
+      navigate("/dashboard/candidate");
+    }
+  }, [interviewEnded, isHR, navigate]);
 
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+    <div className="h-screen w-screen flex flex-col bg-[#070235] text-white font-sans overflow-hidden">
+      
+      {/* Top Session Header */}
+      <header className="h-14 bg-[#070235] border-b border-[#1e1b4b] px-6 flex items-center justify-between shrink-0">
         
-        * { box-sizing: border-box; }
-        
-        @keyframes slideInRight {
-          from { transform: translateX(100%); opacity: 0; }
-          to { transform: translateX(0); opacity: 1; }
-        }
-        
-        @keyframes pulseGlow {
-          0%, 100% { box-shadow: 0 0 20px rgba(14, 165, 233, 0.3); }
-          50% { box-shadow: 0 0 30px rgba(14, 165, 233, 0.6); }
-        }
-        
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-        
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        
-        /* Scrollbar styles */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); }
-        ::-webkit-scrollbar-thumb { background: rgba(14, 165, 233, 0.3); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(14, 165, 233, 0.5); }
-      `}</style>
-
-      <div style={styles.container}>
-        {/* Top Status Bar */}
-        <div style={styles.statusBar}>
-          <div style={styles.statusLeft}>
-            <div style={styles.liveBadge}>
-              <span style={styles.liveDot} />
-               LIVE INTERVIEW
+        {/* Brand & Session Info */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-[#2170e4] flex items-center justify-center text-white">
+              <span className="material-symbols-outlined text-lg">terminal</span>
             </div>
-             <div className="presence-panel">
-           <h3>Online ({onlineUsers.size})</h3>
-           <ul>
-         
-          {Array.from(onlineUsers.entries()).map(([userName, info]) => (
-            <li key={userName}>
-              <span className="status-dot online"></span>
-              {userName} <span className="role-badge">({info.role})</span>
-             </li>
-          ))}
-          </ul>
-      </div>
-            <div style={styles.sessionInfo}>
-              <span style={styles.sessionLabel}>Session Time:</span>
-              <span style={styles.sessionValue}>{formatTime(sessionTime)}</span>
-            </div>
-            <div style={styles.sessionInfo}>
-              <span style={styles.sessionLabel}>ID:</span>
-              <span style={styles.sessionValue}>#{interviewId}</span>
-            </div>
+            <span className="font-bold text-base tracking-tight">LiveInterview</span>
           </div>
+
+          <div className="h-4 w-px bg-[#444173]"></div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-mono font-bold uppercase bg-[#002723] text-[#89f5e7] px-2.5 py-0.5 rounded-full flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#1a998d] animate-ping"></span>
+              Live Room
+            </span>
+            <span className="text-xs text-[#8683ba] font-mono hidden sm:inline">
+              Session ID #{interviewId}
+            </span>
+          </div>
+        </div>
+
+        {/* Timer & Exit Controls */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1.5 text-xs font-mono text-slate-300 bg-[#1e1b4b] px-3 py-1 rounded-lg border border-[#444173]">
+            <Clock className="w-3.5 h-3.5 text-[#0058be]" />
+            <span>{formatTime(sessionTime)}</span>
+          </div>
+
+          <button
+            onClick={handleEndInterview}
+            className="px-4 py-1.5 bg-[#ba1a1a] hover:bg-red-700 text-white font-semibold text-xs rounded-lg transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+          >
+            <PhoneOff className="w-3.5 h-3.5" />
+            <span>{isHR ? "End & Submit Evaluation" : "Leave Session"}</span>
+          </button>
+        </div>
+
+      </header>
+
+      {/* Main Double Pane Grid */}
+      <main className="flex-1 flex overflow-hidden">
+        
+        {/* Left Master Pane: Video Call & Interactive Tabs */}
+        <aside className="w-80 lg:w-96 bg-[#1e1b4b] border-r border-[#444173] flex flex-col shrink-0 overflow-hidden">
           
-          <div style={styles.statusRight}>
+          {/* Video Feeds Top Half */}
+          <div className="h-64 border-b border-[#444173] p-3">
+            <VideoCall
+              stompClient={stompClient}
+              interviewId={interviewId}
+              userId={userId}
+              mic={mic}
+              camera={camera}
+              isHost={isHR}
+            />
+          </div>
+
+          {/* Tab Selection Navigation */}
+          <div className="flex border-b border-[#444173] bg-[#070235]">
+            <button
+              onClick={() => setActiveTab("problem")}
+              className={`flex-1 py-2.5 text-xs font-semibold font-mono border-b-2 transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                activeTab === "problem"
+                  ? "border-[#2170e4] text-white bg-[#1e1b4b]"
+                  : "border-transparent text-[#8683ba] hover:text-white"
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5" />
+              Problem
+            </button>
+
+            <button
+              onClick={() => setActiveTab("notes")}
+              className={`flex-1 py-2.5 text-xs font-semibold font-mono border-b-2 transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                activeTab === "notes"
+                  ? "border-[#2170e4] text-white bg-[#1e1b4b]"
+                  : "border-transparent text-[#8683ba] hover:text-white"
+              }`}
+            >
+              <Code2 className="w-3.5 h-3.5" />
+              Notes
+            </button>
+
             {isHR && (
-              <button style={styles.endButton} onClick={() => handleEndInterview(interviewId)}>
-                <span style={styles.endIcon}>⏹</span>
-                End Interview
+              <button
+                onClick={() => setActiveTab("security")}
+                className={`flex-1 py-2.5 text-xs font-semibold font-mono border-b-2 transition-all flex items-center justify-center gap-1.5 cursor-pointer relative ${
+                  activeTab === "security"
+                    ? "border-[#2170e4] text-white bg-[#1e1b4b]"
+                    : "border-transparent text-[#8683ba] hover:text-white"
+                }`}
+              >
+                <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
+                Security
+                {securityFlags.length > 0 && (
+                  <span className="w-4 h-4 rounded-full bg-red-500 text-white text-[9px] flex items-center justify-center font-bold animate-pulse">
+                    {securityFlags.length}
+                  </span>
+                )}
               </button>
             )}
           </div>
-        </div>
 
-        {/* Main Interview Grid */}
-        <div style={styles.mainGrid}>
-          {/* Left Column - Question & Code */}
-          <div style={styles.leftColumn}>
-            {/* Question Panel */}
-            <div style={styles.questionCard}>
-              <div style={styles.cardHeader}>
-                <div style={styles.cardTitle}>
-                  <span style={styles.cardIcon}>💭</span>
-                  <span>Interview Question</span>
+          {/* Tab Content Body */}
+          <div className="flex-1 p-4 overflow-y-auto text-xs space-y-4">
+            
+            {activeTab === "problem" && (
+              <div className="space-y-4 text-left">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono font-bold uppercase bg-[#d8e2ff] text-[#004395] px-2 py-0.5 rounded">
+                    Technical Assessment
+                  </span>
                 </div>
-                <div style={styles.questionBadge}>Q1</div>
-              </div>
-              <textarea
-                style={styles.questionTextarea}
-                value={question}
-                onChange={(e) => updateQuestion(e.target.value)}
-                placeholder="Type or paste the interview question here..."
-                readOnly={!isHR}
-              />
-            </div>
 
-            {/* Code Editor Panel */}
-            <div style={styles.codeCard}>
-              <div style={styles.cardHeader}>
-                <div style={styles.cardTitle}>
-                  <span style={styles.cardIcon}>⌨️</span>
-                  <span>Code Editor</span>
-                </div>
-              
-              </div>
-              <div style={styles.compilerWrapper}>
-                <Compiler
-                  value={code}
-                  onChange={(value) => updateCode(value)}
-                  output={output}
-                  clearOutput={() => setOutput("")}
-                  interviewId={interviewId}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column - Video & Security */}
-          <div style={styles.rightColumn}>
-            {/* Video Call */}
-            <div style={styles.videoCard}>
-              <div style={styles.videoHeader}>
-                <span style={styles.videoTitle}>
-                  <span style={styles.cardIcon}>🎥</span>
-                  Live Session
-                </span>
-                <div style={styles.encryptionBadge}>
-                  <span style={styles.lockIcon}>🔒</span>
-                  <span>Encrypted</span>
-                </div>
-              </div>
-              <div style={styles.videoWrapper}>
-                {stompClient && (
-                  <VideoCall
-                    stompClient={stompClient}
-                    interviewId={interviewId}
-                    userId={String(userId)}
-                    mic={mic}
-                    camera={camera}
-                    isHost={isHR}
-                  />
-                )}
-              </div>
-            </div>
-
-            {/* Security Monitor (HR Only) */}
-            {isHR && (
-              <div style={styles.securityCard}>
-                <div style={styles.cardHeader}>
-                  <div style={styles.cardTitle}>
-                    <span style={styles.cardIcon}>🛡️</span>
-                    <span>Security Monitor</span>
-                  </div>
-                  <div style={styles.flagCount}>
-                    {securityFlags.length}
-                  </div>
-                </div>
-                
-                <div style={styles.securityContent}>
-                  {securityFlags.length === 0 ? (
-                    <div style={styles.noFlags}>
-                      <div style={styles.checkIcon}>✓</div>
-                      <div style={styles.noFlagsText}>All Clear</div>
-                      <div style={styles.noFlagsSubtext}>No suspicious activity detected</div>
-                    </div>
-                  ) : (
-                    <div style={styles.flagsList}>
-                      {securityFlags.slice(-5).reverse().map((flag, idx) => (
-                        <div
-                          key={idx}
-                          style={{
-                            ...styles.flagItem,
-                            animation: 'slideInRight 0.3s ease-out',
-                            animationDelay: `${idx * 0.05}s`,
-                          }}
-                        >
-                          <div style={styles.flagTop}>
-                            <span style={styles.flagEmoji}>{getFlagIcon(flag.type)}</span>
-                            <span style={styles.flagTime}>
-                              {flag.timestamp.toLocaleTimeString()}
-                            </span>
-                          </div>
-                          <div style={styles.flagMessage}>{flag.message}</div>
-                          {flag.metadata?.preview && (
-                            <div style={styles.flagPreview}>
-                              <code style={styles.flagCode}>{flag.metadata.preview}...</code>
-                            </div>
-                          )}
-                          <div
-                            style={{
-                              ...styles.flagIndicator,
-                              background: getFlagColor(flag.type),
-                            }}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                <div className="space-y-2">
+                  <h3 className="text-sm font-bold text-white">
+                    {question?.title || "Live Coding Problem Statement"}
+                  </h3>
+                  <p className="text-slate-300 leading-relaxed bg-[#070235] p-3 rounded-lg border border-[#444173]">
+                    {question?.content || question?.description || "Implement an algorithm according to interviewer instructions."}
+                  </p>
                 </div>
               </div>
             )}
-          </div>
-        </div>
 
-        {/* Tab Warning Overlay (Candidate) */}
-        {!isHR && !isTabVisible && (
-          <div style={styles.warningOverlay}>
-            <div style={styles.warningCard}>
-              <div style={styles.warningIcon}>⚠️</div>
-              <div style={styles.warningTitle}>Interview Window Inactive</div>
-              <div style={styles.warningMessage}>
-                Please return to the interview immediately
+            {activeTab === "notes" && (
+              <div className="h-full flex flex-col space-y-2 text-left">
+                <span className="text-[11px] font-mono text-[#8683ba]">Interviewer Notes & Scratchpad</span>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Record evaluation notes, complexity comments, and observations..."
+                  className="flex-1 w-full bg-[#070235] border border-[#444173] rounded-lg p-3 text-slate-200 focus:outline-none focus:border-[#2170e4] resize-none font-mono text-xs"
+                />
               </div>
-              <div style={styles.warningSubtext}>
-                This action has been logged and flagged to the interviewer
+            )}
+
+            {activeTab === "security" && isHR && (
+              <div className="space-y-3 text-left">
+                <div className="flex items-center justify-between border-b border-[#444173] pb-2">
+                  <span className="font-mono text-amber-400 font-bold flex items-center gap-1.5">
+                    <ShieldAlert className="w-4 h-4" />
+                    Proctoring Security Logs
+                  </span>
+                  <span className="text-[10px] font-mono text-slate-400">{securityFlags.length} Flagged Events</span>
+                </div>
+
+                {securityFlags.length === 0 ? (
+                  <div className="p-4 bg-[#070235] rounded-lg border border-[#444173] text-center space-y-1">
+                    <span className="text-emerald-400 font-bold font-mono text-xs">Environment Secure</span>
+                    <p className="text-slate-400 text-[11px]">No tab switches or focus loss events detected.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {securityFlags.map((flag, idx) => (
+                      <div key={idx} className="p-2.5 bg-red-950/40 border border-red-800/40 rounded-lg text-[11px] space-y-1">
+                        <div className="flex items-center justify-between text-red-300 font-bold font-mono">
+                          <span className="flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                            {flag.type}
+                          </span>
+                          <span className="text-[9px] text-slate-400">
+                            {flag.timestamp ? new Date(flag.timestamp).toLocaleTimeString() : new Date().toLocaleTimeString()}
+                          </span>
+                        </div>
+                        <p className="text-slate-200 text-[10px]">{flag.message}</p>
+                        {flag.userId && (
+                          <div className="text-[9px] text-[#8683ba] font-mono">User: {flag.userId}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-              <div style={styles.warningCount}>
-                Switches: {tabSwitchCount}
-              </div>
-            </div>
+            )}
+
           </div>
-        )}
-      </div>
-    </>
+
+        </aside>
+
+        {/* Right Detail Pane: Monaco Compiler Editor */}
+        <section className="flex-1 h-full overflow-hidden bg-[#0f172a]">
+          <Compiler
+            value={code}
+            onChange={(newCode) => updateCode(newCode)}
+            language={language}
+            onLanguageChange={(newLang) => updateLanguage(newLang)}
+            output={output}
+            clearOutput={() => setOutput("")}
+          />
+        </section>
+
+      </main>
+
+    </div>
   );
-};
-
-const styles = {
- 
-  container: {
-    width: '100%',
-    minHeight: '100vh',
-      background: 'linear-gradient(180deg,rgb(10, 19, 58) 0%,rgb(4, 7, 22) 100%)',
-    fontFamily: "'Outfit', sans-serif",
-    color: '#e2e8f0',
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  loadingContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: '100vh',
-    background: 'linear-gradient(135deg,rgb(13, 24, 51) 0%, #1e293b 100%)',
-    gap: '24px',
-  },
-  loadingSpinner: {
-    width: '60px',
-    height: '60px',
-    border: '4px solid rgba(62, 176, 228, 0.1)',
-    borderTop: '4px solid #0ea5e9',
-    borderRadius: '50%',
-    animation: 'spin 1s linear infinite',
-  },
-  loadingText: {
-    fontFamily: "'Outfit', sans-serif",
-    fontSize: '16px',
-    color: '#cbd5e1',
-    fontWeight: '500',
-  },
-  statusBar: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '16px 24px',
-    background: 'rgba(24, 34, 58, 0.8)',
-    backdropFilter: 'blur(20px)',
-    borderBottom: '1px solid rgba(148, 163, 184, 0.1)',
-    position: 'sticky',
-    top: 0,
-    zIndex: 100,
-  },
-  statusLeft: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '24px',
-  },
-  liveBadge: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    background: 'rgba(239, 68, 68, 0.15)',
-    border: '1px solid rgba(239, 68, 68, 0.3)',
-    padding: '6px 14px',
-    borderRadius: '8px',
-    fontSize: '12px',
-    fontWeight: '600',
-    color: '#ef4444',
-    letterSpacing: '0.5px',
-  },
-  liveDot: {
-    width: '8px',
-    height: '8px',
-    borderRadius: '50%',
-    background: '#ef4444',
-    animation: 'pulseGlow 2s ease-in-out infinite',
-  },
-  sessionInfo: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    fontSize: '14px',
-  },
-  sessionLabel: {
-    color: '#64748b',
-    fontWeight: '500',
-  },
-  sessionValue: {
-    color: '#e2e8f0',
-    fontWeight: '600',
-    fontFamily: "'IBM Plex Mono', monospace",
-  },
-  statusRight: {
-    display: 'flex',
-    gap: '12px',
-  },
-  endButton: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
-    border: 'none',
-    padding: '10px 20px',
-    borderRadius: '8px',
-    color: '#fff',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    boxShadow: '0 4px 12px rgba(220, 38, 38, 0.3)',
-  },
-  endIcon: {
-    fontSize: '16px',
-  },
-  mainGrid: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 450px',
-    gap: '24px',
-    padding: '24px',
-    height: 'calc(100vh - 72px)',
-    overflow: 'hidden',
-  },
-  leftColumn: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24px',
-    overflow: 'hidden',
-  },
-  rightColumn: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24px',
-    overflow: 'hidden',
-  },
-  questionCard: {
-    background: 'rgba(30, 41, 59, 0.6)',
-    backdropFilter: 'blur(20px)',
-    borderRadius: '16px',
-    border: '1px solid rgba(148, 163, 184, 0.1)',
-    padding: '20px',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
-    flex: '0 0 auto',
-    animation: 'fadeIn 0.4s ease-out',
-  },
-  codeCard: {
-    background: 'rgba(30, 41, 59, 0.6)',
-    backdropFilter: 'blur(20px)',
-    borderRadius: '16px',
-    border: '1px solid rgba(148, 163, 184, 0.1)',
-    padding: '20px',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'hidden',
-    animation: 'fadeIn 0.4s ease-out 0.1s backwards',
-  },
-  videoCard: {
-    background: 'rgba(30, 41, 59, 0.6)',
-    backdropFilter: 'blur(20px)',
-    borderRadius: '16px',
-    border: '1px solid rgba(148, 163, 184, 0.1)',
-    padding: '20px',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'hidden',
-    animation: 'fadeIn 0.4s ease-out 0.2s backwards',
-  },
-  securityCard: {
-    background: 'rgba(30, 41, 59, 0.6)',
-    backdropFilter: 'blur(20px)',
-    borderRadius: '16px',
-    border: '1px solid rgba(148, 163, 184, 0.1)',
-    padding: '20px',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'hidden',
-    maxHeight: '400px',
-    animation: 'fadeIn 0.4s ease-out 0.3s backwards',
-  },
-  cardHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '16px',
-  },
-  cardTitle: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    fontSize: '15px',
-    fontWeight: '600',
-    color: '#e2e8f0',
-  },
-  cardIcon: { fontSize: '18px', },
-  questionBadge: {
-    background: 'linear-gradient(135deg, #0ea5e9, #06b6d4)',
-    padding: '4px 12px',
-    borderRadius: '6px',
-    fontSize: '12px',
-    fontWeight: '700',
-    color: '#fff',
-  },
-  languageBadge: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    background: 'rgba(14, 165, 233, 0.1)',
-    border: '1px solid rgba(14, 165, 233, 0.3)',
-    padding: '4px 12px',
-    borderRadius: '6px',
-    fontSize: '12px',
-    fontWeight: '600',
-    color: '#0ea5e9',
-  },
-  langDot: {
-    width: '6px',
-    height: '6px',
-    borderRadius: '50%',
-    background: '#0ea5e9',
-  },
-  questionTextarea: {
-    width: '100%',
-    minHeight: '120px',
-    background: 'rgba(15, 23, 42, 0.5)',
-    border: '1px solid rgba(148, 163, 184, 0.1)',
-    borderRadius: '12px',
-    padding: '16px',
-    color: '#e2e8f0',
-    fontSize: '15px',
-    fontFamily: "'Outfit', sans-serif",
-    lineHeight: '1.6',
-    resize: 'vertical',
-    outline: 'none',
-    transition: 'all 0.2s ease',
-  },
-  compilerWrapper: {
-    flex: 1,
-    overflow: 'hidden',
-    borderRadius: '12px',
-    background: 'rgba(15, 23, 42, 0.5)',
-    border: '1px solid rgba(148, 163, 184, 0.1)',
-  },
-  videoHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '16px',
-  },
-  videoTitle: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    fontSize: '15px',
-    fontWeight: '600',
-    color: '#e2e8f0',
-  },
-  encryptionBadge: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    background: 'rgba(34, 197, 94, 0.1)',
-    border: '1px solid rgba(34, 197, 94, 0.3)',
-    padding: '4px 10px',
-    borderRadius: '6px',
-    fontSize: '11px',
-    fontWeight: '600',
-    color: '#22c55e',
-  },
-  lockIcon: { fontSize: '12px', },
-  videoWrapper: {
-    flex: 1,
-    borderRadius: '12px',
-    overflow: 'hidden',
-    background: 'rgba(15, 23, 42, 0.5)',
-    border: '1px solid rgba(148, 163, 184, 0.1)',
-  },
-  flagCount: {
-    minWidth: '32px',
-    height: '32px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: 'rgba(239, 68, 68, 0.15)',
-    border: '1px solid rgba(239, 68, 68, 0.3)',
-    borderRadius: '8px',
-    fontSize: '14px',
-    fontWeight: '700',
-    color: '#ef4444',
-  },
-  securityContent: {
-    flex: 1,
-    overflow: 'hidden',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  noFlags: {
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '12px',
-  },
-  checkIcon: {
-    width: '56px',
-    height: '56px',
-    borderRadius: '50%',
-    background: 'rgba(34, 197, 94, 0.15)',
-    border: '2px solid rgba(34, 197, 94, 0.3)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '28px',
-    color: '#22c55e',
-  },
-  noFlagsText: {
-    fontSize: '16px',
-    fontWeight: '600',
-    color: '#e2e8f0',
-  },
-  noFlagsSubtext: {
-    fontSize: '13px',
-    color: '#64748b',
-  },
-  flagsList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px',
-    overflowY: 'auto',
-    paddingRight: '4px',
-  },
-  flagItem: {
-    background: 'rgba(15, 23, 42, 0.6)',
-    borderRadius: '10px',
-    padding: '12px',
-    position: 'relative',
-    overflow: 'hidden',
-    border: '1px solid rgba(148, 163, 184, 0.1)',
-  },
-  flagTop: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '8px',
-  },
-  flagEmoji: { fontSize: '16px', },
-  flagTime: {
-    fontSize: '11px',
-    color: '#64748b',
-    fontFamily: "'IBM Plex Mono', monospace",
-  },
-  flagMessage: {
-    fontSize: '13px',
-    color: '#e2e8f0',
-    fontWeight: '500',
-    lineHeight: '1.5',
-    marginBottom: '4px',
-  },
-  flagPreview: {
-    marginTop: '8px',
-    padding: '8px',
-    background: 'rgba(0, 0, 0, 0.3)',
-    borderRadius: '6px',
-    border: '1px solid rgba(148, 163, 184, 0.1)',
-  },
-  flagCode: {
-    fontSize: '11px',
-    fontFamily: "'IBM Plex Mono', monospace",
-    color: '#94a3b8',
-  },
-  flagIndicator: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: '3px',
-  },
-  warningOverlay: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: 'rgba(0, 0, 0, 0.95)',
-    backdropFilter: 'blur(10px)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 10000,
-    animation: 'fadeIn 0.3s ease-out',
-  },
-  warningCard: {
-    background: 'linear-gradient(135deg, rgba(220, 38, 38, 0.1), rgba(185, 28, 28, 0.1))',
-    backdropFilter: 'blur(20px)',
-    border: '2px solid rgba(239, 68, 68, 0.3)',
-    borderRadius: '24px',
-    padding: '48px',
-    maxWidth: '500px',
-    textAlign: 'center',
-    boxShadow: '0 20px 60px rgba(220, 38, 38, 0.3)',
-  },
-  warningIcon: {
-    fontSize: '80px',
-    marginBottom: '24px',
-    animation: 'pulseGlow 2s ease-in-out infinite',
-  },
-  warningTitle: {
-    fontSize: '28px',
-    fontWeight: '700',
-    color: '#fca5a5',
-    marginBottom: '12px',
-  },
-  warningMessage: {
-    fontSize: '16px',
-    color: '#e2e8f0',
-    marginBottom: '8px',
-    fontWeight: '500',
-  },
-  warningSubtext: {
-    fontSize: '13px',
-    color: '#94a3b8',
-    marginBottom: '24px',
-  },
-  warningCount: {
-    display: 'inline-block',
-    background: 'rgba(239, 68, 68, 0.2)',
-    border: '1px solid rgba(239, 68, 68, 0.4)',
-    padding: '8px 16px',
-    borderRadius: '8px',
-    fontSize: '14px',
-    fontWeight: '600',
-    color: '#ef4444',
-    fontFamily: "'IBM Plex Mono', monospace",
-  },
 };
 
 export default LiveInterview;

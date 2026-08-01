@@ -1,5 +1,6 @@
-import { useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef } from "react";
 import { useWebRTC } from "./useWebRTC";
+import { Mic, MicOff, Video, VideoOff, User, Wifi } from "lucide-react";
 
 export default function VideoCall({
   stompClient,
@@ -13,7 +14,7 @@ export default function VideoCall({
   const remoteVideo = useRef(null);
   const subscriptionRef = useRef(null);
   const handleSignalRef = useRef(null);
-  const initializedRef = useRef(false); 
+  const initializedRef = useRef(false);
 
   const {
     createPeerConnection,
@@ -36,19 +37,16 @@ export default function VideoCall({
 
   useEffect(() => {
     if (!stompClient?.connected) return;
-    if (initializedRef.current) return; // ✅ block double init
+    if (initializedRef.current) return;
     initializedRef.current = true;
 
     const initialize = async () => {
-    //  console.log("VideoCall initializing — isHost:", isHost, "userId:", userId);
-
       createPeerConnection();
 
       subscriptionRef.current = stompClient.subscribe(
         `/topic/interview/${interviewId}`,
         (msg) => {
           const signal = JSON.parse(msg.body);
-       //   console.log("📨 Signal received:", signal.type, "from:", signal.from, "| myId:", userId);
           handleSignalRef.current?.(signal);
         }
       );
@@ -56,7 +54,6 @@ export default function VideoCall({
       await startMedia({ mic, camera });
 
       if (isHost) {
-     //   console.log("✅ HR sending offer in 1s...");
         setTimeout(() => createOffer(), 1000);
       }
     };
@@ -64,7 +61,7 @@ export default function VideoCall({
     initialize();
 
     return () => {
-      initializedRef.current = false; // ✅ reset on unmount
+      initializedRef.current = false;
       subscriptionRef.current?.unsubscribe();
       cleanup();
     };
@@ -83,90 +80,96 @@ export default function VideoCall({
   }, [remoteStream]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "#0f172a" }}>
-      <div style={{ display: "flex", flex: 1, gap: "8px", padding: "8px" }}>
+    <div className="flex flex-col h-full bg-[#070235] text-white p-3 space-y-3">
+      
+      {/* Remote Video Tile */}
+      <div className="relative flex-1 rounded-xl overflow-hidden bg-[#1e1b4b] border border-[#444173] shadow-md flex items-center justify-center min-h-[160px]">
+        {remoteStream ? (
+          <video
+            ref={remoteVideo}
+            autoPlay
+            playsInline
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="flex flex-col items-center justify-center text-[#8683ba] text-xs gap-2">
+            <User className="w-10 h-10 text-[#444173]" />
+            <span className="font-mono">Waiting for {isHost ? "Candidate" : "HR Recruiter"}...</span>
+          </div>
+        )}
 
-        {/* Remote video */}
-        <div style={{
-          flex: 1, position: "relative", background: "#1e293b",
-          borderRadius: "10px", overflow: "hidden",
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }}>
-          {remoteStream ? (
-            <video ref={remoteVideo} autoPlay playsInline
-              style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-          ) : (
-            <div style={{ color: "#94a3b8", textAlign: "center" }}>
-              <div style={{ fontSize: "36px", marginBottom: 8 }}>
-                {isHost ? "🧑‍💻" : "👔"}
-              </div>
-              Waiting for {isHost ? "Candidate" : "HR"}...
-            </div>
-          )}
-          <span style={{
-            position: "absolute", bottom: 6, left: 8, color: "#fff",
-            fontSize: "11px", background: "rgba(0,0,0,0.6)",
-            padding: "2px 8px", borderRadius: 4,
-          }}>
-            {isHost ? "Candidate" : "HR"}
+        <div className="absolute bottom-2 left-2 px-2.5 py-1 bg-black/60 backdrop-blur-md rounded text-[11px] font-mono text-white flex items-center gap-1.5 border border-white/10">
+          <span className="w-2 h-2 rounded-full bg-[#1a998d]"></span>
+          <span>{isHost ? "Candidate" : "HR Recruiter"}</span>
+        </div>
+      </div>
+
+      {/* Local Video Tile */}
+      <div className="relative h-32 rounded-xl overflow-hidden bg-[#1e1b4b] border-2 border-[#0058be] ring-2 ring-[#0058be]/20 shadow-md flex items-center justify-center">
+        {cameraEnabled ? (
+          <video
+            ref={localVideo}
+            autoPlay
+            muted
+            playsInline
+            className="w-full h-full object-cover -scale-x-100"
+          />
+        ) : (
+          <div className="flex flex-col items-center justify-center text-[#8683ba] text-xs gap-1">
+            <VideoOff className="w-6 h-6 text-red-400" />
+            <span className="font-mono text-[10px]">Camera Muted</span>
+          </div>
+        )}
+
+        <div className="absolute bottom-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur-md rounded text-[10px] font-mono text-white border border-white/10">
+          You ({isHost ? "HR" : "Candidate"})
+        </div>
+      </div>
+
+      {/* Connection & Media Controls Bar */}
+      <div className="flex items-center justify-between pt-2 border-t border-[#1e1b4b]">
+        
+        {/* Status indicator */}
+        <div className="flex items-center gap-1.5 text-[10px] font-mono">
+          <Wifi className={`w-3.5 h-3.5 ${
+            connectionState === "connected" ? "text-emerald-400" : "text-amber-400"
+          }`} />
+          <span className={
+            connectionState === "connected" ? "text-emerald-400 font-semibold" : "text-amber-400"
+          }>
+            {connectionState === "connected" ? "WebRTC Connected" : "Connecting..."}
           </span>
         </div>
 
-        {/* Local video */}
-        <div style={{
-          width: "140px", flexShrink: 0, position: "relative",
-          background: "#1e293b", borderRadius: "10px", overflow: "hidden",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          border: "2px solid #3b82f6",
-        }}>
-          {cameraEnabled ? (
-            <video ref={localVideo} autoPlay muted playsInline
-              style={{ width: "100%", height: "100%", objectFit: "cover", transform: "scaleX(-1)" }} />
-          ) : (
-            <div style={{ color: "#94a3b8", fontSize: 12, textAlign: "center" }}>
-              <div style={{ fontSize: 28 }}>🚫</div>
-              Camera off
-            </div>
-          )}
-          <span style={{
-            position: "absolute", bottom: 4, left: 6, color: "#fff",
-            fontSize: "10px", background: "rgba(0,0,0,0.6)",
-            padding: "1px 6px", borderRadius: 3,
-          }}>You</span>
+        {/* Buttons */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={toggleMic}
+            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+              micEnabled 
+                ? "bg-[#1e1b4b] text-white hover:bg-[#444173]" 
+                : "bg-red-500 text-white hover:bg-red-600"
+            }`}
+            title={micEnabled ? "Mute Microphone" : "Unmute Microphone"}
+          >
+            {micEnabled ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
+          </button>
+
+          <button
+            onClick={toggleCamera}
+            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+              cameraEnabled 
+                ? "bg-[#1e1b4b] text-white hover:bg-[#444173]" 
+                : "bg-red-500 text-white hover:bg-red-600"
+            }`}
+            title={cameraEnabled ? "Turn Off Camera" : "Turn On Camera"}
+          >
+            {cameraEnabled ? <Video className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />}
+          </button>
         </div>
+
       </div>
 
-      {/* Controls */}
-      <div style={{
-        display: "flex", justifyContent: "center", alignItems: "center",
-        gap: "12px", padding: "8px", borderTop: "1px solid #1e293b",
-      }}>
-        <span style={{
-          alignSelf: "center", fontSize: 11, marginRight: "auto", paddingLeft: 8,
-          color: connectionState === "connected" ? "#22c55e"
-            : connectionState === "connecting" ? "#f59e0b" : "#94a3b8",
-        }}>
-          {connectionState === "connected" ? "● Connected"
-            : connectionState === "connecting" ? "● Connecting..."
-            : "● Waiting"}
-        </span>
-
-        <button onClick={toggleMic} style={{
-          width: 40, height: 40, borderRadius: "50%", border: "none",
-          background: micEnabled ? "#334155" : "#ef4444",
-          color: "white", cursor: "pointer", fontSize: 16,
-        }}>
-          {micEnabled ? "🎙" : "🔇"}
-        </button>
-
-        <button onClick={toggleCamera} style={{
-          width: 40, height: 40, borderRadius: "50%", border: "none",
-          background: cameraEnabled ? "#334155" : "#ef4444",
-          color: "white", cursor: "pointer", fontSize: 16,
-        }}>
-          {cameraEnabled ? "📷" : "🚫"}
-        </button>
-      </div>
     </div>
   );
 }
