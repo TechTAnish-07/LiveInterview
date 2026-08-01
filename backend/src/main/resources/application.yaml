@@ -6,10 +6,10 @@ spring:
     name: ${SPRING_APP_NAME:LiveInterview}
 
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    driver-class-name: ${DB_DRIVER}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/liveinterview}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: ${DB_DRIVER:org.postgresql.Driver}
 
   jpa:
     hibernate:
@@ -21,11 +21,11 @@ spring:
 
   security:
     jwt:
-      secret: ${JWT_SECRET}
-      expiration: ${JWT_EXPIRATION}
+      secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+      expiration: ${JWT_EXPIRATION:86400000}
 
   sql:
     init:
-      platform: ${SQL_PLATFORM}
+      platform: ${SQL_PLATFORM:postgres}
 
 debug: true

@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping({"/auth", "/api/auth"})
 public class AuthController {
    private final UserRepo userRepo;
    private final AuthenticationManager authManager;
