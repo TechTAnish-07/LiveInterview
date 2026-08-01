@@ -4,10 +4,10 @@ import { useAuth } from "./AuthProvider";
 import { Terminal, LogOut, User, Code, Calendar, LayoutDashboard, Shield } from "lucide-react";
 
 const Navbar = () => {
-  const { user, role, clearAuth } = useAuth();
+  const { user, role, clearAuth, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  const isLoggedIn = !!user;
+  const isLoggedIn = isAuthenticated;
 
   const handleLogout = () => {
     clearAuth();

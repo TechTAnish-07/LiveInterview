@@ -1,34 +1,88 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { jwtDecode } from "jwt-decode";
 import api from "./Axios.jsx";
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [role, setRole] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState(() => localStorage.getItem("accessToken"));
+  
+  const [role, setRole] = useState(() => {
+    const savedToken = localStorage.getItem("accessToken");
+    if (savedToken && savedToken.split(".").length === 3) {
+      try {
+        const decoded = jwtDecode(savedToken);
+        return decoded.role || null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
 
-  const token = localStorage.getItem("accessToken");
+  const [user, setUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem("currentUser");
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
 
-  /* ---------------- TOKEN VALIDATION ---------------- */
-const login = (accessToken) => {
-  if (!accessToken || typeof accessToken !== "string") return;
+  const [loading, setLoading] = useState(false);
 
-  localStorage.setItem("accessToken", accessToken);
-  localStorage.setItem("isLoggedIn", "true");
-  const decoded = jwtDecode(accessToken);
-  setRole(decoded.role);
-};
-//console.log(token);
-//console.log(user);
+  /* ---------------- HELPERS ---------------- */
+
+  const clearAuth = useCallback(() => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("currentUser");
+    localStorage.setItem("isLoggedIn", "false");
+    setToken(null);
+    setUser(null);
+    setRole(null);
+    setLoading(false);
+  }, []);
+
+  const logout = useCallback(() => {
+    clearAuth();
+    window.location.href = "/login";
+  }, [clearAuth]);
+
+  const login = useCallback((accessToken) => {
+    if (!accessToken || typeof accessToken !== "string") return;
+
+    localStorage.setItem("accessToken", accessToken);
+    localStorage.setItem("isLoggedIn", "true");
+    setToken(accessToken);
+
+    try {
+      const decoded = jwtDecode(accessToken);
+      setRole(decoded.role || null);
+    } catch (err) {
+      console.error("Failed to decode token on login:", err);
+    }
+  }, []);
+
+  const fetchUser = useCallback(async () => {
+    if (!token) return;
+    try {
+      const res = await api.get("/api/userdetail/me");
+      setUser(res.data);
+      localStorage.setItem("currentUser", JSON.stringify(res.data));
+    } catch (err) {
+      console.error("Error fetching current user details:", err);
+    }
+  }, [token]);
+
+  /* ---------------- TOKEN VALIDATION EFFECT ---------------- */
   useEffect(() => {
     if (!token) {
-      clearAuth();
+      setRole(null);
+      setUser(null);
       return;
     }
 
-    // basic JWT format check
     if (token.split(".").length !== 3) {
       clearAuth();
       return;
@@ -36,58 +90,25 @@ const login = (accessToken) => {
 
     try {
       const decoded = jwtDecode(token);
-
-      // expiry check
       if (decoded.exp * 1000 < Date.now()) {
         clearAuth();
         return;
       }
-
-      setRole(decoded.role);
+      setRole(decoded.role || null);
     } catch (err) {
       console.error("Invalid JWT:", err);
       clearAuth();
     }
-  }, [token]);
-
-
-  const fetchUser = async () => {
-    try {
-      const res = await api.get("/api/userdetail/me");
-      setUser(res.data);
-      localStorage.setItem("currentUser", JSON.stringify(res.data));
-    } catch (err) {
-      logout();
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [token, clearAuth]);
 
   useEffect(() => {
     if (token && role) {
       fetchUser();
-    } else {
-      setLoading(false);
     }
-  }, [token, role]);
+  }, [token, role, fetchUser]);
 
-  /* ---------------- HELPERS ---------------- */
-
-  const clearAuth = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("currentUser");
-    localStorage.setItem("isLoggedIn", "false");
-    setUser(null);
-    setRole(null);
-    setLoading(false);
-  };
-
-  const logout = () => {
-    clearAuth();
-    window.location.href = "/login";
-  };
   const value = {
+    token,
     user,
     role,
     loading,
@@ -98,13 +119,12 @@ const login = (accessToken) => {
     isAdmin: role === "ADMIN",
     isHR: role === "HR",
     isCandidate: role === "CANDIDATE",
-
-    isAuthenticated: !!user,
+    isAuthenticated: !!token && !!role,
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };
