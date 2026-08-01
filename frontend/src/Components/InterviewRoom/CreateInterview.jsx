@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import api from "../Axios";
+import { X, Calendar, Clock, Mail, Plus } from "lucide-react";
 
 const CreateInterview = ({ onSuccess, onClose }) => {
   const [candidateEmail, setCandidateEmail] = useState("");
@@ -7,9 +8,11 @@ const CreateInterview = ({ onSuccess, onClose }) => {
   const [interviewStartTime, setInterviewStartTime] = useState("");
   const [interviewEndTime, setInterviewEndTime] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
 
     const startTime = `${interviewDate}T${interviewStartTime}:00`;
     const endTime = `${interviewDate}T${interviewEndTime}:00`;
@@ -26,192 +29,136 @@ const CreateInterview = ({ onSuccess, onClose }) => {
       onSuccess(res.data);
     } catch (err) {
       console.error(err.response?.data || err.message);
+      setError(err.response?.data?.message || "Failed to schedule interview.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <>
-      <style>{`
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(66, 83, 119, 0.75); /* No blur */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-    animation: fadeIn 0.3s ease;
-  }
+    <div className="fixed inset-0 z-50 bg-[#070235]/60 backdrop-blur-xs flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-white border border-[#e0e3e5] rounded-2xl shadow-2xl overflow-hidden transition-all animate-in fade-in zoom-in-95 duration-200">
+        
+        {/* Header */}
+        <div className="px-6 py-4 bg-[#070235] text-white flex items-center justify-between border-b border-[#1e1b4b]">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-[#2170e4] flex items-center justify-center text-white">
+              <Plus className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-sm tracking-tight">Schedule Technical Interview</h3>
+              <span className="text-[10px] font-mono text-[#8683ba]">Generate room link for candidate</span>
+            </div>
+          </div>
 
-  .modal-card {
-    width: 420px;
-    background:rgb(85, 105, 149); /* Solid background */
-    border-radius: 20px;
-    padding: 36px;
-    border: 1px solid rgba(255,255,255,0.08);
-    box-shadow: 0 25px 70px rgba(0,0,0,0.6);
-    animation: slideUp 0.3s ease;
-    font-family: 'Outfit', sans-serif;
-    color: #e2e8f0;
-  }
+          <button
+            onClick={onClose}
+            className="p-1 rounded-lg text-[#8683ba] hover:text-white hover:bg-white/10 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
-  .modal-title {
-    font-size: 22px;
-    font-weight: 700;
-    margin-bottom: 24px;
-    color: #f8fafc;
-  }
+        {/* Body */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 text-left">
+          
+          {error && (
+            <div className="p-3 bg-[#ffdad6] text-[#93000a] text-xs font-medium rounded-lg border border-[#ba1a1a]/20">
+              {error}
+            </div>
+          )}
 
-  .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-bottom: 18px;
-  }
-
-  .form-label {
-    font-size: 13px;
-    color: #94a3b8;
-  }
-
-  .form-input {
-    padding: 12px 14px;
-    border-radius: 10px;
-    border: 1px solid rgba(255,255,255,0.08);
-    background: #1f2937; /* Solid input background */
-    color: #e2e8f0;
-    font-size: 14px;
-    outline: none;
-    transition: 0.2s ease;
-  }
-
-  .form-input:focus {
-    border: 1px solidrgb(7, 15, 108);
-  }
-
-  .time-row {
-    display: flex;
-    gap: 12px;
-  }
-
-  .btn-row {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 24px;
-  }
-
-  .primary-btn {
-    flex: 1;
-    background: linear-gradient(135deg,rgb(0, 0, 0),rgb(4, 6, 36));
-    border: none;
-    padding: 12px;
-    border-radius: 10px;
-    font-weight: 600;
-    color: white;
-    cursor: pointer;
-    transition: 0.25s ease;
-    margin-right: 8px;
-  }
-
-  .primary-btn:hover {
-    transform: translateY(-2px);
-  }
-
-  .secondary-btn {
-    flex: 1;
-    background: #1f2937;
-    border: 1px solid rgba(255,255,255,0.08);
-    padding: 12px;
-    border-radius: 10px;
-    font-weight: 600;
-    color: #e2e8f0;
-    cursor: pointer;
-    transition: 0.25s ease;
-    margin-left: 8px;
-  }
-
-  .secondary-btn:hover {
-    background: #273449;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @keyframes slideUp {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-  }
-`}</style>
-       
-      <div className="modal-overlay">
-        <div className="modal-card">
-          <div className="modal-title">Create Interview</div>
-
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label className="form-label">Candidate Email</label>
+          {/* Candidate Email */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-mono font-semibold text-[#191c1e] block">
+              Candidate Email
+            </label>
+            <div className="relative">
+              <Mail className="w-4 h-4 text-[#787680] absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="email"
-                className="form-input"
-                placeholder="candidate@example.com"
+                className="w-full pl-9 pr-3 py-2.5 text-xs bg-[#f7f9fb] border border-[#c8c5d0] rounded-lg focus:outline-none focus:border-[#0058be] focus:ring-2 focus:ring-[#0058be]/20 text-[#191c1e]"
+                placeholder="candidate@company.com"
                 value={candidateEmail}
                 onChange={(e) => setCandidateEmail(e.target.value)}
                 required
               />
             </div>
+          </div>
 
-            <div className="form-group">
-              <label className="form-label">Interview Date</label>
+          {/* Interview Date */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-mono font-semibold text-[#191c1e] block">
+              Scheduled Date
+            </label>
+            <div className="relative">
+              <Calendar className="w-4 h-4 text-[#787680] absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="date"
-                className="form-input"
+                className="w-full pl-9 pr-3 py-2.5 text-xs bg-[#f7f9fb] border border-[#c8c5d0] rounded-lg focus:outline-none focus:border-[#0058be] focus:ring-2 focus:ring-[#0058be]/20 text-[#191c1e]"
                 value={interviewDate}
                 onChange={(e) => setInterviewDate(e.target.value)}
                 required
               />
             </div>
+          </div>
 
-            <div className="form-group">
-              <label className="form-label">Time Slot</label>
-              <div className="time-row">
+          {/* Time Slot */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-mono font-semibold text-[#191c1e] block">
+              Time Window (Start & End)
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="relative">
+                <Clock className="w-4 h-4 text-[#787680] absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="time"
-                  className="form-input"
+                  className="w-full pl-9 pr-3 py-2.5 text-xs bg-[#f7f9fb] border border-[#c8c5d0] rounded-lg focus:outline-none focus:border-[#0058be] focus:ring-2 focus:ring-[#0058be]/20 text-[#191c1e]"
                   value={interviewStartTime}
                   onChange={(e) => setInterviewStartTime(e.target.value)}
                   required
                 />
+              </div>
+
+              <div className="relative">
+                <Clock className="w-4 h-4 text-[#787680] absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="time"
-                  className="form-input"
+                  className="w-full pl-9 pr-3 py-2.5 text-xs bg-[#f7f9fb] border border-[#c8c5d0] rounded-lg focus:outline-none focus:border-[#0058be] focus:ring-2 focus:ring-[#0058be]/20 text-[#191c1e]"
                   value={interviewEndTime}
                   onChange={(e) => setInterviewEndTime(e.target.value)}
                   required
                 />
               </div>
             </div>
+          </div>
 
-            <div className="btn-row">
-              <button type="submit" className="primary-btn" disabled={loading}>
-                {loading ? "Creating..." : "Create"}
-              </button>
+          {/* Buttons */}
+          <div className="flex items-center gap-3 pt-4 border-t border-[#e0e3e5]">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-2.5 bg-[#f2f4f6] hover:bg-[#e0e3e5] text-[#191c1e] rounded-lg font-semibold text-xs transition-all border border-[#c8c5d0]/50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-1 py-2.5 bg-[#070235] hover:bg-[#1e1b4b] text-white rounded-lg font-semibold text-xs transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+            >
+              {loading ? (
+                <span>Generating...</span>
+              ) : (
+                <span>Schedule Session</span>
+              )}
+            </button>
+          </div>
 
-              <button
-                type="button"
-                className="secondary-btn"
-                onClick={onClose}
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
+        </form>
+
       </div>
-    </>
+    </div>
   );
 };
 

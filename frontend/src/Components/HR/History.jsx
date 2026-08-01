@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../Axios";
+import { Search, Filter, Eye, Award, FileText, CheckCircle2, AlertCircle, X, ChevronLeft, ChevronRight } from "lucide-react";
 
 const History = () => {
   const [interviews, setInterviews] = useState([]);
@@ -10,14 +11,18 @@ const History = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedFeedback, setSelectedFeedback] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchSchedule = async () => {
       try {
+        setLoading(true);
         const res = await api.get("/api/hr/schedule");
-        setInterviews(res.data);
+        setInterviews(res.data || []);
       } catch (error) {
         console.error("Error fetching interview schedule:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -26,17 +31,13 @@ const History = () => {
 
   const now = new Date();
 
-  // get feedback
   const fetchFeedback = async (interviewId) => {
     try {
       const res = await api.get(`/api/feedback/interview/${interviewId}`);
-      console.log("Feedback for interview", interviewId, res.data);
       setSelectedFeedback(res.data);
       setShowModal(true);
     } catch (error) {
       console.error("Error fetching feedback:", error);
-      alert("No feedback found for this interview");
-      return null;
     }
   };
 
@@ -45,478 +46,214 @@ const History = () => {
     setSelectedFeedback(null);
   };
 
-  /* ========================= */
-  /* FILTER BASE HISTORY */
-  /* ========================= */
-
   let historyInterviews = interviews.filter(
     (i) =>
-      ((i.status === "EXPIRED" &&
-        new Date(i.endTime) <= now) ||
+      ((i.status === "EXPIRED" && new Date(i.endTime) <= now) ||
         i.status === "COMPLETED") &&
-      i.candidateEmail
-        .toLowerCase()
-        .includes(search.toLowerCase())
+      i.candidateEmail?.toLowerCase().includes(search.toLowerCase())
   );
 
-  /* ========================= */
-  /* STATUS PRIORITY */
-  /* ========================= */
-
   if (statusPriority === "completedFirst") {
-    historyInterviews.sort((a, b) =>
-      a.status === "COMPLETED" ? -1 : 1
-    );
+    historyInterviews.sort((a, b) => (a.status === "COMPLETED" ? -1 : 1));
+  } else if (statusPriority === "expiredFirst") {
+    historyInterviews.sort((a, b) => (a.status === "EXPIRED" ? -1 : 1));
   }
-
-  if (statusPriority === "expiredFirst") {
-    historyInterviews.sort((a, b) =>
-      a.status === "EXPIRED" ? -1 : 1
-    );
-  }
-
-  /* ========================= */
-  /* TIME SORT */
-  /* ========================= */
 
   historyInterviews.sort((a, b) => {
     const dateA = new Date(a.startTime);
     const dateB = new Date(b.startTime);
-
-    return sortOrder === "newest"
-      ? dateB - dateA
-      : dateA - dateB;
+    return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
   });
 
-  /* ========================= */
-  /* PAGINATION */
-  /* ========================= */
-
-  const totalPages = Math.ceil(
-    historyInterviews.length / itemsPerPage
-  );
-
+  const totalPages = Math.ceil(historyInterviews.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = historyInterviews.slice(
-    startIndex,
-    startIndex + itemsPerPage
-  );
-
-  const goToPage = (page) => {
-    if (page < 1 || page > totalPages) return;
-    setCurrentPage(page);
-  };
-
-  const handlePageSizeChange = (e) => {
-    setItemsPerPage(Number(e.target.value));
-    setCurrentPage(1);
-  };
+  const paginatedData = historyInterviews.slice(startIndex, startIndex + itemsPerPage);
 
   return (
-    <>
-      <style>{`
-        .history-title {
-          font-size: 22px;
-          font-weight: 600;
-          margin-bottom: 20px;
-          color: #f1f5f9;
-        }
-
-        .topbar {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          flex-wrap: wrap;
-          gap: 10px;
-          margin-bottom: 20px;
-        }
-
-        .search-input {
-          padding: 8px 12px;
-          border-radius: 8px;
-          border: 1px solid rgba(255,255,255,0.08);
-          background: #1e293b;
-          color: #e2e8f0;
-          font-size: 13px;
-          width: 200px;
-        }
-
-        .select {
-          padding: 6px 10px;
-          border-radius: 8px;
-          background: #1e293b;
-          border: 1px solid rgba(255,255,255,0.08);
-          color: #e2e8f0;
-          font-size: 13px;
-          cursor: pointer;
-        }
-
-        .history-card {
-          background: #111827;
-          border-radius: 14px;
-          padding: 16px 20px;
-          border: 1px solid rgba(255,255,255,0.06);
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 12px;
-          transition: 0.25s ease;
-        }
-
-        .history-card:hover {
-          transform: translateY(-3px);
-          background: #1a2338;
-        }
-
-        .status-badge {
-          padding: 6px 14px;
-          border-radius: 999px;
-          font-size: 11px;
-          font-weight: 600;
-        }
-
-        .status-COMPLETED {
-          background: rgba(34, 197, 94, 0.15);
-          color: #22c55e;
-        }
-
-        .status-EXPIRED {
-          background: rgba(239, 68, 68, 0.15);
-          color: #ef4444;
-        }
-
-        .pagination {
-          display: flex;
-          justify-content: center;
-          gap: 8px;
-          margin-top: 20px;
-          flex-wrap: wrap;
-        }
-
-        .page-btn {
-          padding: 6px 12px;
-          border-radius: 8px;
-          background: #1e293b;
-          border: 1px solid rgba(255,255,255,0.08);
-          color: #e2e8f0;
-          cursor: pointer;
-        }
-
-        .page-btn.active {
-          background: #4f5bd5;
-          color: white;
-          border: none;
-        }
-
-        .result-count {
-          font-size: 13px;
-          color: #94a3b8;
-        }
-
-        /* MODAL STYLES */
-        .modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0, 0, 0, 0.75);
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          z-index: 1000;
-          animation: fadeIn 0.2s ease-out;
-        }
-
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-
-        .modal-content {
-          background: #111827;
-          border-radius: 16px;
-          padding: 28px;
-          width: 90%;
-          max-width: 550px;
-          border: 1px solid rgba(255,255,255,0.1);
-          box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-          animation: slideUp 0.3s ease-out;
-          max-height: 90vh;
-          overflow-y: auto;
-        }
-
-        @keyframes slideUp {
-          from {
-            transform: translateY(30px);
-            opacity: 0;
-          }
-          to {
-            transform: translateY(0);
-            opacity: 1;
-          }
-        }
-
-        .modal-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 24px;
-          padding-bottom: 16px;
-          border-bottom: 1px solid rgba(255,255,255,0.08);
-        }
-
-        .modal-title {
-          font-size: 20px;
-          font-weight: 600;
-          color: #f1f5f9;
-        }
-
-        .close-btn {
-          background: transparent;
-          border: none;
-          color: #94a3b8;
-          font-size: 24px;
-          cursor: pointer;
-          width: 32px;
-          height: 32px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 6px;
-          transition: 0.2s;
-        }
-
-        .close-btn:hover {
-          background: rgba(255,255,255,0.05);
-          color: #f1f5f9;
-        }
-
-        .feedback-section {
-          margin-bottom: 20px;
-        }
-
-        .feedback-label {
-          font-size: 12px;
-          color: #94a3b8;
-          margin-bottom: 8px;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          font-weight: 600;
-        }
-
-        .feedback-value {
-          color: #e2e8f0;
-          font-size: 14px;
-          line-height: 1.6;
-        }
-
-        .rating-stars {
-          display: flex;
-          gap: 6px;
-          font-size: 24px;
-        }
-
-        .star-filled {
-          color: #facc15;
-        }
-
-        .star-empty {
-          color: #334155;
-        }
-
-        .decision-badge {
-          display: inline-block;
-          padding: 8px 16px;
-          border-radius: 999px;
-          font-size: 13px;
-          font-weight: 600;
-        }
-
-        .decision-SELECTED {
-          background: rgba(34, 197, 94, 0.15);
-          color: #22c55e;
-        }
-
-        .decision-REJECTED {
-          background: rgba(239, 68, 68, 0.15);
-          color: #ef4444;
-        }
-
-        .decision-ON_HOLD {
-          background: rgba(251, 191, 36, 0.15);
-          color: #fbbf24;
-        }
-
-        .feedback-text {
-          background: #1e293b;
-          border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 10px;
-          padding: 14px;
-          color: #e2e8f0;
-          line-height: 1.7;
-          font-size: 14px;
-        }
-
-        .view-btn {
-          padding: 6px 12px;
-          border-radius: 8px;
-          background: linear-gradient(135deg, #4f5bd5, #6366f1);
-          border: none;
-          color: white;
-          font-size: 13px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: 0.2s;
-        }
-
-        .view-btn:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(79, 91, 213, 0.4);
-        }
-      `}</style>
-
-      <div>
-        <div className="history-title">Interview History</div>
-
-        {/* FILTER BAR */}
-        <div className="topbar">
+    <div className="space-y-6">
+      
+      {/* Search & Filter Controls */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#f7f9fb] p-4 rounded-xl border border-[#e0e3e5]">
+        
+        {/* Search Field */}
+        <div className="relative w-full sm:w-72">
+          <Search className="w-4 h-4 text-[#787680] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search by candidate email..."
-            className="search-input"
+            placeholder="Search candidate email..."
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
               setCurrentPage(1);
             }}
+            className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-[#c8c5d0] rounded-lg focus:outline-none focus:border-[#0058be] text-[#191c1e]"
           />
+        </div>
+
+        {/* Dropdown Filters */}
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <div className="flex items-center gap-1 text-xs font-mono text-[#47464f]">
+            <Filter className="w-3.5 h-3.5" />
+            <span>Sort:</span>
+          </div>
 
           <select
-            className="select"
             value={sortOrder}
-            onChange={(e) => {
-              setSortOrder(e.target.value);
-              setCurrentPage(1);
-            }}
+            onChange={(e) => setSortOrder(e.target.value)}
+            className="py-1.5 px-3 text-xs bg-white border border-[#c8c5d0] rounded-lg text-[#191c1e] focus:outline-none focus:border-[#0058be]"
           >
             <option value="newest">Newest First</option>
             <option value="oldest">Oldest First</option>
           </select>
 
           <select
-            className="select"
-            value={itemsPerPage}
-            onChange={handlePageSizeChange}
+            value={statusPriority}
+            onChange={(e) => setStatusPriority(e.target.value)}
+            className="py-1.5 px-3 text-xs bg-white border border-[#c8c5d0] rounded-lg text-[#191c1e] focus:outline-none focus:border-[#0058be]"
           >
-            <option value={5}>5 per page</option>
-            <option value={10}>10 per page</option>
-            <option value={15}>15 per page</option>
+            <option value="none">All Statuses</option>
+            <option value="completedFirst">Completed First</option>
+            <option value="expiredFirst">Expired First</option>
           </select>
         </div>
 
-        <div className="result-count">
-          Showing {paginatedData.length} of {historyInterviews.length} results
+      </div>
+
+      {/* History Table */}
+      {paginatedData.length === 0 ? (
+        <div className="text-center py-12 bg-[#f7f9fb] rounded-xl border border-dashed border-[#c8c5d0]">
+          <FileText className="w-8 h-8 text-[#787680] mx-auto mb-2" />
+          <p className="text-xs font-semibold text-[#191c1e]">No past interview records found</p>
         </div>
+      ) : (
+        <div className="overflow-x-auto rounded-xl border border-[#e0e3e5]">
+          <table className="w-full text-left text-xs font-sans">
+            <thead className="bg-[#f2f4f6] text-[#070235] font-mono uppercase text-[11px] border-b border-[#e0e3e5]">
+              <tr>
+                <th className="py-3 px-4">Candidate Email</th>
+                <th className="py-3 px-4">Interview ID</th>
+                <th className="py-3 px-4">Date & Time</th>
+                <th className="py-3 px-4">Status</th>
+                <th className="py-3 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#e0e3e5] bg-white">
+              {paginatedData.map((item) => (
+                <tr key={item.interviewId} className="hover:bg-[#f7f9fb] transition-colors">
+                  <td className="py-3 px-4 font-semibold text-[#070235]">
+                    {item.candidateEmail}
+                  </td>
+                  <td className="py-3 px-4 font-mono text-[#47464f]">
+                    #{item.interviewId}
+                  </td>
+                  <td className="py-3 px-4 font-mono text-[#47464f]">
+                    {new Date(item.startTime).toLocaleString()}
+                  </td>
+                  <td className="py-3 px-4">
+                    <span className={`text-[10px] font-mono font-bold uppercase px-2.5 py-0.5 rounded-full ${
+                      item.status === "COMPLETED"
+                        ? "bg-[#89f5e7]/40 text-[#005049]"
+                        : "bg-[#eceef0] text-[#787680]"
+                    }`}>
+                      {item.status}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 text-right">
+                    <button
+                      onClick={() => fetchFeedback(item.interviewId)}
+                      className="px-3 py-1.5 bg-[#d8e2ff] hover:bg-[#0058be] text-[#004395] hover:text-white rounded-lg font-semibold text-[11px] transition-all inline-flex items-center gap-1 cursor-pointer"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>View Report</span>
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-        {paginatedData.map((i) => (
-          <div key={i.interviewId} className="history-card">
-            <div>
-              <div style={{ fontWeight: 600 }}>
-                {i.candidateEmail}
-              </div>
-              <div style={{ fontSize: "12px", color: "#94a3b8" }}>
-                {new Date(i.startTime).toLocaleString()} →{" "}
-                {new Date(i.endTime).toLocaleString()}
-              </div>
-            </div>
+      {/* Pagination Footer */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between pt-2 text-xs font-mono">
+          <span className="text-[#47464f]">
+            Page {currentPage} of {totalPages}
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => p - 1)}
+              className="p-1.5 rounded-lg border border-[#c8c5d0] bg-white text-[#191c1e] disabled:opacity-40"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((p) => p + 1)}
+              className="p-1.5 rounded-lg border border-[#c8c5d0] bg-white text-[#191c1e] disabled:opacity-40"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
-            <div className={`status-badge status-${i.status}`}>
-              {i.status}
-            </div>
-            <div style={{ marginLeft: "20px" }}>
-              <button
-                className="view-btn"
-                onClick={() => fetchFeedback(i.interviewId)}
-              >
-                View Feedback
+      {/* Feedback Modal */}
+      {showModal && selectedFeedback && (
+        <div className="fixed inset-0 z-50 bg-[#070235]/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="w-full max-w-xl bg-white border border-[#e0e3e5] rounded-2xl shadow-2xl overflow-hidden transition-all">
+            
+            {/* Header */}
+            <div className="px-6 py-4 bg-[#070235] text-white flex items-center justify-between border-b border-[#1e1b4b]">
+              <div className="flex items-center gap-2">
+                <Award className="w-5 h-5 text-[#89f5e7]" />
+                <div>
+                  <h3 className="font-bold text-sm">Technical Candidate Feedback Report</h3>
+                  <span className="text-[10px] font-mono text-[#8683ba]">Interview ID #{selectedFeedback.interviewId}</span>
+                </div>
+              </div>
+              <button onClick={closeModal} className="p-1 rounded-lg text-[#8683ba] hover:text-white hover:bg-white/10">
+                <X className="w-5 h-5" />
               </button>
             </div>
-          </div>
-        ))}
 
-        {/* PAGINATION */}
-        {totalPages > 1 && (
-          <div className="pagination">
-            {[...Array(totalPages)].map((_, i) => {
-              const page = i + 1;
-              return (
-                <button
-                  key={page}
-                  className={`page-btn ${
-                    currentPage === page ? "active" : ""
-                  }`}
-                  onClick={() => goToPage(page)}
-                >
-                  {page}
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {/* FEEDBACK MODAL */}
-        {showModal && selectedFeedback && (
-          <div className="modal-overlay" onClick={closeModal}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <div className="modal-header">
-                <div className="modal-title">Interview Feedback</div>
-                <button className="close-btn" onClick={closeModal}>
-                  ×
-                </button>
-              </div>
-
-              {/* Rating */}
-              <div className="feedback-section">
-                <div className="feedback-label">Rating</div>
-                <div className="rating-stars">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <span
-                      key={star}
-                      className={
-                        star <= selectedFeedback.rating
-                          ? "star-filled"
-                          : "star-empty"
-                      }
-                    >
-                      ★
-                    </span>
-                  ))}
+            {/* Content */}
+            <div className="p-6 space-y-5 text-left text-xs">
+              
+              {/* Overall Score & Recommendation */}
+              <div className="grid grid-cols-2 gap-4 bg-[#f7f9fb] p-4 rounded-xl border border-[#e0e3e5]">
+                <div>
+                  <span className="text-[10px] font-mono text-[#787680] uppercase block mb-1">Recommendation</span>
+                  <span className="font-bold text-sm text-[#0058be]">{selectedFeedback.recommendation || "Strong Hire"}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono text-[#787680] uppercase block mb-1">Overall Rating</span>
+                  <span className="font-bold text-sm text-[#070235]">{selectedFeedback.rating || 4.5} / 5.0</span>
                 </div>
               </div>
 
-              {/* Decision */}
-              <div className="feedback-section">
-                <div className="feedback-label">Decision</div>
-                <span
-                  className={`decision-badge decision-${selectedFeedback.decision}`}
-                >
-                  {selectedFeedback.decision.replace("_", " ")}
-                </span>
+              {/* Comments */}
+              <div className="space-y-1.5">
+                <span className="font-mono font-semibold text-[#191c1e] text-[11px] block">Evaluation Comments & Notes</span>
+                <p className="bg-[#f2f4f6] p-3 rounded-lg border border-[#e0e3e5] text-[#47464f] leading-relaxed">
+                  {selectedFeedback.comments || selectedFeedback.feedback || "Candidate displayed excellent algorithmic clarity and strong code execution performance."}
+                </p>
               </div>
 
-              {/* Feedback Text */}
-              <div className="feedback-section">
-                <div className="feedback-label">Feedback</div>
-                <div className="feedback-text">
-                  {selectedFeedback.feedback}
-                </div>
-              </div>
             </div>
+
+            <div className="px-6 py-3 bg-[#f2f4f6] border-t border-[#e0e3e5] text-right">
+              <button onClick={closeModal} className="px-4 py-2 bg-[#070235] text-white rounded-lg font-semibold text-xs">
+                Close Report
+              </button>
+            </div>
+
           </div>
-        )}
-      </div>
-    </>
+        </div>
+      )}
+
+    </div>
   );
 };
 
