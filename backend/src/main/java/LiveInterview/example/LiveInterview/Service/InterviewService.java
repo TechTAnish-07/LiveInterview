@@ -40,22 +40,16 @@ public class InterviewService {
      }
     private final Map<Long, String> liveQuestion = new ConcurrentHashMap<>();
     private final Map<Long, String> liveCode = new ConcurrentHashMap<>();
+    private final Map<Long, String> liveLanguage = new ConcurrentHashMap<>();
 
     @Scheduled(fixedRate = 5000)
     public void autoSave() {
         liveQuestion.keySet().forEach(this::persistQuestion);
         liveCode.keySet().forEach(this::persistCode);
-
-
     }
 
-
-
-    // 🔥 Replace with Redis in prod
-
-
     public void verifyHrInInterview(Principal principal, Long interviewId) {
-        Interview interview =getInterview(interviewId);
+        Interview interview = getInterview(interviewId);
         UserEntity user = getUser(principal);
 
         if (!interview.getHr().getId().equals(user.getId())) {
@@ -63,17 +57,11 @@ public class InterviewService {
         }
     }
 
-
-
     public void updateLiveQuestion(
             Long interviewId,
             QuestionSyncMessage msg,
             Principal principal
     ) {
-        System.out.println(
-                "📌 updateLiveQuestion called | interviewId=" + interviewId
-        );
-//   System.out.println(msg.getQuestion());
         liveQuestion.put(interviewId, msg.getQuestion());
     }
 
@@ -82,14 +70,15 @@ public class InterviewService {
             CodeSyncMessage msg,
             Principal principal
     ) {
-        System.out.println(
-                "🔥 Autosave running | liveQuestion size = " + liveQuestion.size()
-        );
-
         liveCode.put(interviewId, msg.getCode());
+        if (msg.getLanguage() != null && !msg.getLanguage().isEmpty()) {
+            liveLanguage.put(interviewId, msg.getLanguage());
+        }
     }
 
     public InterviewStateResponse getInterviewState(Long interviewId) {
+        Interview interview = interviewRepository.findById(interviewId)
+                .orElseThrow(() -> new IllegalArgumentException("Interview not found"));
 
         String question = questionRepo.findById(interviewId)
                 .map(InterviewQuestion::getQuestionText)
@@ -99,7 +88,20 @@ public class InterviewService {
                 .map(InterviewCode::getCode)
                 .orElse("");
 
-        return new InterviewStateResponse(question, code);
+        String language = liveLanguage.getOrDefault(
+                interviewId,
+                codeRepo.findById(interviewId).map(InterviewCode::getLanguage).orElse("python")
+        );
+
+        return new InterviewStateResponse(
+                question,
+                code,
+                language,
+                interview.getStartTime(),
+                interview.getEndTime(),
+                interview.getStatus(),
+                System.currentTimeMillis()
+        );
     }
 
     public void verifyUserInInterview(Principal principal, Long interviewId) {
@@ -161,6 +163,9 @@ public class InterviewService {
 
         c.setInterviewId(interviewId);
         c.setCode(liveCode.get(interviewId));
+        if (liveLanguage.containsKey(interviewId)) {
+            c.setLanguage(liveLanguage.get(interviewId));
+        }
         c.setUpdatedAt(System.currentTimeMillis());
 
         codeRepo.save(c);

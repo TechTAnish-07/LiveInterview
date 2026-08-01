@@ -31,34 +31,39 @@ public class InterviewCreationService {
         this.messagingTemplate = messagingTemplate;
 
     }
-    public InterviewCreateResponse createInterviewLink(InterviewCreateRequest req ,  String userEmail) {
-        Interview interview = new Interview();
-        LocalDateTime now = LocalDateTime.now();
+    public InterviewCreateResponse createInterviewLink(InterviewCreateRequest req, String userEmail) {
+        if (req == null || req.getCandidateEmail() == null || req.getCandidateEmail().trim().isEmpty()) {
+            throw new IllegalArgumentException("Candidate email is required");
+        }
+
         UserEntity hr = userRepo.findByEmail(userEmail).orElseThrow(
                 () -> new RuntimeException("User not found"));
-        if(hr.getRole() != Role.HR){
-            throw new RuntimeException("Role not allowed to interview");
-        }
-        if (req.getStartTime().isBefore(now)) {
-            throw new IllegalArgumentException("Start time must be in future");
+        if (hr.getRole() != Role.HR) {
+            throw new RuntimeException("Role not allowed to create interviews");
         }
 
-        if (req.getEndTime().isBefore(req.getStartTime())) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startTime = req.getStartTime() != null ? req.getStartTime() : now;
+        LocalDateTime endTime = req.getEndTime() != null ? req.getEndTime() : startTime.plusHours(1);
+
+        if (startTime.isBefore(now.minusMinutes(5))) {
+            throw new IllegalArgumentException("Start time cannot be in the past");
+        }
+
+        if (endTime.isBefore(startTime) || endTime.isEqual(startTime)) {
             throw new IllegalArgumentException("End time must be after start time");
         }
-        interview.setStartTime(req.getStartTime());
-        interview.setEndTime(req.getEndTime());
 
+        Interview interview = new Interview();
+        interview.setStartTime(startTime);
+        interview.setEndTime(endTime);
         interview.setHr(hr);
-        interview.setCandidateEmail(req.getCandidateEmail());
-
-
-
+        interview.setCandidateEmail(req.getCandidateEmail().trim());
 
         String meeting_link = UUID.randomUUID().toString();
         interview.setMeetingLink(meeting_link);
         Interview saved = interviewRepository.save(interview);
-        return new  InterviewCreateResponse(
+        return new InterviewCreateResponse(
                 saved.getId(),
                 saved.getMeetingLink(),
                 saved.getStatus()
