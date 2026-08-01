@@ -87,44 +87,47 @@ const Home = () => {
             </div>
 
             {/* IDE Workspace Body */}
-            <div className="flex flex-col md:flex-row min-h-[420px] text-left">
+            <div className="flex flex-col md:flex-row min-h-auto md:min-h-[480px] text-left">
               
               {/* Left Sidebar: Audio/Video & Notes */}
-              <div className="w-full md:w-80 bg-[#f7f9fb] border-r border-[#c8c5d0]/50 p-4 flex flex-col justify-between gap-4">
+              <div className="w-full md:w-80 bg-[#f7f9fb] border-b md:border-b-0 md:border-r border-[#c8c5d0]/50 p-4 flex flex-col justify-between gap-4 shrink-0">
                 
                 <div className="space-y-3">
-                  <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#47464f]">
+                  <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#47464f] block mb-1">
                     Live Video Participants
                   </span>
                   
-                  {/* Interviewer Tile */}
-                  <div className="relative rounded-xl overflow-hidden aspect-video bg-gradient-to-br from-[#1e1b4b] to-[#070235] shadow-md border border-[#c8c5d0]/40 flex flex-col items-center justify-center">
-                    <div className="w-12 h-12 rounded-full bg-[#8683ba]/20 text-[#89f5e7] flex items-center justify-center font-bold font-mono border border-[#444173] text-lg shadow-inner">
-                      SJ
+                  {/* Interviewer & Candidate Tiles Grid on Mobile / Stacked on Desktop */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap-3">
+                    {/* Interviewer Tile */}
+                    <div className="relative rounded-xl overflow-hidden aspect-video min-h-[110px] bg-gradient-to-br from-[#1e1b4b] to-[#070235] shadow-md border border-[#c8c5d0]/40 flex flex-col items-center justify-center p-3">
+                      <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#8683ba]/20 text-[#89f5e7] flex items-center justify-center font-bold font-mono border border-[#444173] text-sm md:text-lg shadow-inner">
+                        SJ
+                      </div>
+                      <span className="text-[10px] font-mono text-[#8683ba] mt-1">HD Video Stream</span>
+                      <div className="absolute bottom-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur-md rounded text-white text-[10px] md:text-[11px] font-mono">
+                        Sarah Jenkins (HR Lead)
+                      </div>
                     </div>
-                    <span className="text-[10px] font-mono text-[#8683ba] mt-1.5">HD Video Stream</span>
-                    <div className="absolute bottom-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur-md rounded text-white text-[11px] font-mono">
-                      Sarah Jenkins (HR Lead)
-                    </div>
-                  </div>
 
-                  {/* Candidate Tile */}
-                  <div className="relative rounded-xl overflow-hidden aspect-video bg-gradient-to-br from-[#070235] to-[#1e1b4b] shadow-md border-2 border-[#0058be] ring-2 ring-[#0058be]/20 flex flex-col items-center justify-center">
-                    <div className="w-12 h-12 rounded-full bg-[#0058be]/30 text-white flex items-center justify-center font-bold font-mono border border-[#0058be] text-lg shadow-inner animate-pulse">
-                      AR
-                    </div>
-                    <span className="text-[10px] font-mono text-[#8683ba] mt-1.5">Mic Active • 48kHz</span>
-                    <div className="absolute bottom-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur-md rounded text-white text-[11px] font-mono">
-                      Alex Rivera (Candidate)
-                    </div>
-                    <div className="absolute top-2 right-2 px-2 py-0.5 bg-[#0058be] text-white rounded text-[10px] font-mono font-bold uppercase">
-                      Speaking
+                    {/* Candidate Tile */}
+                    <div className="relative rounded-xl overflow-hidden aspect-video min-h-[110px] bg-gradient-to-br from-[#070235] to-[#1e1b4b] shadow-md border-2 border-[#0058be] ring-2 ring-[#0058be]/20 flex flex-col items-center justify-center p-3">
+                      <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#0058be]/30 text-white flex items-center justify-center font-bold font-mono border border-[#0058be] text-sm md:text-lg shadow-inner animate-pulse">
+                        AR
+                      </div>
+                      <span className="text-[10px] font-mono text-[#8683ba] mt-1">Mic Active • 48kHz</span>
+                      <div className="absolute bottom-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur-md rounded text-white text-[10px] md:text-[11px] font-mono">
+                        Alex Rivera (Candidate)
+                      </div>
+                      <div className="absolute top-2 right-2 px-2 py-0.5 bg-[#0058be] text-white rounded text-[9px] md:text-[10px] font-mono font-bold uppercase">
+                        Speaking
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Real-time Indicator */}
-                <div className="bg-white p-3 rounded-xl border border-[#c8c5d0]/50 shadow-xs">
+                <div className="bg-white p-3 rounded-xl border border-[#c8c5d0]/50 shadow-xs mt-2">
                   <div className="flex items-center justify-between text-xs mb-1.5">
                     <span className="font-semibold text-[#070235]">Technical Precision Score</span>
                     <span className="font-mono text-[#0058be] font-bold">94%</span>
@@ -136,7 +139,7 @@ const Home = () => {
               </div>
 
               {/* Right Main Editor Area */}
-              <div className="flex-1 bg-[#0f172a] p-6 font-mono text-xs text-slate-200 leading-relaxed overflow-x-auto relative">
+              <div className="flex-1 bg-[#0f172a] p-4 md:p-6 font-mono text-xs text-slate-200 leading-relaxed overflow-x-auto relative min-h-[260px]">
                 <pre>
                   <code>
 <span className="text-purple-400">def</span> <span className="text-blue-400 font-bold">two_sum_optimized</span>(nums: list[int], target: int) -&gt; list[int]:
