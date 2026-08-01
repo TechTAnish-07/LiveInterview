@@ -40,7 +40,7 @@ export default function Compiler({ value, onChange, language = "python", onLangu
     <div className="flex flex-col h-full bg-[#0f172a] text-slate-200 font-sans border-l border-[#c8c5d0]/30">
       
       {/* Top Toolbar */}
-      <div className="h-11 bg-[#1e1b4b] border-b border-[#444173] px-4 flex items-center justify-between text-xs font-mono">
+      <div className="min-h-11 py-1.5 bg-[#1e1b4b] border-b border-[#444173] px-3 md:px-4 flex flex-wrap items-center justify-between gap-2 text-xs font-mono shrink-0">
         
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1 text-[#8683ba]">

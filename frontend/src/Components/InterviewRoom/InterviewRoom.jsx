@@ -20,6 +20,7 @@ const LiveInterview = () => {
   const interview = location.state?.interview;
   const interviewId = interview?.interviewId || id;
   
+  const [mobilePane, setMobilePane] = useState("editor"); // 'sidebar' | 'editor'
   const [sessionTime, setSessionTime] = useState(0);
   const [activeTab, setActiveTab] = useState("problem"); // 'problem', 'notes', 'security'
   const [notes, setNotes] = useState("");
@@ -215,11 +216,35 @@ const LiveInterview = () => {
 
       </header>
 
+      {/* Mobile Viewport Sub-header Pane Switcher */}
+      <div className="flex md:hidden bg-[#1e1b4b] border-b border-[#444173] px-2 py-1 font-mono text-xs text-center shrink-0">
+        <button
+          onClick={() => setMobilePane("sidebar")}
+          className={`flex-1 py-1.5 rounded-md font-semibold transition-all cursor-pointer ${
+            mobilePane === "sidebar"
+              ? "bg-[#2170e4] text-white shadow-xs"
+              : "text-[#8683ba] hover:text-white"
+          }`}
+        >
+          📹 Video & Info
+        </button>
+        <button
+          onClick={() => setMobilePane("editor")}
+          className={`flex-1 py-1.5 rounded-md font-semibold transition-all cursor-pointer ${
+            mobilePane === "editor"
+              ? "bg-[#2170e4] text-white shadow-xs"
+              : "text-[#8683ba] hover:text-white"
+          }`}
+        >
+          💻 Code Editor
+        </button>
+      </div>
+
       {/* Main Double Pane Grid */}
       <main className="flex-1 flex overflow-hidden">
         
         {/* Left Master Pane: Video Call & Interactive Tabs */}
-        <aside className="w-80 lg:w-96 bg-[#1e1b4b] border-r border-[#444173] flex flex-col shrink-0 overflow-hidden">
+        <aside className={`w-full md:w-80 lg:w-96 bg-[#1e1b4b] border-r border-[#444173] flex flex-col shrink-0 overflow-hidden ${mobilePane === "sidebar" ? "flex" : "hidden md:flex"}`}>
           
           {/* Video Feeds Top Half */}
           <div className="h-64 border-b border-[#444173] p-3">
@@ -357,7 +382,7 @@ const LiveInterview = () => {
         </aside>
 
         {/* Right Detail Pane: Monaco Compiler Editor */}
-        <section className="flex-1 h-full overflow-hidden bg-[#0f172a]">
+        <section className={`flex-1 h-full overflow-hidden bg-[#0f172a] ${mobilePane === "editor" ? "flex flex-col" : "hidden md:flex md:flex-col"}`}>
           <Compiler
             value={code}
             onChange={(newCode) => updateCode(newCode)}

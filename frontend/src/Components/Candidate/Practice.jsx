@@ -61,6 +61,8 @@ const Practice = () => {
     fetchQuestions();
   }, []);
 
+  const [mobileTab, setMobileTab] = useState("editor"); // 'problem' | 'editor'
+
   const handleLanguageChange = (newLang) => {
     setLanguage(newLang);
     setCode(DEFAULT_CODE_TEMPLATES[newLang] || "");
@@ -93,11 +95,11 @@ const Practice = () => {
     <div className="min-h-[calc(100vh-60px)] bg-[#f7f9fb] text-[#191c1e] font-sans flex flex-col">
       
       {/* Top Bar */}
-      <div className="bg-[#070235] text-white px-6 py-3 border-b border-[#1e1b4b] flex items-center justify-between">
+      <div className="bg-[#070235] text-white px-4 md:px-6 py-3 border-b border-[#1e1b4b] flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate(-1)}
-            className="p-1.5 rounded-lg bg-[#1e1b4b] text-[#8683ba] hover:text-white transition-colors"
+            className="p-1.5 rounded-lg bg-[#1e1b4b] text-[#8683ba] hover:text-white transition-colors cursor-pointer"
             title="Go Back"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -115,23 +117,23 @@ const Practice = () => {
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-3">
           <select
             value={language}
             onChange={(e) => handleLanguageChange(e.target.value)}
-            className="bg-[#1e1b4b] text-white border border-[#444173] text-xs font-mono py-1.5 px-3 rounded-lg focus:outline-none focus:border-[#2170e4]"
+            className="bg-[#1e1b4b] text-white border border-[#444173] text-xs font-mono py-1.5 px-2.5 rounded-lg focus:outline-none focus:border-[#2170e4]"
           >
-            <option value="python">Python (3.8.1)</option>
-            <option value="javascript">JavaScript (Node.js)</option>
-            <option value="java">Java (OpenJDK 13)</option>
-            <option value="cpp">C++ (GCC 9.2.0)</option>
-            <option value="go">Go (1.13.5)</option>
+            <option value="python">Python (3.8)</option>
+            <option value="javascript">JavaScript (Node)</option>
+            <option value="java">Java (13)</option>
+            <option value="cpp">C++ (17)</option>
+            <option value="go">Go (1.13)</option>
           </select>
 
           <button
             onClick={handleRunCode}
             disabled={running}
-            className="px-5 py-1.5 bg-[#2170e4] hover:bg-[#0058be] text-white rounded-lg text-xs font-semibold shadow-sm flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            className="px-4 md:px-5 py-1.5 bg-[#2170e4] hover:bg-[#0058be] text-white rounded-lg text-xs font-semibold shadow-sm flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
           >
             {running ? (
               <>
@@ -148,11 +150,35 @@ const Practice = () => {
         </div>
       </div>
 
+      {/* Mobile Sub-header Tab Toggle */}
+      <div className="flex md:hidden bg-[#1e1b4b] border-b border-[#444173] px-2 py-1 font-mono text-xs text-center shrink-0">
+        <button
+          onClick={() => setMobileTab("problem")}
+          className={`flex-1 py-1.5 rounded-md font-semibold transition-all cursor-pointer ${
+            mobileTab === "problem"
+              ? "bg-[#2170e4] text-white shadow-xs"
+              : "text-[#8683ba] hover:text-white"
+          }`}
+        >
+          📄 Problem Statement
+        </button>
+        <button
+          onClick={() => setMobileTab("editor")}
+          className={`flex-1 py-1.5 rounded-md font-semibold transition-all cursor-pointer ${
+            mobileTab === "editor"
+              ? "bg-[#2170e4] text-white shadow-xs"
+              : "text-[#8683ba] hover:text-white"
+          }`}
+        >
+          💻 Code Editor
+        </button>
+      </div>
+
       {/* Main Split Layout */}
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
         
         {/* Left Side: Question Statement */}
-        <div className="w-full md:w-1/3 bg-white border-r border-[#e0e3e5] flex flex-col overflow-y-auto">
+        <div className={`w-full md:w-1/3 bg-white border-r border-[#e0e3e5] flex-col overflow-y-auto ${mobileTab === "problem" ? "flex" : "hidden md:flex"}`}>
           
           {/* Question List Switcher */}
           {questions.length > 1 && (
@@ -226,7 +252,7 @@ const Practice = () => {
         </div>
 
         {/* Right Side: Code Editor & Console */}
-        <div className="flex-1 bg-[#0f172a] flex flex-col overflow-hidden">
+        <div className={`flex-1 bg-[#0f172a] flex flex-col overflow-hidden ${mobileTab === "editor" ? "flex" : "hidden md:flex"}`}>
           
           {/* Monaco Editor */}
           <div className="flex-1 min-h-[350px] relative">
