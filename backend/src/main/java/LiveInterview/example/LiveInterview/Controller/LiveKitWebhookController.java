@@ -31,9 +31,9 @@ public class LiveKitWebhookController {
     }
 
     @PostMapping(consumes = {"application/webhook+json", "application/json", "*/*"})
-    public ResponseEntity<String> handleWebhook(
-            @RequestBody String body,
-            @RequestHeader(value = "Authorization", required = false) String authHeader
+    public ResponseEntity<String> receiveWebhook(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestBody String body
     ) {
         try {
             WebhookReceiver receiver = new WebhookReceiver(livekitApiKey, livekitApiSecret);
