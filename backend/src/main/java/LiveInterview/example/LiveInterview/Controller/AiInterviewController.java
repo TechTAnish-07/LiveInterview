@@ -78,7 +78,7 @@ public class AiInterviewController {
 
         // Mint LiveKit access token
         AccessToken token = new AccessToken(livekitApiKey, livekitApiSecret);
-        token.setIdentity(userId.toString());
+        token.setIdentity("user-" + userId);
         token.setName(user.getName());
         token.addGrants(new RoomJoin(true), new RoomName(roomName));
         token.setTtl(7200);
