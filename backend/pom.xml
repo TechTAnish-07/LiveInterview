@@ -132,6 +132,20 @@
 			<artifactId>reactor-netty</artifactId>
 		</dependency>
 
+		<!-- LiveKit Server SDK -->
+		<dependency>
+			<groupId>io.livekit</groupId>
+			<artifactId>livekit-server</artifactId>
+			<version>0.8.3</version>
+		</dependency>
+
+		<!-- PDFBox for PDF text extraction -->
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox</artifactId>
+			<version>3.0.2</version>
+		</dependency>
+
 		<!-- Tests -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

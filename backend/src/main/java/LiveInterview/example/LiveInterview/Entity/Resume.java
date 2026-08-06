@@ -21,6 +21,9 @@ public class Resume {
     @Column(columnDefinition = "TEXT")
     private String skills;
 
+    @Column(name = "extracted_text", columnDefinition = "TEXT")
+    private String extractedText;
+
     @Column(name = "uploaded_at", updatable = false)
     private LocalDateTime uploadedAt;
 

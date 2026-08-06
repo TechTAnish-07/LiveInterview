@@ -6,10 +6,10 @@ spring:
     name: ${SPRING_APP_NAME:LiveInterview}
 
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/liveinterview}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
-    driver-class-name: ${DB_DRIVER:org.postgresql.Driver}
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: ${DB_DRIVER}
 
   jpa:
     hibernate:
@@ -21,11 +21,29 @@ spring:
 
   security:
     jwt:
-      secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
-      expiration: ${JWT_EXPIRATION:86400000}
+      secret: ${JWT_SECRET}
+      expiration: ${JWT_EXPIRATION}
 
   sql:
     init:
-      platform: ${SQL_PLATFORM:postgres}
+      platform: ${SQL_PLATFORM}
+
+livekit:
+  api:
+    key: ${LIVEKIT_API_KEY:devkey}
+    secret: ${LIVEKIT_API_SECRET:secret}
+  url: ${LIVEKIT_URL:ws://localhost:7880}
+
+internal:
+  service:
+    api-key: ${INTERNAL_SERVICE_API_KEY:internal-secret-key}
+
+python:
+  agent:
+    service:
+      url: ${PYTHON_AGENT_SERVICE_URL:http://localhost:8000}
+
+file:
+  upload-dir: ${FILE_UPLOAD_DIR:uploads/resumes}
 
 debug: true
