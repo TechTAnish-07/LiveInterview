@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface ResumeRepository extends JpaRepository<Resume, Long> {
-    Optional<Resume> findTopByUserIdOrderByUploadedAtDesc(Integer userId);
+    Optional<Resume> findTopByUserIdOrderByUploadedAtDesc(Long userId);
 }

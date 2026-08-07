@@ -19,6 +19,6 @@ public class LiveKitConfig {
 
     @Bean
     public RoomServiceClient roomServiceClient() {
-        return RoomServiceClient.create(livekitUrl, apiKey, apiSecret);
+        return RoomServiceClient.createClient(livekitUrl, apiKey, apiSecret);
     }
 }

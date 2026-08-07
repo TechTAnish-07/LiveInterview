@@ -33,15 +33,17 @@ livekit:
     key: ${LIVEKIT_API_KEY:devkey}
     secret: ${LIVEKIT_API_SECRET:secret}
   url: ${LIVEKIT_URL:ws://localhost:7880}
+  token:
+    ttl: ${LIVEKIT_TOKEN_TTL:7200}
 
 internal:
   service:
     api-key: ${INTERNAL_SERVICE_API_KEY:internal-secret-key}
 
-python:
-  agent:
+resume:
+  normalization:
     service:
-      url: ${PYTHON_AGENT_SERVICE_URL:http://localhost:8000}
+      url: ${RESUME_NORMALIZATION_SERVICE_URL:http://localhost:8000}
 
 file:
   upload-dir: ${FILE_UPLOAD_DIR:uploads/resumes}

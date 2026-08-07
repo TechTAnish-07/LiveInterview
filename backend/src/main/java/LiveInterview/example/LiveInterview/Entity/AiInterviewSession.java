@@ -19,7 +19,7 @@ public class AiInterviewSession {
     private Long id;
 
     @Column(name = "user_id", nullable = false)
-    private Integer userId;
+    private Long userId;
 
     @Column(name = "resume_id")
     private Long resumeId;
@@ -27,11 +27,17 @@ public class AiInterviewSession {
     @Column(name = "room_name", nullable = false)
     private String roomName;
 
+    @Column(name = "job_role")
+    private String jobRole;
+
     @Column(nullable = false)
     private String status;
 
     @Column(columnDefinition = "TEXT")
     private String transcript;
+
+    @Column(columnDefinition = "TEXT")
+    private String feedback;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

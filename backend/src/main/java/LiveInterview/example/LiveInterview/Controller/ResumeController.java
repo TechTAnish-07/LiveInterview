@@ -56,7 +56,7 @@ public class ResumeController {
         UserEntity user = userRepo.findByEmail(principal.getName())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
 
-        Integer userId = user.getId().intValue();
+        Long userId = user.getId();
 
         Map<String, Object> response = resumeService.uploadResume(file, userId);
         return ResponseEntity.ok(response);

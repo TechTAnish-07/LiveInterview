@@ -34,15 +34,15 @@ public class ResumeService {
     public ResumeService(
             ResumeRepository resumeRepository,
             WebClient.Builder webClientBuilder,
-            @Value("${python.agent.service.url:http://localhost:8000}") String pythonAgentUrl,
+            @Value("${resume.normalization.service.url:http://localhost:8000}") String normalizationServiceUrl,
             @Value("${file.upload-dir:uploads/resumes}") String uploadDir
     ) {
         this.resumeRepository = resumeRepository;
-        this.webClient = webClientBuilder.baseUrl(pythonAgentUrl).build();
+        this.webClient = webClientBuilder.baseUrl(normalizationServiceUrl).build();
         this.uploadDir = uploadDir;
     }
 
-    public Map<String, Object> uploadResume(MultipartFile file, Integer userId) {
+    public Map<String, Object> uploadResume(MultipartFile file, Long userId) {
         // 1. Save uploaded file to configured local directory
         String originalFilename = file.getOriginalFilename();
         String safeFilename = userId + "_" + UUID.randomUUID() + "_" + (originalFilename != null ? originalFilename : "resume.pdf");

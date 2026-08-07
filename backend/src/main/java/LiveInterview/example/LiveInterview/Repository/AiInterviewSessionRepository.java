@@ -11,7 +11,7 @@ import java.util.Optional;
 public interface AiInterviewSessionRepository extends JpaRepository<AiInterviewSession, Long> {
     List<AiInterviewSession> findByRoomName(String roomName);
     Optional<AiInterviewSession> findTopByRoomNameOrderByCreatedAtDesc(String roomName);
-    Optional<AiInterviewSession> findByRoomNameAndUserId(String roomName, Integer userId);
-    Optional<AiInterviewSession> findTopByRoomNameAndUserIdOrderByCreatedAtDesc(String roomName, Integer userId);
-    List<AiInterviewSession> findByUserId(Integer userId);
+    Optional<AiInterviewSession> findByRoomNameAndUserId(String roomName, Long userId);
+    Optional<AiInterviewSession> findTopByRoomNameAndUserIdOrderByCreatedAtDesc(String roomName, Long userId);
+    List<AiInterviewSession> findByUserId(Long userId);
 }

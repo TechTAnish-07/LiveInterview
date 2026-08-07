@@ -77,6 +77,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/hr/**").hasRole("HR")
                         .requestMatchers("/api/feedback/**").hasAnyRole("HR", "CANDIDATE")
                         .requestMatchers("/api/ai-interview/*/context").permitAll()
+                        .requestMatchers("/api/ai-interview/*/result").permitAll()
+                        .requestMatchers("/api/ai-interview/*/room", "/api/ai-interview/room/*").permitAll()
                         .requestMatchers("/livekit/webhook").permitAll()
 
                         .anyRequest().authenticated()
