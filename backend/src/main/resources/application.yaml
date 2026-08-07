@@ -9,36 +9,38 @@ spring:
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
-    driver-class-name: ${DB_DRIVER}
+    driver-class-name: ${DB_DRIVER:org.postgresql.Driver}
 
   jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
     show-sql: true
     properties:
       hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
 
   security:
     jwt:
       secret: ${JWT_SECRET}
-      expiration: ${JWT_EXPIRATION}
+      expiration: ${JWT_EXPIRATION:86400000}
 
   sql:
     init:
-      platform: ${SQL_PLATFORM}
+      platform: ${SQL_PLATFORM:postgres}
 
 livekit:
   api:
-    key: ${LIVEKIT_API_KEY:devkey}
-    secret: ${LIVEKIT_API_SECRET:secret}
+    key: ${LIVEKIT_API_KEY}
+    secret: ${LIVEKIT_API_SECRET}
   url: ${LIVEKIT_URL:ws://localhost:7880}
   token:
     ttl: ${LIVEKIT_TOKEN_TTL:7200}
 
 internal:
   service:
-    api-key: ${INTERNAL_SERVICE_API_KEY:internal-secret-key}
+    api-key: ${INTERNAL_SERVICE_API_KEY}
 
 resume:
   normalization:

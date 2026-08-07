@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Post-Interview Feedback | LiveInterview</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .star-rating input:checked ~ label,
+        .star-rating label:hover,
+        .star-rating label:hover ~ label {
+            color: #0058be;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-secondary-fixed-variant": "#004395",
+                      "primary-container": "#1e1b4b",
+                      "outline-variant": "#c8c5d0",
+                      "error-container": "#ffdad6",
+                      "on-primary-container": "#8683ba",
+                      "tertiary": "#000e0c",
+                      "inverse-surface": "#2d3133",
+                      "surface-variant": "#e0e3e5",
+                      "on-tertiary-fixed": "#00201d",
+                      "on-primary-fixed-variant": "#444173",
+                      "on-surface-variant": "#47464f",
+                      "inverse-on-surface": "#eff1f3",
+                      "primary": "#070235",
+                      "inverse-primary": "#c4c1fb",
+                      "surface-dim": "#d8dadc",
+                      "surface-container-highest": "#e0e3e5",
+                      "surface-tint": "#5b598c",
+                      "background": "#f7f9fb",
+                      "secondary-fixed": "#d8e2ff",
+                      "error": "#ba1a1a",
+                      "surface-container-high": "#e6e8ea",
+                      "on-secondary-container": "#fefcff",
+                      "on-secondary": "#ffffff",
+                      "surface-container-low": "#f2f4f6",
+                      "surface-container": "#eceef0",
+                      "surface": "#f7f9fb",
+                      "on-secondary-fixed": "#001a42",
+                      "primary-fixed-dim": "#c4c1fb",
+                      "on-tertiary-container": "#1a998d",
+                      "tertiary-container": "#002723",
+                      "on-primary": "#ffffff",
+                      "tertiary-fixed-dim": "#6bd8cb",
+                      "surface-container-lowest": "#ffffff",
+                      "surface-bright": "#f7f9fb",
+                      "outline": "#787680",
+                      "secondary": "#0058be",
+                      "on-background": "#191c1e",
+                      "on-tertiary-fixed-variant": "#005049",
+                      "secondary-container": "#2170e4",
+                      "on-primary-fixed": "#181445",
+                      "on-error": "#ffffff",
+                      "on-error-container": "#93000a",
+                      "secondary-fixed-dim": "#adc6ff",
+                      "primary-fixed": "#e3dfff",
+                      "on-surface": "#191c1e",
+                      "on-tertiary": "#ffffff",
+                      "tertiary-fixed": "#89f5e7"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "xs": "8px",
+                      "container-max": "1440px",
+                      "base": "4px",
+                      "lg": "24px",
+                      "xl": "32px",
+                      "gutter": "20px",
+                      "md": "16px",
+                      "sm": "12px"
+              },
+              "fontFamily": {
+                      "headline-lg-mobile": ["Inter"],
+                      "code-sm": ["JetBrains Mono"],
+                      "body-md": ["Inter"],
+                      "headline-md": ["Inter"],
+                      "headline-lg": ["Inter"],
+                      "display-lg": ["Inter"],
+                      "label-md": ["JetBrains Mono"],
+                      "body-lg": ["Inter"]
+              },
+              "fontSize": {
+                      "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "code-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "label-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+      </script>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-lg h-16 max-w-container-max mx-auto bg-surface dark:bg-surface-container-highest border-b border-outline-variant dark:border-outline shadow-sm">
+<div class="flex items-center gap-md">
+<span class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed">LiveInterview</span>
+</div>
+<nav class="hidden md:flex items-center gap-xl">
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Platform</a>
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Solutions</a>
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Resources</a>
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Pricing</a>
+</nav>
+<div class="flex items-center gap-sm">
+<button class="px-md py-xs rounded-lg font-body-md text-body-md text-primary hover:bg-surface-container-high transition-all active:scale-95">Sign In</button>
+<button class="px-md py-xs rounded-lg font-body-md text-body-md bg-primary text-on-primary hover:opacity-90 transition-all active:scale-95">Get Started</button>
+</div>
+</header>
+<div class="flex flex-1 pt-16">
+<!-- SideNavBar (Hidden on Mobile) -->
+<aside class="hidden lg:flex flex-col h-[calc(100vh-64px)] sticky top-16 p-md gap-xs w-64 bg-surface-container-low dark:bg-surface-container-lowest border-r border-outline-variant dark:border-outline">
+<div class="flex items-center gap-sm p-sm mb-md">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a technical recruiter with a friendly smile, wearing a clean charcoal blazer. The background is a blurred modern corporate office with high-key lighting and minimalist furniture, fitting a professional high-precision corporate aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhzO_N0XYPUTu9h_ccGZKNmjb-BymoPzgD8wbrTN1ftH3fvaIexcG97BPpDSxyjbN80tb86d4JS5sTCotPv7WIGo2v86V8YOWBsiHBcTz46e-XLHS8qEesHPsycjhJ4h6_X7xRd0XFAdrtNPxVolxNR5RcVxDbpSHCGpkmC8K1cKKCe-rLmanShsdZOJ_HW1841zU_Jn9mqRl72Bvn_ij5zZRVlDalvn4eSZW3IWuM_tZ971GF9L8n"/>
+</div>
+<div>
+<p class="font-label-md text-label-md text-primary font-bold">Alex Rivera</p>
+<p class="text-[12px] text-on-surface-variant">Technical Recruiter</p>
+</div>
+</div>
+<nav class="flex flex-col gap-xs flex-1">
+<a class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant hover:bg-surface-variant transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-sm p-sm rounded-lg bg-secondary-container text-on-secondary-container transition-all" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">video_chat</span>
+<span class="font-label-md text-label-md">Interviews</span>
+</a>
+<a class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant hover:bg-surface-variant transition-all" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-label-md text-label-md">Candidates</span>
+</a>
+<a class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant hover:bg-surface-variant transition-all" href="#">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="font-label-md text-label-md">Analytics</span>
+</a>
+<a class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant hover:bg-surface-variant transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</nav>
+<div class="mt-auto flex flex-col gap-xs pt-md border-t border-outline-variant">
+<a class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant hover:bg-surface-variant transition-all" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-md text-label-md">Help Center</span>
+</a>
+<a class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant hover:bg-surface-variant transition-all" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 p-xl max-w-5xl mx-auto w-full">
+<!-- Header Section -->
+<div class="mb-xl flex flex-col md:flex-row md:items-end justify-between gap-md">
+<div>
+<nav class="flex items-center gap-xs text-on-surface-variant mb-xs">
+<span class="text-xs uppercase tracking-wider font-bold">Interviews</span>
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+<span class="text-xs uppercase tracking-wider font-bold text-secondary">Feedback Portal</span>
+</nav>
+<h1 class="font-headline-lg text-headline-lg text-primary">Post-Interview Evaluation</h1>
+<div class="flex items-center gap-sm mt-xs">
+<span class="font-headline-md text-headline-md font-bold text-on-surface">Jordan Smith</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="text-on-surface-variant text-body-lg">Senior Full-Stack Engineer</span>
+<span class="px-sm py-1 bg-secondary-container/10 text-secondary text-xs font-bold rounded-full border border-secondary/20">Technical Round II</span>
+</div>
+</div>
+<div class="flex gap-sm">
+<button class="px-lg py-sm rounded-lg border border-outline-variant text-primary font-bold hover:bg-surface-container-high transition-all active:scale-95">Save Draft</button>
+<button class="px-lg py-sm rounded-lg bg-primary text-on-primary font-bold shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-95">Submit Review</button>
+</div>
+</div>
+<!-- Bento Grid Layout for Feedback -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-lg">
+<!-- Section 1: Ratings -->
+<section class="md:col-span-4 flex flex-col gap-lg">
+<div class="glass-panel p-lg rounded-xl flex flex-col gap-lg">
+<h3 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest border-b border-outline-variant pb-xs">Competency Ratings</h3>
+<!-- Technical Skills -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-primary">Technical Skills</label>
+<div class="flex items-center gap-xs star-rating" dir="rtl">
+<input class="hidden" id="tech-5" name="tech" type="radio" value="5"/><label class="material-symbols-outlined cursor-pointer text-outline-variant hover:scale-110 transition-transform" for="tech-5">star</label>
+<input class="hidden" id="tech-4" name="tech" type="radio" value="4"/><label class="material-symbols-outlined cursor-pointer text-outline-variant hover:scale-110 transition-transform" for="tech-4">star</label>
+<input class="hidden" id="tech-3" name="tech" type="radio" value="3"/><label class="material-symbols-outlined cursor-pointer text-outline-variant hover:scale-110 transition-transform" for="tech-3">star</label>
+<input class="hidden" id="tech-2" name="tech" type="radio" value="2"/><label class="material-symbols-outlined cursor-pointer text-outline-variant hover:scale-110 transition-transform" for="tech-2">star</label>
+<input class="hidden" id="tech-1" name="tech" type="radio" value="1"/><label class="material-symbols-outlined cursor-pointer text-outline-variant hover:scale-110 transition-transform" for="tech-1">star</label>
+</div>
+</div>
+<!-- Communication -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-primary">Communication</label>
+<div class="flex items-center gap-xs star-rating" dir="rtl">
+<input class="hidden" id="comm-5" name="comm" type="radio" value="5"/><label class="material-symbols-outlined cursor-pointer text-outline-variant hover:scale-110 transition-transform" for="comm-5">star</label>
+<input class="hidden" id="comm-4" name="comm" type="radio" value="4"/><label class="material-symbols-outlined cursor-pointer text-outline-variant hover:scale-110 transition-transform" for="comm-4">star</label>
+<input class="hidden" id="comm-3" name="comm" type="radio" value="3"/><label class="material-symbols-outlined cursor-pointer text-outline-variant hover:scale-110 transition-transform" for="comm-3">star</label>
+<input class="hidden" id="comm-2" name="comm" type="radio" value="2"/><label class="material-symbols-outlined cursor-pointer text-outline-variant hover:scale-110 transition-transform" for="comm-2">star</label>
+<input class="hidden" id="comm-1" name="comm" type="radio" value="1"/><label class="material-symbols-outlined cursor-pointer text-outline-variant hover:scale-110 transition-transform" for="comm-1">star</label>
+</div>
+</div>
+<!-- Cultural Fit -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-primary">Cultural Fit</label>
+<div class="flex items-center gap-xs star-rating" dir="rtl">
+<input class="hidden" id="cult-5" name="cult" type="radio" value="5"/><label class="material-symbols-outlined cursor-pointer text-outline-variant hover:scale-110 transition-transform" for="cult-5">star</label>
+<input class="hidden" id="cult-4" name="cult" type="radio" value="4"/><label class="material-symbols-outlined cursor-pointer text-outline-variant hover:scale-110 transition-transform" for="cult-4">star</label>
+<input class="hidden" id="cult-3" name="cult" type="radio" value="3"/><label class="material-symbols-outlined cursor-pointer text-outline-variant hover:scale-110 transition-transform" for="cult-3">star</label>
+<input class="hidden" id="cult-2" name="cult" type="radio" value="2"/><label class="material-symbols-outlined cursor-pointer text-outline-variant hover:scale-110 transition-transform" for="cult-2">star</label>
+<input class="hidden" id="cult-1" name="cult" type="radio" value="1"/><label class="material-symbols-outlined cursor-pointer text-outline-variant hover:scale-110 transition-transform" for="cult-1">star</label>
+</div>
+</div>
+</div>
+<!-- Hiring Decision Button Group -->
+<div class="glass-panel p-lg rounded-xl">
+<h3 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest border-b border-outline-variant pb-xs mb-md">Hiring Decision</h3>
+<div class="flex flex-col gap-sm">
+<label class="relative flex items-center p-md rounded-lg border border-outline-variant cursor-pointer hover:bg-surface-container transition-all group has-[:checked]:bg-secondary/5 has-[:checked]:border-secondary">
+<input class="w-4 h-4 text-secondary focus:ring-secondary border-outline-variant" name="decision" type="radio"/>
+<div class="ml-sm">
+<p class="font-bold text-primary group-has-[:checked]:text-secondary">Selected</p>
+<p class="text-xs text-on-surface-variant">Strong candidate for this role.</p>
+</div>
+</label>
+<label class="relative flex items-center p-md rounded-lg border border-outline-variant cursor-pointer hover:bg-surface-container transition-all group has-[:checked]:bg-error/5 has-[:checked]:border-error">
+<input class="w-4 h-4 text-error focus:ring-error border-outline-variant" name="decision" type="radio"/>
+<div class="ml-sm">
+<p class="font-bold text-primary group-has-[:checked]:text-error">Rejected</p>
+<p class="text-xs text-on-surface-variant">Not the right fit currently.</p>
+</div>
+</label>
+<label class="relative flex items-center p-md rounded-lg border border-outline-variant cursor-pointer hover:bg-surface-container transition-all group has-[:checked]:bg-surface-container-highest has-[:checked]:border-on-surface">
+<input class="w-4 h-4 text-on-surface-variant focus:ring-on-surface-variant border-outline-variant" name="decision" type="radio"/>
+<div class="ml-sm">
+<p class="font-bold text-primary">On Hold</p>
+<p class="text-xs text-on-surface-variant">Re-evaluate after other candidates.</p>
+</div>
+</label>
+</div>
+</div>
+</section>
+<!-- Section 2: Written Feedback -->
+<section class="md:col-span-8">
+<div class="glass-panel h-full rounded-xl flex flex-col p-lg">
+<div class="flex justify-between items-center border-b border-outline-variant pb-xs mb-md">
+<h3 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest">Written Feedback &amp; Notes</h3>
+<div class="flex items-center gap-xs text-on-surface-variant text-xs">
+<span class="material-symbols-outlined text-sm">history</span>
+<span>Auto-saved 2m ago</span>
+</div>
+</div>
+<div class="flex-1 flex flex-col gap-md">
+<div class="relative group h-full">
+<textarea class="w-full h-[400px] md:h-full p-lg rounded-lg border border-outline-variant focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all resize-none font-body-md custom-scrollbar bg-surface-container-lowest" placeholder="Summarize the candidate's strengths, weaknesses, and overall performance during the interview..."></textarea>
+<div class="absolute bottom-md right-md flex gap-xs">
+<button class="p-xs bg-surface-container-high rounded-md hover:bg-outline-variant transition-colors" title="Insert Template">
+<span class="material-symbols-outlined text-sm">description</span>
+</button>
+<button class="p-xs bg-surface-container-high rounded-md hover:bg-outline-variant transition-colors" title="AI Summary Assist">
+<span class="material-symbols-outlined text-sm">auto_awesome</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-md">
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-primary">Key Strengths</label>
+<input class="p-sm rounded-lg border border-outline-variant focus:border-secondary focus:ring-secondary/20 transition-all font-body-md bg-surface-container-lowest" placeholder="e.g. System Design, Mentorship" type="text"/>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-primary">Growth Areas</label>
+<input class="p-sm rounded-lg border border-outline-variant focus:border-secondary focus:ring-secondary/20 transition-all font-body-md bg-surface-container-lowest" placeholder="e.g. Unit Testing depth" type="text"/>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Contextual Card: Interview Summary (Mini-Bento) -->
+<div class="mt-lg grid grid-cols-1 md:grid-cols-3 gap-lg">
+<div class="glass-panel p-md rounded-xl flex items-center gap-md">
+<div class="w-12 h-12 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">schedule</span>
+</div>
+<div>
+<p class="text-xs text-on-surface-variant font-bold uppercase tracking-tight">Duration</p>
+<p class="font-bold text-primary">58 Minutes</p>
+</div>
+</div>
+<div class="glass-panel p-md rounded-xl flex items-center gap-md">
+<div class="w-12 h-12 rounded-lg bg-on-tertiary-container/10 flex items-center justify-center text-on-tertiary-container">
+<span class="material-symbols-outlined">code</span>
+</div>
+<div>
+<p class="text-xs text-on-surface-variant font-bold uppercase tracking-tight">Code Score</p>
+<p class="font-bold text-primary">92% Match</p>
+</div>
+</div>
+<div class="glass-panel p-md rounded-xl flex items-center gap-md">
+<div class="w-12 h-12 rounded-lg bg-surface-variant flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">attachment</span>
+</div>
+<div>
+<p class="text-xs text-on-surface-variant font-bold uppercase tracking-tight">Artifacts</p>
+<p class="font-bold text-primary">3 Recordings</p>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Footer -->
+<footer class="w-full py-xl px-lg flex flex-col md:flex-row justify-between items-center gap-md bg-primary dark:bg-tertiary-container text-on-primary dark:text-on-tertiary-container">
+<div class="flex flex-col gap-xs items-center md:items-start">
+<span class="font-headline-md text-headline-md text-on-primary">LiveInterview</span>
+<p class="font-body-md text-body-md opacity-80">© 2024 LiveInterview Inc. Engineering Excellence.</p>
+</div>
+<nav class="flex gap-xl">
+<a class="font-body-md text-body-md text-on-primary-container dark:text-on-tertiary-container opacity-80 hover:opacity-100 transition-opacity" href="#">Privacy Policy</a>
+<a class="font-body-md text-body-md text-on-primary-container dark:text-on-tertiary-container opacity-80 hover:opacity-100 transition-opacity" href="#">Terms of Service</a>
+<a class="font-body-md text-body-md text-on-primary-container dark:text-on-tertiary-container opacity-80 hover:opacity-100 transition-opacity" href="#">Security</a>
+<a class="font-body-md text-body-md text-on-primary-container dark:text-on-tertiary-container opacity-80 hover:opacity-100 transition-opacity" href="#">Status</a>
+</nav>
+</footer>
+<script>
+        // Simple star rating interactivity
+        document.querySelectorAll('.star-rating label').forEach(label => {
+            label.addEventListener('click', function() {
+                const siblingStars = this.parentElement.querySelectorAll('label');
+                const rating = parseInt(this.previousElementSibling.value);
+                
+                siblingStars.forEach(s => {
+                    s.style.color = '#c8c5d0'; // Reset color
+                    s.querySelector('.material-symbols-outlined').style.fontVariationSettings = "'FILL' 0";
+                });
+                
+                // Color the current and previous stars (logical sense since we used dir="rtl")
+                this.style.color = '#0058be';
+                this.querySelector('.material-symbols-outlined').style.fontVariationSettings = "'FILL' 1";
+                
+                let next = this.nextElementSibling;
+                while(next && next.tagName === 'LABEL') {
+                    next.style.color = '#0058be';
+                    next.querySelector('.material-symbols-outlined').style.fontVariationSettings = "'FILL' 1";
+                    next = next.nextElementSibling;
+                }
+            });
+        });
+
+        // Hover lift effect for panels
+        document.querySelectorAll('.glass-panel').forEach(panel => {
+            panel.addEventListener('mouseenter', () => {
+                panel.classList.add('shadow-xl', '-translate-y-1');
+                panel.classList.remove('shadow-sm');
+            });
+            panel.addEventListener('mouseleave', () => {
+                panel.classList.remove('shadow-xl', '-translate-y-1');
+                panel.classList.add('shadow-sm');
+            });
+            panel.style.transition = 'all 0.3s ease-out';
+        });
+    </script>
+</body></html>

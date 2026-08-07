@@ -64,44 +64,29 @@ public class ResumeService {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to extract text from PDF: " + e.getMessage());
             }
 
-            // 3. Call Python agent service for text normalization
-            NormalizeResponse normalizeResponse;
+            // 3. Call Python agent service for text normalization (with graceful fallback)
+            String finalText = rawText;
             try {
-                normalizeResponse = webClient.post()
+                NormalizeResponse normalizeResponse = webClient.post()
                         .uri("/resume/normalize")
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(Map.of("rawText", rawText != null ? rawText : ""))
                         .retrieve()
-                        .onStatus(HttpStatusCode::isError, res ->
-                                res.bodyToMono(String.class)
-                                        .map(body -> new ResponseStatusException(
-                                                HttpStatus.BAD_GATEWAY,
-                                                "Resume normalization failed on Python agent service: " + body
-                                        ))
-                        )
                         .bodyToMono(NormalizeResponse.class)
                         .block();
-            } catch (ResponseStatusException e) {
-                throw e;
-            } catch (Exception e) {
-                throw new ResponseStatusException(
-                        HttpStatus.BAD_GATEWAY,
-                        "Failed to connect to Python agent service: " + e.getMessage()
-                );
-            }
 
-            if (normalizeResponse == null || normalizeResponse.getCleanedText() == null) {
-                throw new ResponseStatusException(
-                        HttpStatus.BAD_GATEWAY,
-                        "Python agent service returned empty normalized text"
-                );
+                if (normalizeResponse != null && normalizeResponse.getCleanedText() != null && !normalizeResponse.getCleanedText().isBlank()) {
+                    finalText = normalizeResponse.getCleanedText();
+                }
+            } catch (Exception e) {
+                // Fallback to raw extracted text if normalization microservice is not reachable
             }
 
             // 4. Save Resume entity
             Resume resume = new Resume();
             resume.setUserId(userId);
             resume.setFileUrl(targetPath.toString());
-            resume.setExtractedText(normalizeResponse.getCleanedText());
+            resume.setExtractedText(finalText);
 
             Resume savedResume = resumeRepository.save(resume);
 
@@ -115,6 +100,19 @@ public class ResumeService {
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to store uploaded file: " + e.getMessage());
         }
+    }
+
+    public Map<String, Object> getLatestResume(Long userId) {
+        java.util.Optional<Resume> resumeOpt = resumeRepository.findTopByUserIdOrderByUploadedAtDesc(userId);
+        if (resumeOpt.isEmpty()) {
+            return null;
+        }
+        Resume resume = resumeOpt.get();
+        java.util.Map<String, Object> result = new java.util.HashMap<>();
+        result.put("resumeId", resume.getId());
+        result.put("fileUrl", resume.getFileUrl());
+        result.put("uploadedAt", resume.getUploadedAt());
+        return result;
     }
 
     @Data

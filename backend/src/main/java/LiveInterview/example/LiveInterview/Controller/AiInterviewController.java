@@ -36,10 +36,10 @@ public class AiInterviewController {
     private final UserRepo userRepo;
     private final RoomServiceClient roomServiceClient;
 
-    @Value("${livekit.api.key:devkey}")
+    @Value("${livekit.api.key}")
     private String livekitApiKey;
 
-    @Value("${livekit.api.secret:secret}")
+    @Value("${livekit.api.secret}")
     private String livekitApiSecret;
 
     @Value("${livekit.url:ws://localhost:7880}")
@@ -48,7 +48,7 @@ public class AiInterviewController {
     @Value("${livekit.token.ttl:7200}")
     private long tokenTtl;
 
-    @Value("${internal.service.api-key:internal-secret-key}")
+    @Value("${internal.service.api-key}")
     private String internalApiKey;
 
     public AiInterviewController(

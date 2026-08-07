@@ -20,10 +20,10 @@ public class LiveKitWebhookController {
 
     private final AiInterviewSessionRepository sessionRepository;
 
-    @Value("${livekit.api.key:devkey}")
+    @Value("${livekit.api.key}")
     private String livekitApiKey;
 
-    @Value("${livekit.api.secret:secret}")
+    @Value("${livekit.api.secret}")
     private String livekitApiSecret;
 
     public LiveKitWebhookController(AiInterviewSessionRepository sessionRepository) {

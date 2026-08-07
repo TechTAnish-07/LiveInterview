@@ -19,6 +19,12 @@ public class LiveKitConfig {
 
     @Bean
     public RoomServiceClient roomServiceClient() {
-        return RoomServiceClient.createClient(livekitUrl, apiKey, apiSecret);
+        String httpUrl = livekitUrl;
+        if (httpUrl.startsWith("ws://")) {
+            httpUrl = httpUrl.replace("ws://", "http://");
+        } else if (httpUrl.startsWith("wss://")) {
+            httpUrl = httpUrl.replace("wss://", "https://");
+        }
+        return RoomServiceClient.createClient(httpUrl, apiKey, apiSecret);
     }
 }

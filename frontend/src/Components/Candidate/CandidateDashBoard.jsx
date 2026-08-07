@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import CandidateHistory from "./CandidateHistory";
 import api from "../Axios";
-import { Calendar, Video, CheckCircle2, Code, Clock, ArrowUpRight, Copy, Share2 } from "lucide-react";
+import { Calendar, Video, CheckCircle2, Code, Clock, ArrowUpRight, Copy, Bot } from "lucide-react";
 
 const CandidateDashBoard = () => {
   const [interviews, setInterviews] = useState([]);
@@ -57,7 +57,7 @@ const CandidateDashBoard = () => {
 
   return (
     <div className="min-h-screen bg-[#f7f9fb] text-[#191c1e] font-sans pb-16">
-      
+
       {/* Header */}
       <div className="bg-white border-b border-[#e0e3e5] px-6 md:px-12 py-8">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -75,18 +75,28 @@ const CandidateDashBoard = () => {
             </p>
           </div>
 
-          <Link
-            to="/practice"
-            className="px-5 py-3 bg-[#070235] hover:bg-[#1e1b4b] text-white rounded-xl text-xs font-semibold shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer self-start md:self-auto"
-          >
-            <Code className="w-4 h-4 text-[#89f5e7]" />
-            <span>Launch Practice Studio</span>
-          </Link>
+          <div className="flex flex-wrap items-center gap-3 self-start md:self-auto">
+            <Link
+              to="/ai-interview"
+              className="px-5 py-3 bg-[#0058be] hover:bg-[#2170e4] text-white rounded-xl text-xs font-semibold shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer"
+            >
+              <Bot className="w-4 h-4 text-[#89f5e7]" />
+              <span>AI Mock Interview</span>
+            </Link>
+
+            <Link
+              to="/practice"
+              className="px-5 py-3 bg-[#070235] hover:bg-[#1e1b4b] text-white rounded-xl text-xs font-semibold shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer"
+            >
+              <Code className="w-4 h-4 text-[#89f5e7]" />
+              <span>Launch Practice Studio</span>
+            </Link>
+          </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-6 md:px-12 pt-8 space-y-8">
-        
+
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
           <div className="bg-white p-5 rounded-2xl border border-[#e0e3e5] shadow-xs flex items-center justify-between">
@@ -120,6 +130,33 @@ const CandidateDashBoard = () => {
           </div>
         </div>
 
+        {/* AI Voice Interview Banner Card */}
+        <div className="bg-gradient-to-r from-[#070235] via-[#1e1b4b] to-[#0058be] rounded-2xl p-6 text-white shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-white/10 text-[#89f5e7] flex items-center justify-center shrink-0">
+              <Bot className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] font-mono font-bold uppercase bg-[#89f5e7]/20 text-[#89f5e7] px-2 py-0.5 rounded-full">
+                  AI Mock Practice
+                </span>
+              </div>
+              <h2 className="text-base font-bold">1:1 Voice AI Mock Technical Interview</h2>
+              <p className="text-xs text-[#8683ba] mt-0.5">
+                Conduct real-time voice evaluations tailored to your uploaded resume experience.
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/ai-interview"
+            className="px-5 py-3 bg-[#89f5e7] hover:bg-[#5cecd9] text-[#003732] rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0 shadow-sm"
+          >
+            <span>Start AI Interview</span>
+            <ArrowUpRight className="w-4 h-4" />
+          </Link>
+        </div>
+
         {/* Invited Sessions */}
         <div className="bg-white rounded-2xl border border-[#e0e3e5] p-6 shadow-xs">
           <div className="flex items-center justify-between mb-6">
@@ -144,11 +181,10 @@ const CandidateDashBoard = () => {
                 <div key={i.interviewId} className="bg-[#f7f9fb] border border-[#e0e3e5] hover:border-[#0058be] rounded-xl p-5 transition-all shadow-2xs flex flex-col justify-between">
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <span className={`text-[10px] font-mono font-bold uppercase px-2.5 py-0.5 rounded-full ${
-                        i.status === "LIVE" 
-                          ? "bg-[#ffdad6] text-[#93000a] animate-pulse" 
+                      <span className={`text-[10px] font-mono font-bold uppercase px-2.5 py-0.5 rounded-full ${i.status === "LIVE"
+                          ? "bg-[#ffdad6] text-[#93000a] animate-pulse"
                           : "bg-[#d8e2ff] text-[#004395]"
-                      }`}>
+                        }`}>
                         {i.status}
                       </span>
                       <span className="text-[11px] font-mono text-[#787680]">ID #{i.interviewId}</span>

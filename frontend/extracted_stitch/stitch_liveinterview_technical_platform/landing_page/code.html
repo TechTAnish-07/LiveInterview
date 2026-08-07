@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LiveInterview | Technical Evaluation Workspace</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-fixed-variant": "#004395",
+                    "primary-container": "#1e1b4b",
+                    "outline-variant": "#c8c5d0",
+                    "error-container": "#ffdad6",
+                    "on-primary-container": "#8683ba",
+                    "tertiary": "#000e0c",
+                    "inverse-surface": "#2d3133",
+                    "surface-variant": "#e0e3e5",
+                    "on-tertiary-fixed": "#00201d",
+                    "on-primary-fixed-variant": "#444173",
+                    "on-surface-variant": "#47464f",
+                    "inverse-on-surface": "#eff1f3",
+                    "primary": "#070235",
+                    "inverse-primary": "#c4c1fb",
+                    "surface-dim": "#d8dadc",
+                    "surface-container-highest": "#e0e3e5",
+                    "surface-tint": "#5b598c",
+                    "background": "#f7f9fb",
+                    "secondary-fixed": "#d8e2ff",
+                    "error": "#ba1a1a",
+                    "surface-container-high": "#e6e8ea",
+                    "on-secondary-container": "#fefcff",
+                    "on-secondary": "#ffffff",
+                    "surface-container-low": "#f2f4f6",
+                    "surface-container": "#eceef0",
+                    "surface": "#f7f9fb",
+                    "on-secondary-fixed": "#001a42",
+                    "primary-fixed-dim": "#c4c1fb",
+                    "on-tertiary-container": "#1a998d",
+                    "tertiary-container": "#002723",
+                    "on-primary": "#ffffff",
+                    "tertiary-fixed-dim": "#6bd8cb",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-bright": "#f7f9fb",
+                    "outline": "#787680",
+                    "secondary": "#0058be",
+                    "on-background": "#191c1e",
+                    "on-tertiary-fixed-variant": "#005049",
+                    "secondary-container": "#2170e4",
+                    "on-primary-fixed": "#181445",
+                    "on-error": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "secondary-fixed-dim": "#adc6ff",
+                    "primary-fixed": "#e3dfff",
+                    "on-surface": "#191c1e",
+                    "on-tertiary": "#ffffff",
+                    "tertiary-fixed": "#89f5e7"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xs": "8px",
+                    "container-max": "1440px",
+                    "base": "4px",
+                    "lg": "24px",
+                    "xl": "32px",
+                    "gutter": "20px",
+                    "md": "16px",
+                    "sm": "12px"
+            },
+            "fontFamily": {
+                    "headline-lg-mobile": ["Inter"],
+                    "code-sm": ["JetBrains Mono"],
+                    "body-md": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "label-md": ["JetBrains Mono"],
+                    "body-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "code-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        .technical-grid {
+            background-size: 40px 40px;
+            background-image: radial-gradient(circle, #e2e8f0 1px, transparent 1px);
+        }
+        .code-glow {
+            box-shadow: 0 0 20px rgba(33, 112, 228, 0.15);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md selection:bg-secondary-fixed selection:text-on-secondary-fixed">
+<!-- Top Navigation Bar -->
+<nav class="fixed top-0 w-full z-50 flex justify-between items-center px-lg h-16 max-w-container-max mx-auto bg-surface dark:bg-surface-container-highest border-b border-outline-variant dark:border-outline shadow-sm">
+<div class="flex items-center gap-xl">
+<span class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed tracking-tight">LiveInterview</span>
+<div class="hidden md:flex items-center gap-lg">
+<a class="font-body-md text-body-md text-secondary dark:text-secondary-fixed font-semibold border-b-2 border-secondary hover:text-secondary transition-colors" href="#">Platform</a>
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Solutions</a>
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Resources</a>
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Pricing</a>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="px-md py-xs font-label-md text-label-md text-primary hover:text-secondary transition-all active:scale-95">Sign In</button>
+<button class="px-lg py-xs bg-primary text-on-primary rounded-lg font-label-md text-label-md hover:bg-secondary transition-all active:scale-95 shadow-sm">Get Started</button>
+</div>
+</nav>
+<main class="pt-16">
+<!-- Hero Section -->
+<section class="relative overflow-hidden pt-xl pb-32 px-lg technical-grid">
+<div class="max-w-container-max mx-auto flex flex-col items-center text-center">
+<div class="inline-flex items-center gap-xs px-sm py-1 bg-secondary-container text-on-secondary-container rounded-full mb-lg animate-pulse">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+<span class="font-label-md text-label-md">Trusted by 500+ Engineering Teams</span>
+</div>
+<h1 class="font-display-lg text-display-lg text-primary max-w-4xl mb-md leading-[1.1]">
+                    Interview Smarter, <br class="hidden md:block"/> <span class="text-secondary">Hire Faster.</span>
+</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mb-xl">
+                    The unified workspace for real-time technical interviews. Video, code, and feedback in one place.
+                </p>
+<div class="flex flex-col sm:flex-row items-center gap-md mb-32">
+<button class="w-full sm:w-auto px-xl py-md bg-primary text-on-primary rounded-xl font-headline-md text-headline-md flex items-center justify-center gap-sm shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all group">
+                        Login as HR
+                        <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+<button class="w-full sm:w-auto px-xl py-md border-2 border-outline-variant text-primary rounded-xl font-headline-md text-headline-md flex items-center justify-center gap-sm bg-white hover:bg-surface-container-low transition-all">
+                        Login as Candidate
+                        <span class="material-symbols-outlined">person</span>
+</button>
+</div>
+<!-- Product Preview Mockup -->
+<div class="relative w-full max-w-5xl mx-auto">
+<div class="absolute -top-12 -left-12 w-64 h-64 bg-secondary-fixed-dim/30 blur-3xl rounded-full"></div>
+<div class="absolute -bottom-12 -right-12 w-64 h-64 bg-tertiary-fixed-dim/20 blur-3xl rounded-full"></div>
+<div class="relative glass-card rounded-2xl overflow-hidden shadow-2xl border-outline-variant border-opacity-50">
+<!-- IDE Header -->
+<div class="h-10 bg-surface-container-highest flex items-center justify-between px-md">
+<div class="flex items-center gap-xs">
+<div class="w-3 h-3 rounded-full bg-error/40"></div>
+<div class="w-3 h-3 rounded-full bg-secondary/40"></div>
+<div class="w-3 h-3 rounded-full bg-on-tertiary-container/40"></div>
+<span class="ml-sm font-label-md text-label-md text-on-surface-variant">live_session_main.py</span>
+</div>
+<div class="flex items-center gap-md">
+<span class="text-on-tertiary-container font-label-md text-label-md flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-on-tertiary-container animate-ping"></span>
+                                    Live Syncing
+                                </span>
+</div>
+</div>
+<!-- IDE Content -->
+<div class="flex flex-col md:flex-row h-[500px]">
+<!-- Video/Notes Sidebar -->
+<div class="w-full md:w-1/3 bg-surface border-r border-outline-variant p-md flex flex-col gap-md">
+<div class="relative rounded-xl overflow-hidden aspect-video bg-on-surface-variant/10">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a technical recruiter in a brightly lit modern office setting, soft natural lighting, high resolution photography, blurred background of a tech workspace with minimalist furniture and plants, representing the HR perspective of an interview." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKwrjoKNq0XcNmpQDZGUr4XRkd3iLkRy-4TAowMkincnxkR8jTOL5jzik6hEVrsPyYyvY8hQ6ivBGqw9XwxrX0HWf3_XlQ0c_q3a6AFoYp7FYf9Ii5YjjM-rPmM6-pJBourVYX9jOktXcPJm3953xlDmqktuW9QtNy_x-DdtfvHUJS1b__VCIjBDZ33JAoek49W4FWw22YciOhCqCpvmqE3Ew-ag_gZ261FmwMlkqjF1wlzb-5o4gD"/>
+<div class="absolute bottom-2 left-2 px-sm py-0.5 bg-black/50 backdrop-blur-md rounded-full text-white font-label-md text-[12px]">Alex Rivera (HR)</div>
+</div>
+<div class="relative rounded-xl overflow-hidden aspect-video bg-on-surface-variant/10 border-2 border-secondary ring-2 ring-secondary/20">
+<img class="w-full h-full object-cover" data-alt="A young software engineering candidate sitting in a professional home office environment, focused expression, cinematic soft box lighting, crisp focus, modern clean tech aesthetic with a neutral color palette, representing the candidate perspective in a technical interview." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDNaDRMJe4ax9iICBzmYQ8Cx_zaYC-6Z4-VOaq_wTe24wvLU024vjSwXD__yWWPcKyJUFzHxFUxPDiUc9R2jes77SGI4WcYQEokjAbgw5ZKdaRG_NyxI0fmhw0S8OmO1NwTCw0OPP0KhaDKcuXMcFmn9DJnGg-tbGNEE4axtdwenVCwJ5cP1m6DJ4jWarrm0cXHp65tgpdPpJ7ZFHaNYbv37zT8tGv3IY7H72reSdiI8fuMJV3fbuVz"/>
+<div class="absolute bottom-2 left-2 px-sm py-0.5 bg-black/50 backdrop-blur-md rounded-full text-white font-label-md text-[12px]">Jordan Smith (Candidate)</div>
+<div class="absolute top-2 right-2 px-sm py-0.5 bg-secondary text-white rounded-full font-label-md text-[10px] uppercase tracking-wider">Speaking</div>
+</div>
+<div class="mt-auto bg-surface-container p-sm rounded-lg border border-outline-variant">
+<p class="font-label-md text-label-md text-on-surface-variant mb-xs">Live Feedback</p>
+<div class="h-2 w-full bg-outline-variant rounded-full overflow-hidden">
+<div class="h-full bg-on-tertiary-container w-3/4"></div>
+</div>
+<p class="mt-xs font-label-md text-[12px] text-on-surface">Strong problem solving skills demonstrated in complexity analysis.</p>
+</div>
+</div>
+<!-- Editor Content -->
+<div class="flex-1 bg-[#0F172A] p-lg font-code-sm text-code-sm text-slate-300 relative overflow-hidden">
+<pre><code><span class="text-pink-400">def</span> <span class="text-blue-400">binary_search</span>(arr, target):
+    left, right = <span class="text-orange-400">0</span>, <span class="text-blue-400">len</span>(arr) - <span class="text-orange-400">1</span>
+    
+    <span class="text-pink-400">while</span> left &lt;= right:
+        mid = (left + right) // <span class="text-orange-400">2</span>
+        <span class="text-slate-500"># Check if target is at mid</span>
+        <span class="text-pink-400">if</span> arr[mid] == target:
+            <span class="text-pink-400">return</span> mid
+        <span class="text-pink-400">elif</span> arr[mid] &lt; target:
+            left = mid + <span class="text-orange-400">1</span>
+        <span class="text-pink-400">else</span>:
+            right = mid - <span class="text-orange-400">1</span>
+            
+    <span class="text-pink-400">return</span> -<span class="text-orange-400">1</span></code></pre>
+<!-- Floating Cursor -->
+<div class="absolute top-32 left-48 flex flex-col gap-1 items-start">
+<div class="w-0.5 h-5 bg-secondary"></div>
+<div class="bg-secondary text-white text-[10px] px-1 rounded">Jordan</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Feature Grid -->
+<section class="py-32 px-lg bg-surface">
+<div class="max-w-container-max mx-auto">
+<div class="flex flex-col md:flex-row justify-between items-end mb-20 gap-md">
+<div class="max-w-2xl">
+<h2 class="font-headline-lg text-headline-lg text-primary mb-md">Engineered for Excellence.</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Every tool you need to conduct high-stakes technical evaluations without the friction of context switching.</p>
+</div>
+<button class="px-lg py-sm border border-outline text-primary rounded-lg font-label-md text-label-md hover:bg-surface-container-high transition-all">View All Features</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg">
+<!-- Feature 1 -->
+<div class="p-lg rounded-2xl border border-outline-variant bg-white hover:shadow-lg transition-shadow group">
+<div class="w-12 h-12 rounded-xl bg-secondary-container/10 flex items-center justify-center mb-lg group-hover:bg-secondary-container transition-colors">
+<span class="material-symbols-outlined text-secondary group-hover:text-white">video_chat</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-sm">Live Video Call</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Low-latency HD video integrated directly alongside the coding environment for natural communication.</p>
+</div>
+<!-- Feature 2 -->
+<div class="p-lg rounded-2xl border border-outline-variant bg-white hover:shadow-lg transition-shadow group">
+<div class="w-12 h-12 rounded-xl bg-secondary-container/10 flex items-center justify-center mb-lg group-hover:bg-secondary-container transition-colors">
+<span class="material-symbols-outlined text-secondary group-hover:text-white">code</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-sm">Collaborative Editor</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Multi-cursor, real-time code execution with support for 20+ languages and syntax highlighting.</p>
+</div>
+<!-- Feature 3 -->
+<div class="p-lg rounded-2xl border border-outline-variant bg-white hover:shadow-lg transition-shadow group">
+<div class="w-12 h-12 rounded-xl bg-secondary-container/10 flex items-center justify-center mb-lg group-hover:bg-secondary-container transition-colors">
+<span class="material-symbols-outlined text-secondary group-hover:text-white">lock</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-sm">Secure Auth</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Enterprise-grade security with SSO, MFA, and audit logs to keep your hiring process confidential.</p>
+</div>
+<!-- Feature 4 -->
+<div class="p-lg rounded-2xl border border-outline-variant bg-white hover:shadow-lg transition-shadow group">
+<div class="w-12 h-12 rounded-xl bg-secondary-container/10 flex items-center justify-center mb-lg group-hover:bg-secondary-container transition-colors">
+<span class="material-symbols-outlined text-secondary group-hover:text-white">calendar_month</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-sm">Smart Scheduling</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Automated calendar sync and time-zone management to eliminate the back-and-forth emails.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Dynamic Content Section / Social Proof -->
+<section class="py-32 px-lg relative overflow-hidden bg-primary text-on-primary">
+
+<div class="max-w-container-max mx-auto relative z-10 text-center">
+<h2 class="font-display-lg text-display-lg mb-xl">Ready to transform your <br/> engineering pipeline?</h2>
+<div class="flex flex-col sm:flex-row justify-center items-center gap-md">
+<button class="w-full sm:w-auto px-xl py-lg bg-secondary text-white rounded-xl font-headline-md text-headline-md hover:bg-secondary-container transition-all shadow-lg active:scale-95">Get Started for Free</button>
+<button class="w-full sm:w-auto px-xl py-lg border border-on-primary/30 text-on-primary rounded-xl font-headline-md text-headline-md hover:bg-white/10 transition-all">Schedule a Demo</button>
+</div>
+<div class="mt-20 grid grid-cols-2 md:grid-cols-4 gap-xl opacity-60">
+<div class="flex flex-col items-center">
+<span class="font-display-lg text-display-lg mb-xs">98%</span>
+<span class="font-label-md text-label-md">Satisfaction Rate</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="font-display-lg text-display-lg mb-xs">4.2x</span>
+<span class="font-label-md text-label-md">Faster Hiring</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="font-display-lg text-display-lg mb-xs">50k+</span>
+<span class="font-label-md text-label-md">Interviews Monthly</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="font-display-lg text-display-lg mb-xs">200+</span>
+<span class="font-label-md text-label-md">Enterprise Clients</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-xl px-lg flex flex-col md:flex-row justify-between items-center gap-md bg-primary dark:bg-tertiary-container text-on-primary dark:text-on-tertiary-container">
+<div class="flex flex-col md:items-start items-center gap-xs">
+<span class="font-headline-md text-headline-md text-on-primary font-bold">LiveInterview</span>
+<p class="font-body-md text-body-md opacity-70 text-center md:text-left">© 2024 LiveInterview Inc. Engineering Excellence.</p>
+</div>
+<div class="flex flex-wrap justify-center gap-lg">
+<a class="font-body-md text-body-md text-on-primary-container dark:text-on-tertiary-container opacity-80 hover:opacity-100 transition-opacity" href="#">Privacy Policy</a>
+<a class="font-body-md text-body-md text-on-primary-container dark:text-on-tertiary-container opacity-80 hover:opacity-100 transition-opacity" href="#">Terms of Service</a>
+<a class="font-body-md text-body-md text-on-primary-container dark:text-on-tertiary-container opacity-80 hover:opacity-100 transition-opacity" href="#">Security</a>
+<a class="font-body-md text-body-md text-on-primary-container dark:text-on-tertiary-container opacity-80 hover:opacity-100 transition-opacity" href="#">Status</a>
+</div>
+<div class="flex gap-md">
+<a class="w-10 h-10 rounded-full border border-on-primary/20 flex items-center justify-center hover:bg-white/10 transition-colors" href="#">
+<svg class="w-5 h-5 fill-current" viewbox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.84 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"></path></svg>
+</a>
+<a class="w-10 h-10 rounded-full border border-on-primary/20 flex items-center justify-center hover:bg-white/10 transition-colors" href="#">
+<svg class="w-5 h-5 fill-current" viewbox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"></path></svg>
+</a>
+</div>
+</footer>
+<script>
+        // Micro-interactions for UI elements
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('mouseenter', () => {
+                if(!button.classList.contains('active:scale-95')) {
+                    button.style.transform = 'translateY(-1px)';
+                }
+            });
+            button.addEventListener('mouseleave', () => {
+                button.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Simple visibility observer for fade-in effects
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('opacity-100', 'translate-y-0');
+                    entry.target.classList.remove('opacity-0', 'translate-y-10');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('section > div').forEach(section => {
+            section.classList.add('transition-all', 'duration-700', 'opacity-0', 'translate-y-10');
+            observer.observe(section);
+        });
+    </script>
+</body></html>

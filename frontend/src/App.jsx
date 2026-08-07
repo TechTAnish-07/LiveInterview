@@ -1,14 +1,14 @@
 import { lazy, Suspense } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import ProtectedRoute from "./Components/ProtectedRoute";
-const CandidateHistory =lazy(()=> import("./Components/Candidate/CandidateHistory")) ;
-const CandidateSchedule = lazy(()=> import( "./Components/Candidate/CandidateSchedule"));
-const HRDashboard = lazy(()=> import("./Components/HR/HRDashboard")) ;
-const CandidateDashBoard = lazy(()=> import("./Components/Candidate/CandidateDashBoard")) ;
+const CandidateHistory = lazy(() => import("./Components/Candidate/CandidateHistory"));
+const CandidateSchedule = lazy(() => import("./Components/Candidate/CandidateSchedule"));
+const HRDashboard = lazy(() => import("./Components/HR/HRDashboard"));
+const CandidateDashBoard = lazy(() => import("./Components/Candidate/CandidateDashBoard"));
 import "./App.css";
-const  Practice  = lazy(()=> import("./Components/Candidate/Practice")) ;
+const Practice = lazy(() => import("./Components/Candidate/Practice"));
 import DemoVideo from "./DemoVideo";
-const  Feedback = lazy(()=> import("./Components/HR/Feedback"));
+const Feedback = lazy(() => import("./Components/HR/Feedback"));
 const Home = lazy(() => import("./Components/Home"));
 const Login = lazy(() => import("./Components/Login"));
 const ErrorPage = lazy(() => import("./Components/ErrorPage"));
@@ -19,6 +19,8 @@ const InterviewSchedule = lazy(() => import("./Components/HR/InterviewSchedule")
 const History = lazy(() => import("./Components/HR/History"));
 const PreJoin = lazy(() => import("./Components/InterviewRoom/PreJoin"));
 const JoinInterview = lazy(() => import("./Components/InterviewRoom/JoinInterview"));
+const AiInterviewEntry = lazy(() => import("./Components/AiInterview/AiInterviewEntry"));
+const AiInterviewRoom = lazy(() => import("./Components/AiInterview/AiInterviewRoom"));
 
 const router = createBrowserRouter([
   {
@@ -79,7 +81,7 @@ const router = createBrowserRouter([
         path: "dashboard/hr",
         element: (
           <ProtectedRoute allowedRole="HR">
-          <HRDashboard />
+            <HRDashboard />
           </ProtectedRoute>
         ),
       },
@@ -88,6 +90,24 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute allowedRole="CANDIDATE">
             <CandidateDashBoard />
+          </ProtectedRoute>
+        ),
+      },
+
+      // AI Interview Routes
+      {
+        path: "ai-interview",
+        element: (
+          <ProtectedRoute allowedRole="CANDIDATE">
+            <AiInterviewEntry />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "ai-interview/room",
+        element: (
+          <ProtectedRoute allowedRole="CANDIDATE">
+            <AiInterviewRoom />
           </ProtectedRoute>
         ),
       },

@@ -61,4 +61,21 @@ public class ResumeController {
         Map<String, Object> response = resumeService.uploadResume(file, userId);
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getMyResume(Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "User not authenticated"));
+        }
+
+        UserEntity user = userRepo.findByEmail(principal.getName())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+
+        Map<String, Object> resumeInfo = resumeService.getLatestResume(user.getId());
+        if (resumeInfo == null) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(resumeInfo);
+    }
 }
