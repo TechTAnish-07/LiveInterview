@@ -98,6 +98,7 @@ public class AiInterviewController {
         // Mint LiveKit access token with RoomConfiguration dispatch for Python agent worker
         Map<String, Object> agentDispatch = new HashMap<>();
         agentDispatch.put("agentName", "interview-agent");
+        agentDispatch.put("agent_name", "interview-agent");
         agentDispatch.put("metadata", "{\"sessionId\":" + savedSession.getId() + "}");
 
         Map<String, Object> roomConfig = new HashMap<>();
@@ -107,6 +108,7 @@ public class AiInterviewController {
         videoGrant.put("roomJoin", true);
         videoGrant.put("room", roomName);
         videoGrant.put("roomConfig", roomConfig);
+        videoGrant.put("room_config", roomConfig);
 
         String jwtToken = JWT.create()
                 .withIssuer(livekitApiKey)
