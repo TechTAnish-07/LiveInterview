@@ -14,8 +14,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
@@ -35,6 +37,7 @@ public class AiInterviewController {
     private final ResumeRepository resumeRepository;
     private final UserRepo userRepo;
     private final RoomServiceClient roomServiceClient;
+    private final WebClient webClient;
 
     @Value("${livekit.api.key}")
     private String livekitApiKey;
@@ -51,16 +54,24 @@ public class AiInterviewController {
     @Value("${internal.service.api-key}")
     private String internalApiKey;
 
+    @Value("${resume.normalization.service.url:http://localhost:8000}")
+    private String resumeNormalizationServiceUrl;
+
+
     public AiInterviewController(
             AiInterviewSessionRepository sessionRepository,
             ResumeRepository resumeRepository,
             UserRepo userRepo,
-            RoomServiceClient roomServiceClient
+            RoomServiceClient roomServiceClient,
+            WebClient.Builder webClientBuilder,
+            @Value("${resume.normalization.service.url:http://localhost:8000}") String resumeNormalizationServiceUrl
     ) {
         this.sessionRepository = sessionRepository;
         this.resumeRepository = resumeRepository;
         this.userRepo = userRepo;
         this.roomServiceClient = roomServiceClient;
+        this.resumeNormalizationServiceUrl = resumeNormalizationServiceUrl;
+        this.webClient = webClientBuilder.baseUrl(resumeNormalizationServiceUrl).build();
     }
 
     @PostMapping("/start")
@@ -95,28 +106,48 @@ public class AiInterviewController {
 
         AiInterviewSession savedSession = sessionRepository.save(session);
 
-        // Mint LiveKit access token with RoomConfiguration dispatch for Python agent worker
-        Map<String, Object> agentDispatch = new HashMap<>();
-        agentDispatch.put("agentName", "interview-agent");
-        agentDispatch.put("agent_name", "interview-agent");
-        agentDispatch.put("metadata", "{\"sessionId\":" + savedSession.getId() + "}");
+        // Explicitly dispatch Python Voice Agent to LiveKit server for this room
+        dispatchAgentToRoom(roomName, savedSession.getId());
 
-        Map<String, Object> roomConfig = new HashMap<>();
-        roomConfig.put("agents", java.util.List.of(agentDispatch));
+        // 1. Build RoomAgentDispatch and RoomConfiguration
+        String agentName = "interview-agent";
+        String metadataJson = String.format("{\"sessionId\":%d}", savedSession.getId());
 
-        Map<String, Object> videoGrant = new HashMap<>();
-        videoGrant.put("roomJoin", true);
-        videoGrant.put("room", roomName);
-        videoGrant.put("roomConfig", roomConfig);
-        videoGrant.put("room_config", roomConfig);
+        // 2. Log exact agentName string and metadata JSON right before returning the token
+        logger.info("Setting LiveKit token agent dispatch: agentName='{}', metadata='{}'", agentName, metadataJson);
 
-        String jwtToken = JWT.create()
-                .withIssuer(livekitApiKey)
-                .withSubject("user-" + userId)
-                .withClaim("name", user.getName())
-                .withClaim("video", videoGrant)
-                .withExpiresAt(new Date(System.currentTimeMillis() + tokenTtl * 1000L))
-                .sign(Algorithm.HMAC256(livekitApiSecret));
+        livekit.LivekitAgentDispatch.RoomAgentDispatch agentDispatch =
+                livekit.LivekitAgentDispatch.RoomAgentDispatch.newBuilder()
+                        .setAgentName(agentName)
+                        .setMetadata(metadataJson)
+                        .build();
+
+        livekit.LivekitRoom.RoomConfiguration roomConfiguration =
+                livekit.LivekitRoom.RoomConfiguration.newBuilder()
+                        .addAgents(agentDispatch)
+                        .build();
+
+        Map<String, Object> agentDispatchMap = new HashMap<>();
+        agentDispatchMap.put("agentName", agentName);
+        agentDispatchMap.put("agent_name", agentName);
+        agentDispatchMap.put("metadata", metadataJson);
+
+        Map<String, Object> roomConfigMap = new HashMap<>();
+        roomConfigMap.put("agents", java.util.List.of(agentDispatchMap));
+
+        // Use io.livekit.server.AccessToken SDK to mint token with RoomConfiguration grants
+        io.livekit.server.AccessToken token = new io.livekit.server.AccessToken(livekitApiKey, livekitApiSecret);
+        token.setIdentity("user-" + userId);
+        token.setName(user.getName());
+        token.setTtl(tokenTtl);
+
+        token.addGrants(new io.livekit.server.RoomJoin(true));
+        token.addGrants(new io.livekit.server.Room(roomName));
+        token.addGrants(new io.livekit.server.Agent(true));
+        token.addGrants(createCustomGrant("roomConfig", roomConfigMap));
+        token.addGrants(createCustomGrant("room_config", roomConfigMap));
+
+        String jwtToken = token.toJwt();
 
         Map<String, Object> response = new HashMap<>();
         response.put("sessionId", savedSession.getId());
@@ -126,6 +157,48 @@ public class AiInterviewController {
 
         return ResponseEntity.ok(response);
     }
+
+    private io.livekit.server.VideoGrant createCustomGrant(String key, Object value) {
+        try {
+            io.livekit.server.VideoGrant grant = new io.livekit.server.Agent(true);
+            java.lang.reflect.Field keyField = io.livekit.server.VideoGrant.class.getDeclaredField("key");
+            keyField.setAccessible(true);
+            keyField.set(grant, key);
+
+            java.lang.reflect.Field valueField = io.livekit.server.VideoGrant.class.getDeclaredField("value");
+            valueField.setAccessible(true);
+            valueField.set(grant, value);
+
+            return grant;
+        } catch (Exception e) {
+            logger.warn("Failed to create custom VideoGrant via reflection for key {}: {}", key, e.getMessage());
+            return new io.livekit.server.Agent(true);
+        }
+    }
+
+    private void dispatchAgentToRoom(String roomName, Long sessionId) {
+        try {
+            Map<String, Object> payload = Map.of(
+                    "room", roomName,
+                    "session_id", sessionId
+            );
+
+            logger.info("Sending WebClient POST to /dispatch-agent with payload: {}", payload);
+
+            webClient.post()
+                    .uri("/dispatch-agent")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(payload)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .doOnSuccess(res -> logger.info("Successfully dispatched 'interview-agent' to room {} via WebClient: {}", roomName, res))
+                    .doOnError(err -> logger.warn("Failed to dispatch agent for room {}: {}", roomName, err.getMessage()))
+                    .subscribe();
+        } catch (Exception e) {
+            logger.warn("Error initiating WebClient dispatch for room {}: {}", roomName, e.getMessage());
+        }
+    }
+
 
     @GetMapping("/{sessionId}/context")
     public ResponseEntity<?> getInterviewContext(
@@ -197,6 +270,33 @@ public class AiInterviewController {
         return ResponseEntity.ok(Map.of(
                 "message", "Interview result saved successfully",
                 "sessionId", session.getId()
+        ));
+    }
+
+    @PostMapping("/{sessionId}/end")
+    public ResponseEntity<?> endInterview(
+            @PathVariable Long sessionId,
+            @RequestHeader(value = "X-Internal-Api-Key", required = false) String headerApiKey,
+            @RequestBody(required = false) Map<String, Object> body
+    ) {
+        if (headerApiKey == null || !headerApiKey.equals(internalApiKey)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Unauthorized internal service access"));
+        }
+
+        AiInterviewSession session = sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "AI Interview session not found"));
+
+        String reason = (body != null && body.get("reason") != null) ? String.valueOf(body.get("reason")) : "completed";
+        session.setStatus("ENDED_" + reason.toUpperCase());
+        sessionRepository.save(session);
+
+        logger.info("Session {} ended with reason: {}", sessionId, reason);
+
+        return ResponseEntity.ok(Map.of(
+                "message", "Interview session ended successfully",
+                "sessionId", session.getId(),
+                "reason", reason
         ));
     }
 
