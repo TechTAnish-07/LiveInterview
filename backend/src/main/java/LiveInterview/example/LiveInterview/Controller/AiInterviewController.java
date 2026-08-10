@@ -21,6 +21,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
+import java.time.Duration;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -74,6 +75,66 @@ public class AiInterviewController {
         this.webClient = webClientBuilder.baseUrl(resumeNormalizationServiceUrl).build();
     }
 
+    @PostMapping("/check-eligibility")
+    public ResponseEntity<?> checkEligibility(
+            @RequestBody(required = false) Map<String, String> body,
+            Principal principal
+    ) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "User not authenticated"));
+        }
+
+        UserEntity user = userRepo.findByEmail(principal.getName())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+
+        String jobTitle = "Software Engineer";
+        if (body != null) {
+            if (body.get("jobTitle") != null && !body.get("jobTitle").isBlank()) {
+                jobTitle = body.get("jobTitle");
+            } else if (body.get("jobRole") != null && !body.get("jobRole").isBlank()) {
+                jobTitle = body.get("jobRole");
+            }
+        }
+
+        Optional<Resume> latestResume = resumeRepository.findTopByUserIdOrderByUploadedAtDesc(user.getId());
+        String resumeText = latestResume.map(Resume::getExtractedText).orElse(null);
+
+        if (resumeText == null || resumeText.isBlank()) {
+            return ResponseEntity.ok(Map.of(
+                    "relevant", false,
+                    "reason", "No uploaded resume found for candidate. Please upload a resume before checking eligibility."
+            ));
+        }
+
+        try {
+            Map<String, Object> payload = Map.of(
+                    "resumeText", resumeText,
+                    "jobTitle", jobTitle
+            );
+
+            logger.info("Calling /resume/check-relevance for user {} with jobTitle: {}", user.getId(), jobTitle);
+
+            Map<?, ?> response = webClient.post()
+                    .uri("/resume/check-relevance")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(payload)
+                    .retrieve()
+                    .bodyToMono(Map.class)
+                    .block(Duration.ofSeconds(15));
+
+            if (response != null && response.containsKey("relevant")) {
+                Boolean relevant = Boolean.TRUE.equals(response.get("relevant"));
+                String reason = response.get("reason") != null ? response.get("reason").toString() : "Resume assessment completed.";
+                return ResponseEntity.ok(Map.of("relevant", relevant, "reason", reason));
+            }
+        } catch (Exception e) {
+            logger.warn("Relevance check service call failed for user {}: {}", user.getId(), e.getMessage());
+        }
+
+        // Fail open fallback
+        return ResponseEntity.ok(Map.of("relevant", true, "reason", "Resume assessment completed."));
+    }
+
     @PostMapping("/start")
     public ResponseEntity<?> startAiInterview(
             @RequestBody(required = false) Map<String, String> body,
@@ -88,9 +149,14 @@ public class AiInterviewController {
 
         Long userId = user.getId();
         String roomName = "ai-interview-" + UUID.randomUUID();
-        String jobRole = (body != null && body.containsKey("jobRole") && body.get("jobRole") != null)
-                ? body.get("jobRole")
-                : "Software Engineer";
+        String jobTitle = "Software Engineer";
+        if (body != null) {
+            if (body.get("jobTitle") != null && !body.get("jobTitle").isBlank()) {
+                jobTitle = body.get("jobTitle");
+            } else if (body.get("jobRole") != null && !body.get("jobRole").isBlank()) {
+                jobTitle = body.get("jobRole");
+            }
+        }
 
         // Look up candidate's most recent resume if present
         Optional<Resume> latestResume = resumeRepository.findTopByUserIdOrderByUploadedAtDesc(userId);
@@ -101,7 +167,8 @@ public class AiInterviewController {
         session.setUserId(userId);
         session.setResumeId(resumeId);
         session.setRoomName(roomName);
-        session.setJobRole(jobRole);
+        session.setJobTitle(jobTitle);
+        session.setJobRole(jobTitle);
         session.setStatus("CREATED");
 
         AiInterviewSession savedSession = sessionRepository.save(session);
@@ -226,11 +293,17 @@ public class AiInterviewController {
             }
         }
 
+        String jobTitle = session.getJobTitle();
+        if (jobTitle == null || jobTitle.isBlank()) {
+            jobTitle = session.getJobRole() != null ? session.getJobRole() : "Software Engineer";
+        }
+
         Map<String, Object> response = new HashMap<>();
         response.put("sessionId", session.getId());
         response.put("candidateName", candidateName);
         response.put("resumeText", resumeText);
-        response.put("jobRole", session.getJobRole() != null ? session.getJobRole() : "Software Engineer");
+        response.put("jobTitle", jobTitle);
+        response.put("jobRole", jobTitle);
 
         return ResponseEntity.ok(response);
     }
@@ -297,6 +370,32 @@ public class AiInterviewController {
                 "message", "Interview session ended successfully",
                 "sessionId", session.getId(),
                 "reason", reason
+        ));
+    }
+
+    @PostMapping("/{sessionId}/feedback")
+    public ResponseEntity<?> saveInterviewFeedback(
+            @PathVariable Long sessionId,
+            @RequestHeader(value = "X-Internal-Api-Key", required = false) String headerApiKey,
+            @RequestBody(required = false) Map<String, Object> body
+    ) {
+        if (headerApiKey == null || !headerApiKey.equals(internalApiKey)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Unauthorized internal service access"));
+        }
+
+        AiInterviewSession session = sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "AI Interview session not found"));
+
+        if (body != null && body.get("feedback") != null) {
+            session.setFeedback(String.valueOf(body.get("feedback")));
+            sessionRepository.save(session);
+            logger.info("Saved feedback report for session {}", sessionId);
+        }
+
+        return ResponseEntity.ok(Map.of(
+                "message", "Interview feedback saved successfully",
+                "sessionId", session.getId()
         ));
     }
 

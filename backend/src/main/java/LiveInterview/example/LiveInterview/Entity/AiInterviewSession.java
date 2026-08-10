@@ -30,6 +30,9 @@ public class AiInterviewSession {
     @Column(name = "job_role")
     private String jobRole;
 
+    @Column(name = "job_title")
+    private String jobTitle;
+
     @Column(nullable = false)
     private String status;
 
