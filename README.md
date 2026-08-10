@@ -32,7 +32,40 @@
 
 ---
 
-## 📁 Project Structure
+## 🔄 Project Architecture & Execution Flow
+
+```mermaid
+flowchart TD
+    Client[React Frontend Candidate] -->|1. Candidate Auth & Upload Resume| ResumeController[ResumeController]
+    ResumeController -->|Save PDF & Extracted Text| DB[(PostgreSQL Database)]
+    ResumeController -->|Normalize Text| PythonService[Python FastAPI Microservice]
+    
+    Client -->|2. POST /api/ai-interview/check-eligibility| AiController[AiInterviewController]
+    AiController -->|Get Latest Candidate Resume| DB
+    AiController -->|POST /resume/check-relevance| PythonService
+    PythonService -->|{ relevant, reason }| AiController
+    AiController -->|Relevance Result| Client
+    
+    Client -->|3. POST /api/ai-interview/start| AiController
+    AiController -->|Create & Save AiInterviewSession| DB
+    AiController -->|POST /dispatch-agent WebClient| PythonService
+    PythonService -->|LiveKit Admin API Dispatch| LiveKit[LiveKit Server]
+    AiController -->|Mint Token with RoomConfiguration| Client
+    
+    Client <-->|4. WebRTC Voice Room Call| LiveKit
+    PythonAgent[Python Voice Agent Worker] <-->|WebRTC Voice Call| LiveKit
+    
+    PythonAgent -->|5. GET /api/ai-interview/{sessionId}/context| AiController
+    AiController -->|Candidate Name, Resume, JobTitle| PythonAgent
+    
+    PythonAgent -->|6. POST /api/ai-interview/{sessionId}/feedback| AiController
+    PythonAgent -->|7. POST /api/ai-interview/{sessionId}/end| AiController
+    AiController -->|Save Feedback Report & Status| DB
+```
+
+---
+
+## 📁 Spring Boot Backend Structure
 
 ```
 LiveInterview/
@@ -44,13 +77,32 @@ LiveInterview/
 │   │   └── Axios.js
 │   └── package.json
 │
-└── backend/         # Spring Boot backend API
+└── backend/         # Spring Boot Backend (Java 21)
     ├── src/
     │   └── main/
     │       ├── java/LiveInterview/example/LiveInterview/
-    │       │   ├── Controller/   # AiInterviewController, ResumeController, etc.
-    │       │   ├── Entity/       # AiInterviewSession, Resume, UserEntity
-    │       │   └── Repository/
+    │       │   ├── Config/
+    │       │   │   ├── AppConfig.java
+    │       │   │   ├── SecurityConfig.java         # Spring Security, CORS & JWT Auth
+    │       │   │   └── WebSocketConfig.java        # STOMP / WebSocket Config
+    │       │   ├── Controller/
+    │       │   │   ├── AiInterviewController.java  # AI Session Lifecycle, Eligibility, Token Minting & Feedback
+    │       │   │   ├── ResumeController.java       # Resume Upload & Parsing Endpoint
+    │       │   │   ├── AuthController.java         # Candidate & HR Authentication
+    │       │   │   ├── LiveKitWebhookController.java # LiveKit Event Handlers
+    │       │   │   └── RoomController.java         # Human Video Rooms & Code Editor
+    │       │   ├── Entity/
+    │       │   │   ├── AiInterviewSession.java     # Session Entity (jobTitle, status, transcript, feedback)
+    │       │   │   ├── Resume.java                 # Candidate Resume Entity
+    │       │   │   ├── UserEntity.java             # User Account Entity
+    │       │   │   └── Interview.java              # Scheduled Human Interviews
+    │       │   ├── Repository/
+    │       │   │   ├── AiInterviewSessionRepository.java
+    │       │   │   ├── ResumeRepository.java
+    │       │   │   └── UserRepo.java
+    │       │   └── Security/
+    │       │       ├── JwtFilter.java              # JWT Interceptor
+    │       │       └── JwtService.java             # Token Token Generation & Validation
     │       └── resources/
     │           └── application.yaml
     └── pom.xml
@@ -117,4 +169,5 @@ This project is open source and available under the [MIT License](LICENSE).
 ## 👨‍💻 Author
 
 **Tanish** — [@TechTAnish-07](https://github.com/TechTAnish-07)
+
 
