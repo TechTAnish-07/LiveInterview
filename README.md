@@ -36,31 +36,31 @@
 
 ```mermaid
 flowchart TD
-    Client[React Frontend Candidate] -->|1. Candidate Auth & Upload Resume| ResumeController[ResumeController]
-    ResumeController -->|Save PDF & Extracted Text| DB[(PostgreSQL Database)]
-    ResumeController -->|Normalize Text| PythonService[Python FastAPI Microservice]
+    Client[React Frontend Candidate] -->|"1. Candidate Auth & Upload Resume"| ResumeController[ResumeController]
+    ResumeController -->|"Save PDF & Extracted Text"| DB[(PostgreSQL Database)]
+    ResumeController -->|"Normalize Text"| PythonService[Python FastAPI Microservice]
     
-    Client -->|2. POST /api/ai-interview/check-eligibility| AiController[AiInterviewController]
-    AiController -->|Get Latest Candidate Resume| DB
-    AiController -->|POST /resume/check-relevance| PythonService
-    PythonService -->|{ relevant, reason }| AiController
-    AiController -->|Relevance Result| Client
+    Client -->|"2. POST /api/ai-interview/check-eligibility"| AiController[AiInterviewController]
+    AiController -->|"Get Latest Candidate Resume"| DB
+    AiController -->|"POST /resume/check-relevance"| PythonService
+    PythonService -->|"Relevance check: relevant, reason"| AiController
+    AiController -->|"Relevance Result"| Client
     
-    Client -->|3. POST /api/ai-interview/start| AiController
-    AiController -->|Create & Save AiInterviewSession| DB
-    AiController -->|POST /dispatch-agent WebClient| PythonService
-    PythonService -->|LiveKit Admin API Dispatch| LiveKit[LiveKit Server]
-    AiController -->|Mint Token with RoomConfiguration| Client
+    Client -->|"3. POST /api/ai-interview/start"| AiController
+    AiController -->|"Create & Save AiInterviewSession"| DB
+    AiController -->|"POST /dispatch-agent WebClient"| PythonService
+    PythonService -->|"LiveKit Admin API Dispatch"| LiveKit[LiveKit Server]
+    AiController -->|"Mint Token with RoomConfiguration"| Client
     
-    Client <-->|4. WebRTC Voice Room Call| LiveKit
-    PythonAgent[Python Voice Agent Worker] <-->|WebRTC Voice Call| LiveKit
+    Client <-->|"4. WebRTC Voice Room Call"| LiveKit
+    PythonAgent[Python Voice Agent Worker] <-->|"WebRTC Voice Call"| LiveKit
     
-    PythonAgent -->|5. GET /api/ai-interview/{sessionId}/context| AiController
-    AiController -->|Candidate Name, Resume, JobTitle| PythonAgent
+    PythonAgent -->|"5. GET /api/ai-interview/sessionId/context"| AiController
+    AiController -->|"Candidate Name, Resume, JobTitle"| PythonAgent
     
-    PythonAgent -->|6. POST /api/ai-interview/{sessionId}/feedback| AiController
-    PythonAgent -->|7. POST /api/ai-interview/{sessionId}/end| AiController
-    AiController -->|Save Feedback Report & Status| DB
+    PythonAgent -->|"6. POST /api/ai-interview/sessionId/feedback"| AiController
+    PythonAgent -->|"7. POST /api/ai-interview/sessionId/end"| AiController
+    AiController -->|"Save Feedback Report & Status"| DB
 ```
 
 ---
