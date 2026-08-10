@@ -9,10 +9,12 @@ export default function AiInterviewEntry() {
   const [resume, setResume] = useState(null);
   const [fetchingResume, setFetchingResume] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [checkingEligibility, setCheckingEligibility] = useState(false);
   const [startingSession, setStartingSession] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [showUploadForm, setShowUploadForm] = useState(false);
-  const [jobRole, setJobRole] = useState("Software Engineer");
+  const [jobTitle, setJobTitle] = useState("Software Engineer");
+  const [relevanceWarning, setRelevanceWarning] = useState(null);
   const [error, setError] = useState(null);
 
   // Fetch candidate's latest resume status on mount
@@ -69,6 +71,7 @@ export default function AiInterviewEntry() {
     try {
       setUploading(true);
       setError(null);
+      setRelevanceWarning(null);
 
       const formData = new FormData();
       formData.append("file", selectedFile);
@@ -89,16 +92,17 @@ export default function AiInterviewEntry() {
     }
   };
 
-  const handleStartInterview = async () => {
+  const startSessionDirectly = async (titleToUse) => {
     try {
       setStartingSession(true);
       setError(null);
 
-      const res = await api.post("/api/ai-interview/start", { jobRole });
+      const title = titleToUse || jobTitle || "Software Engineer";
+      const res = await api.post("/api/ai-interview/start", { jobTitle: title, jobRole: title });
       const { sessionId, roomName, token, livekitUrl } = res.data;
 
       navigate("/ai-interview/room", {
-        state: { sessionId, roomName, token, livekitUrl, jobRole },
+        state: { sessionId, roomName, token, livekitUrl, jobTitle: title, jobRole: title },
       });
     } catch (err) {
       console.error("Error starting AI interview:", err);
@@ -106,6 +110,33 @@ export default function AiInterviewEntry() {
       setError(msg);
     } finally {
       setStartingSession(false);
+    }
+  };
+
+  const handleStartInterview = async () => {
+    try {
+      setCheckingEligibility(true);
+      setError(null);
+      setRelevanceWarning(null);
+
+      const title = jobTitle || "Software Engineer";
+      const checkRes = await api.post("/api/ai-interview/check-eligibility", { jobTitle: title });
+
+      if (checkRes.data && checkRes.data.relevant === false) {
+        setRelevanceWarning({
+          reason: checkRes.data.reason || "Your resume may not closely match this target job role."
+        });
+        setCheckingEligibility(false);
+        return;
+      }
+
+      // If relevant is true, proceed directly to start
+      setCheckingEligibility(false);
+      await startSessionDirectly(title);
+    } catch (err) {
+      console.error("Error checking eligibility:", err);
+      setCheckingEligibility(false);
+      await startSessionDirectly(jobTitle);
     }
   };
 
@@ -149,6 +180,53 @@ export default function AiInterviewEntry() {
             <button onClick={() => setError(null)} className="text-[11px] underline font-bold cursor-pointer">
               Dismiss
             </button>
+          </div>
+        )}
+
+        {/* Relevance Warning Banner */}
+        {relevanceWarning && (
+          <div className="bg-[#fff8f0] border border-[#f5d0a9] rounded-2xl p-5 shadow-xs space-y-3">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-full bg-[#ffe8d1] text-[#9c4b00] flex items-center justify-center shrink-0 mt-0.5">
+                <AlertCircle className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#9c4b00] mb-1">
+                  Resume Relevance Guidance
+                </h4>
+                <p className="text-xs text-[#5c3100] leading-relaxed">
+                  {relevanceWarning.reason}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2 border-t border-[#f5d0a9]/60">
+              <button
+                onClick={() => setRelevanceWarning(null)}
+                disabled={startingSession}
+                className="px-3.5 py-1.5 bg-white border border-[#d6b088] text-[#5c3100] hover:bg-[#fff0e0] rounded-xl text-xs font-semibold cursor-pointer transition-colors"
+              >
+                Change job title
+              </button>
+
+              <button
+                onClick={() => startSessionDirectly(jobTitle)}
+                disabled={startingSession}
+                className="px-4 py-1.5 bg-[#9c4b00] hover:bg-[#803d00] text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors shadow-xs"
+              >
+                {startingSession ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Starting...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Proceed anyway</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         )}
 
@@ -270,27 +348,55 @@ export default function AiInterviewEntry() {
                 )}
               </div>
 
-              {/* Target Role Selector */}
-              <div className="bg-white rounded-2xl border border-[#e0e3e5] p-6 shadow-xs space-y-3">
-                <h2 className="text-base font-bold text-[#070235] flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-[#1a998d]" />
-                  <span>Target Interview Position</span>
-                </h2>
-                <p className="text-xs text-[#787680]">
-                  Select the job role for this AI technical evaluation:
-                </p>
-                <select
-                  value={jobRole}
-                  onChange={(e) => setJobRole(e.target.value)}
-                  className="w-full bg-[#f7f9fb] border border-[#e0e3e5] rounded-xl p-3 text-xs font-semibold text-[#070235] focus:outline-none focus:border-[#0058be]"
-                >
-                  <option value="Software Engineer">Full Stack Software Engineer</option>
-                  <option value="Frontend Engineer">Frontend Engineer (React / Web)</option>
-                  <option value="Backend Engineer">Backend Engineer (Java / Distributed Systems)</option>
-                  <option value="DevOps Engineer">DevOps & Cloud Engineer</option>
-                  <option value="Data Engineer">Data & ML Engineer</option>
-                </select>
-              </div>
+              {/* Target Job Title Input (Shown once resume is on file or uploaded) */}
+              {resume && (
+                <div className="bg-white rounded-2xl border border-[#e0e3e5] p-6 shadow-xs space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-base font-bold text-[#070235] flex items-center gap-2">
+                      <Sparkles className="w-5 h-5 text-[#1a998d]" />
+                      <span>Target Job Title</span>
+                    </h2>
+                    <span className="text-[11px] text-[#787680] font-mono">Pre-flight Checked</span>
+                  </div>
+                  <p className="text-xs text-[#787680]">
+                    Enter or select the position you are interviewing for:
+                  </p>
+                  
+                  <div className="space-y-3">
+                    <input
+                      type="text"
+                      value={jobTitle}
+                      onChange={(e) => {
+                        setJobTitle(e.target.value);
+                        if (relevanceWarning) setRelevanceWarning(null);
+                      }}
+                      placeholder="e.g. Software Engineer, Full Stack Developer, Backend Engineer"
+                      className="w-full bg-[#f7f9fb] border border-[#e0e3e5] rounded-xl p-3 text-xs font-semibold text-[#070235] focus:outline-none focus:border-[#0058be] transition-colors"
+                    />
+
+                    {/* Preset role suggestions */}
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {["Software Engineer", "Frontend Engineer", "Backend Engineer", "DevOps Engineer", "Data Engineer"].map((role) => (
+                        <button
+                          key={role}
+                          type="button"
+                          onClick={() => {
+                            setJobTitle(role);
+                            if (relevanceWarning) setRelevanceWarning(null);
+                          }}
+                          className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors cursor-pointer ${
+                            jobTitle === role
+                              ? "bg-[#0058be] text-white font-semibold"
+                              : "bg-[#f2f4f6] text-[#47464f] hover:bg-[#e0e3e5]"
+                          }`}
+                        >
+                          {role}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
 
             </div>
 
@@ -313,17 +419,22 @@ export default function AiInterviewEntry() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-[#89f5e7]"></span>
-                      <span>Duration: 10 - 20 Minutes</span>
+                      <span>Target Role: {jobTitle || "Software Engineer"}</span>
                     </div>
                   </div>
                 </div>
 
                 <button
                   onClick={handleStartInterview}
-                  disabled={!resume || startingSession}
+                  disabled={!resume || startingSession || checkingEligibility}
                   className="w-full py-3.5 bg-[#89f5e7] hover:bg-[#5cecd9] text-[#003732] font-bold text-xs rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  {startingSession ? (
+                  {checkingEligibility ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Checking your resume against this role...</span>
+                    </>
+                  ) : startingSession ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
                       <span>Minting LiveKit Session...</span>
@@ -351,3 +462,4 @@ export default function AiInterviewEntry() {
     </div>
   );
 }
+

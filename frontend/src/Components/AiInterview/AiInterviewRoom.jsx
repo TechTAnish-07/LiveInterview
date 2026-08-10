@@ -89,13 +89,25 @@ export default function AiInterviewRoom() {
 
         room.on(RoomEvent.TrackSubscribed, (track, publication, participant) => {
           if (!isMounted) return;
+          if (track.kind === Track.Kind.Audio) {
+            // Attach agent audio to a new <audio> element so the user hears the agent's voice
+            const audioEl = track.attach();
+            audioEl.autoplay = true;
+            audioEl.id = `audio-${publication.trackSid}`;
+            document.body.appendChild(audioEl);
+          }
           if (track.kind === Track.Kind.Video && remoteVideoRef.current) {
             track.attach(remoteVideoRef.current);
             setHasRemoteVideo(true);
           }
         });
 
-        room.on(RoomEvent.TrackUnsubscribed, (track) => {
+        room.on(RoomEvent.TrackUnsubscribed, (track, publication) => {
+          if (track.kind === Track.Kind.Audio) {
+            track.detach();
+            const audioEl = document.getElementById(`audio-${publication.trackSid}`);
+            if (audioEl) audioEl.remove();
+          }
           if (track.kind === Track.Kind.Video) {
             track.detach();
             setHasRemoteVideo(false);
