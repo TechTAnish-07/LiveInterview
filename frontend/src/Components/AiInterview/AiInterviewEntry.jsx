@@ -283,9 +283,33 @@ export default function AiInterviewEntry() {
                       </button>
                     </div>
 
-                    <div className="p-3 bg-white rounded-lg border border-[#e0e3e5] text-xs text-[#47464f]">
-                      <span className="font-semibold text-[#070235]">Extracted Profile Ready: </span>
-                      The AI Interviewer will reference your uploaded resume experience and technical skills during the call.
+                    <div className="p-4 bg-white rounded-lg border border-[#e0e3e5] text-xs text-[#47464f] space-y-3">
+                      {resume.summary && (
+                        <div>
+                          <span className="font-bold text-[#070235]">Extracted Summary: </span>
+                          <span className="text-[#47464f]">{resume.summary}</span>
+                        </div>
+                      )}
+
+                      {resume.skills && resume.skills.length > 0 && (
+                        <div>
+                          <span className="font-bold text-[#070235] block mb-1.5">Verified Technical Skills:</span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {resume.skills.map((skill) => (
+                              <span key={skill} className="px-2 py-0.5 bg-[#d8e2ff]/60 text-[#004395] text-[11px] font-mono font-semibold rounded-md">
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {(!resume.summary && (!resume.skills || resume.skills.length === 0)) && (
+                        <div>
+                          <span className="font-semibold text-[#070235]">Extracted Profile Ready: </span>
+                          The AI Interviewer will reference your uploaded resume experience and technical skills during the call.
+                        </div>
+                      )}
                     </div>
                   </div>
                 ) : (
@@ -310,7 +334,7 @@ export default function AiInterviewEntry() {
                     {uploading && (
                       <div className="p-3 bg-[#d8e2ff] text-[#004395] rounded-xl text-xs font-semibold flex items-center gap-2">
                         <Loader2 className="w-4 h-4 animate-spin shrink-0" />
-                        <span>Processing your resume text (normalizing skills & experience)...</span>
+                        <span>Processing & analyzing your resume (extracting skills & suitable target roles)...</span>
                       </div>
                     )}
 
@@ -334,12 +358,12 @@ export default function AiInterviewEntry() {
                         {uploading ? (
                           <>
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            <span>Uploading...</span>
+                            <span>Analyzing...</span>
                           </>
                         ) : (
                           <>
                             <Upload className="w-3.5 h-3.5" />
-                            <span>Upload & Parse Resume</span>
+                            <span>Upload & Analyze Resume</span>
                           </>
                         )}
                       </button>
@@ -375,24 +399,32 @@ export default function AiInterviewEntry() {
                     />
 
                     {/* Preset role suggestions */}
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {["Software Engineer", "Frontend Engineer", "Backend Engineer", "DevOps Engineer", "Data Engineer"].map((role) => (
-                        <button
-                          key={role}
-                          type="button"
-                          onClick={() => {
-                            setJobTitle(role);
-                            if (relevanceWarning) setRelevanceWarning(null);
-                          }}
-                          className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors cursor-pointer ${
-                            jobTitle === role
-                              ? "bg-[#0058be] text-white font-semibold"
-                              : "bg-[#f2f4f6] text-[#47464f] hover:bg-[#e0e3e5]"
-                          }`}
-                        >
-                          {role}
-                        </button>
-                      ))}
+                    <div className="space-y-1.5">
+                      <span className="text-[11px] text-[#787680] font-medium block">
+                        {resume.suitableRoles && resume.suitableRoles.length > 0 ? "Recommended Target Roles based on your Resume:" : "Suggested Target Roles:"}
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {(resume.suitableRoles && resume.suitableRoles.length > 0
+                          ? resume.suitableRoles
+                          : ["Software Engineer", "Frontend Engineer", "Backend Engineer", "DevOps Engineer", "Data Engineer"]
+                        ).map((role) => (
+                          <button
+                            key={role}
+                            type="button"
+                            onClick={() => {
+                              setJobTitle(role);
+                              if (relevanceWarning) setRelevanceWarning(null);
+                            }}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors cursor-pointer ${
+                              jobTitle === role
+                                ? "bg-[#0058be] text-white font-semibold"
+                                : "bg-[#f2f4f6] text-[#47464f] hover:bg-[#e0e3e5]"
+                            }`}
+                          >
+                            {role}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>

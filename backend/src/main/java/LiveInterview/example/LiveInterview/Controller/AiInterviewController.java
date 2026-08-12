@@ -97,19 +97,44 @@ public class AiInterviewController {
         }
 
         Optional<Resume> latestResume = resumeRepository.findTopByUserIdOrderByUploadedAtDesc(user.getId());
-        String resumeText = latestResume.map(Resume::getExtractedText).orElse(null);
-
-        if (resumeText == null || resumeText.isBlank()) {
+        if (latestResume.isEmpty() || latestResume.get().getExtractedText() == null || latestResume.get().getExtractedText().isBlank()) {
             return ResponseEntity.ok(Map.of(
                     "relevant", false,
                     "reason", "No uploaded resume found for candidate. Please upload a resume before checking eligibility."
             ));
         }
 
+        Resume resume = latestResume.get();
+        String resumeText = resume.getExtractedText();
+
+        // 1. Fast local check against stored suitableRolesJson
+        if (resume.getSuitableRolesJson() != null && !resume.getSuitableRolesJson().isBlank()) {
+            String suitableRolesStr = resume.getSuitableRolesJson().toLowerCase();
+            String targetTitleLower = jobTitle.toLowerCase().strip();
+            if (suitableRolesStr.contains(targetTitleLower)) {
+                return ResponseEntity.ok(Map.of(
+                        "relevant", true,
+                        "reason", "Your resume aligns well with " + jobTitle + " positions based on your verified skills."
+                ));
+            }
+        }
+
+        // 2. Call Python microservice passing resumeText, jobTitle, and suitableRoles
         try {
+            java.util.List<String> suitableRolesList = java.util.Collections.emptyList();
+            if (resume.getSuitableRolesJson() != null && !resume.getSuitableRolesJson().isBlank()) {
+                try {
+                    suitableRolesList = new com.fasterxml.jackson.databind.ObjectMapper().readValue(
+                            resume.getSuitableRolesJson(),
+                            new com.fasterxml.jackson.core.type.TypeReference<java.util.List<String>>() {}
+                    );
+                } catch (Exception ignored) {}
+            }
+
             Map<String, Object> payload = Map.of(
-                    "resumeText", resumeText,
-                    "jobTitle", jobTitle
+                    "resumeText", resumeText != null ? resumeText : "",
+                    "jobTitle", jobTitle,
+                    "suitableRoles", suitableRolesList
             );
 
             logger.info("Calling /resume/check-relevance for user {} with jobTitle: {}", user.getId(), jobTitle);
@@ -173,8 +198,8 @@ public class AiInterviewController {
 
         AiInterviewSession savedSession = sessionRepository.save(session);
 
-        // Explicitly dispatch Python Voice Agent to LiveKit server for this room
-        dispatchAgentToRoom(roomName, savedSession.getId());
+        // Explicitly dispatch Python Voice Agent to LiveKit server for this room with pre-packaged context
+        dispatchAgentToRoom(roomName, savedSession.getId(), user.getName(), jobTitle, latestResume.orElse(null));
 
         // 1. Build RoomAgentDispatch and RoomConfiguration
         String agentName = "interview-agent";
@@ -243,14 +268,19 @@ public class AiInterviewController {
         }
     }
 
-    private void dispatchAgentToRoom(String roomName, Long sessionId) {
+    private void dispatchAgentToRoom(String roomName, Long sessionId, String candidateName, String jobTitle, Resume resume) {
         try {
             Map<String, Object> payload = Map.of(
                     "room", roomName,
-                    "session_id", sessionId
+                    "session_id", sessionId,
+                    "candidate_name", candidateName != null ? candidateName : "Candidate",
+                    "job_title", jobTitle != null ? jobTitle : "Software Engineer",
+                    "summary", resume != null && resume.getSummary() != null ? resume.getSummary() : "",
+                    "skills", resume != null && resume.getSkills() != null ? resume.getSkills() : "[]",
+                    "resume_text", resume != null && resume.getExtractedText() != null ? resume.getExtractedText() : ""
             );
 
-            logger.info("Sending WebClient POST to /dispatch-agent with payload: {}", payload);
+            logger.info("Sending WebClient POST to /dispatch-agent for session {} with context for candidate '{}'", sessionId, candidateName);
 
             webClient.post()
                     .uri("/dispatch-agent")

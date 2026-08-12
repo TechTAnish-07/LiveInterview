@@ -15,6 +15,10 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -64,8 +68,16 @@ public class ResumeService {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to extract text from PDF: " + e.getMessage());
             }
 
-            // 3. Call Python agent service for text normalization (with graceful fallback)
+            // 3. Call Python agent service for text normalization and metadata analysis (with graceful fallback)
             String finalText = rawText;
+            String candidateName = null;
+            String summary = null;
+            String skillsJson = "[]";
+            String suitableRolesJson = "[]";
+            String experienceLevel = null;
+
+            ObjectMapper mapper = new ObjectMapper();
+
             try {
                 NormalizeResponse normalizeResponse = webClient.post()
                         .uri("/resume/normalize")
@@ -75,8 +87,20 @@ public class ResumeService {
                         .bodyToMono(NormalizeResponse.class)
                         .block();
 
-                if (normalizeResponse != null && normalizeResponse.getCleanedText() != null && !normalizeResponse.getCleanedText().isBlank()) {
-                    finalText = normalizeResponse.getCleanedText();
+                if (normalizeResponse != null) {
+                    if (normalizeResponse.getCleanedText() != null && !normalizeResponse.getCleanedText().isBlank()) {
+                        finalText = normalizeResponse.getCleanedText();
+                    }
+                    candidateName = normalizeResponse.getCandidateName();
+                    summary = normalizeResponse.getSummary();
+                    experienceLevel = normalizeResponse.getExperienceLevel();
+
+                    if (normalizeResponse.getSkills() != null) {
+                        skillsJson = mapper.writeValueAsString(normalizeResponse.getSkills());
+                    }
+                    if (normalizeResponse.getSuitableRoles() != null) {
+                        suitableRolesJson = mapper.writeValueAsString(normalizeResponse.getSuitableRoles());
+                    }
                 }
             } catch (Exception e) {
                 // Fallback to raw extracted text if normalization microservice is not reachable
@@ -86,6 +110,11 @@ public class ResumeService {
             Resume resume = new Resume();
             resume.setUserId(userId);
             resume.setFileUrl(targetPath.toString());
+            resume.setCandidateName(candidateName);
+            resume.setSummary(summary);
+            resume.setSkills(skillsJson);
+            resume.setSuitableRolesJson(suitableRolesJson);
+            resume.setExperienceLevel(experienceLevel);
             resume.setExtractedText(finalText);
 
             Resume savedResume = resumeRepository.save(resume);
@@ -94,7 +123,12 @@ public class ResumeService {
             return Map.of(
                     "id", savedResume.getId(),
                     "message", "Resume uploaded and normalized successfully",
-                    "fileUrl", savedResume.getFileUrl()
+                    "fileUrl", savedResume.getFileUrl(),
+                    "candidateName", candidateName != null ? candidateName : "",
+                    "summary", summary != null ? summary : "",
+                    "skills", parseJsonList(skillsJson),
+                    "suitableRoles", parseJsonList(suitableRolesJson),
+                    "experienceLevel", experienceLevel != null ? experienceLevel : ""
             );
 
         } catch (IOException e) {
@@ -112,11 +146,30 @@ public class ResumeService {
         result.put("resumeId", resume.getId());
         result.put("fileUrl", resume.getFileUrl());
         result.put("uploadedAt", resume.getUploadedAt());
+        result.put("candidateName", resume.getCandidateName());
+        result.put("summary", resume.getSummary());
+        result.put("skills", parseJsonList(resume.getSkills()));
+        result.put("suitableRoles", parseJsonList(resume.getSuitableRolesJson()));
+        result.put("experienceLevel", resume.getExperienceLevel());
         return result;
+    }
+
+    private java.util.List<String> parseJsonList(String json) {
+        if (json == null || json.isBlank()) return java.util.Collections.emptyList();
+        try {
+            return new ObjectMapper().readValue(json, new TypeReference<java.util.List<String>>() {});
+        } catch (Exception e) {
+            return java.util.Collections.emptyList();
+        }
     }
 
     @Data
     public static class NormalizeResponse {
         private String cleanedText;
+        private String candidateName;
+        private String summary;
+        private java.util.List<String> skills;
+        private java.util.List<String> suitableRoles;
+        private String experienceLevel;
     }
 }

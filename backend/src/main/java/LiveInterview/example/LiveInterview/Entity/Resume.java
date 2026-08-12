@@ -18,8 +18,20 @@ public class Resume {
     @Column(name = "file_url", nullable = false)
     private String fileUrl;
 
+    @Column(name = "candidate_name")
+    private String candidateName;
+
+    @Column(columnDefinition = "TEXT")
+    private String summary;
+
     @Column(columnDefinition = "TEXT")
     private String skills;
+
+    @Column(name = "suitable_roles_json", columnDefinition = "TEXT")
+    private String suitableRolesJson;
+
+    @Column(name = "experience_level")
+    private String experienceLevel;
 
     @Column(name = "extracted_text", columnDefinition = "TEXT")
     private String extractedText;
