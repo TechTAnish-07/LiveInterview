@@ -80,6 +80,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/ai-interview/*/result").permitAll()
                         .requestMatchers("/api/ai-interview/*/end", "/api/ai-interview/*/feedback").permitAll()
                         .requestMatchers("/api/ai-interview/*/room", "/api/ai-interview/room/*").permitAll()
+                        .requestMatchers("/api/ai-interview/*/execute-code").permitAll()
                         .requestMatchers("/livekit/webhook").permitAll()
 
                         .anyRequest().authenticated()
