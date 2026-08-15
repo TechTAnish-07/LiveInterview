@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import CandidateHistory from "./CandidateHistory";
 import api from "../Axios";
-import { Calendar, Video, CheckCircle2, Code, Clock, ArrowUpRight, Copy, Bot } from "lucide-react";
+import { Calendar, Video, CheckCircle2, Code, Clock, ArrowUpRight, Copy, Bot, FileText } from "lucide-react";
 
 const CandidateDashBoard = () => {
   const [interviews, setInterviews] = useState([]);
@@ -148,13 +148,23 @@ const CandidateDashBoard = () => {
               </p>
             </div>
           </div>
-          <Link
-            to="/ai-interview"
-            className="px-5 py-3 bg-[#89f5e7] hover:bg-[#5cecd9] text-[#003732] rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0 shadow-sm"
-          >
-            <span>Start AI Interview</span>
-            <ArrowUpRight className="w-4 h-4" />
-          </Link>
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            <Link
+              to="/ai-interview/history"
+              className="px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-white/20"
+            >
+              <FileText className="w-4 h-4 text-[#89f5e7]" />
+              <span>AI History & Reports</span>
+            </Link>
+
+            <Link
+              to="/ai-interview"
+              className="px-5 py-3 bg-[#89f5e7] hover:bg-[#5cecd9] text-[#003732] rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+            >
+              <span>Start AI Interview</span>
+              <ArrowUpRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
 
         {/* Invited Sessions */}

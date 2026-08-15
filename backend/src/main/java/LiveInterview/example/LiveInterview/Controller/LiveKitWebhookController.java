@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @RestController
@@ -53,12 +54,18 @@ public class LiveKitWebhookController {
                     AiInterviewSession session = sessionOpt.get();
                     if ("room_started".equalsIgnoreCase(eventName)) {
                         session.setStatus("IN_PROGRESS");
+                        if (session.getStartedAt() == null) {
+                            session.setStartedAt(LocalDateTime.now());
+                        }
                         sessionRepository.save(session);
-                        logger.info("Updated AI interview session {} status to IN_PROGRESS", session.getId());
+                        logger.info("Updated AI interview session {} status to IN_PROGRESS (startedAt: {})", session.getId(), session.getStartedAt());
                     } else if ("room_finished".equalsIgnoreCase(eventName)) {
                         session.setStatus("COMPLETED");
+                        if (session.getEndedAt() == null) {
+                            session.setEndedAt(LocalDateTime.now());
+                        }
                         sessionRepository.save(session);
-                        logger.info("Updated AI interview session {} status to COMPLETED", session.getId());
+                        logger.info("Updated AI interview session {} status to COMPLETED (endedAt: {})", session.getId(), session.getEndedAt());
                     }
                 } else {
                     logger.warn("No AiInterviewSession found for roomName: {}", roomName);

@@ -14,4 +14,5 @@ public interface AiInterviewSessionRepository extends JpaRepository<AiInterviewS
     Optional<AiInterviewSession> findByRoomNameAndUserId(String roomName, Long userId);
     Optional<AiInterviewSession> findTopByRoomNameAndUserIdOrderByCreatedAtDesc(String roomName, Long userId);
     List<AiInterviewSession> findByUserId(Long userId);
+    List<AiInterviewSession> findByUserIdOrderByCreatedAtDesc(Long userId);
 }

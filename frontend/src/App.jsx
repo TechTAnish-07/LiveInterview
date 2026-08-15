@@ -21,6 +21,8 @@ const PreJoin = lazy(() => import("./Components/InterviewRoom/PreJoin"));
 const JoinInterview = lazy(() => import("./Components/InterviewRoom/JoinInterview"));
 const AiInterviewEntry = lazy(() => import("./Components/AiInterview/AiInterviewEntry"));
 const AiInterviewRoom = lazy(() => import("./Components/AiInterview/AiInterviewRoom"));
+const AiInterviewHistory = lazy(() => import("./Components/AiInterview/AiInterviewHistory"));
+const AiInterviewDetail = lazy(() => import("./Components/AiInterview/AiInterviewDetail"));
 
 const router = createBrowserRouter([
   {
@@ -108,6 +110,22 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute allowedRole="CANDIDATE">
             <AiInterviewRoom />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "ai-interview/history",
+        element: (
+          <ProtectedRoute allowedRole="CANDIDATE">
+            <AiInterviewHistory />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "ai-interview/history/:sessionId",
+        element: (
+          <ProtectedRoute allowedRole="CANDIDATE">
+            <AiInterviewDetail />
           </ProtectedRoute>
         ),
       },

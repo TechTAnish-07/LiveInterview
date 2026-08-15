@@ -22,6 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -368,6 +369,10 @@ public class AiInterviewController {
             session.setStatus("COMPLETED");
         }
 
+        if (session.getEndedAt() == null) {
+            session.setEndedAt(LocalDateTime.now());
+        }
+
         sessionRepository.save(session);
 
         return ResponseEntity.ok(Map.of(
@@ -392,6 +397,9 @@ public class AiInterviewController {
 
         String reason = (body != null && body.get("reason") != null) ? String.valueOf(body.get("reason")) : "completed";
         session.setStatus("ENDED_" + reason.toUpperCase());
+        if (session.getEndedAt() == null) {
+            session.setEndedAt(LocalDateTime.now());
+        }
         sessionRepository.save(session);
 
         logger.info("Session {} ended with reason: {}", sessionId, reason);
@@ -419,6 +427,9 @@ public class AiInterviewController {
 
         if (body != null && body.get("feedback") != null) {
             session.setFeedback(String.valueOf(body.get("feedback")));
+            if (session.getEndedAt() == null) {
+                session.setEndedAt(LocalDateTime.now());
+            }
             sessionRepository.save(session);
             logger.info("Saved feedback report for session {}", sessionId);
         }
@@ -427,6 +438,83 @@ public class AiInterviewController {
                 "message", "Interview feedback saved successfully",
                 "sessionId", session.getId()
         ));
+    }
+
+    @GetMapping("/history")
+    public ResponseEntity<?> getCandidateInterviewHistory(Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "User not authenticated"));
+        }
+
+        UserEntity user = userRepo.findByEmail(principal.getName())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+
+        java.util.List<AiInterviewSession> sessions = sessionRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
+
+        java.util.List<Map<String, Object>> history = sessions.stream().map(session -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("sessionId", session.getId());
+            map.put("jobTitle", session.getJobTitle() != null ? session.getJobTitle() : (session.getJobRole() != null ? session.getJobRole() : "Software Engineer"));
+            map.put("status", session.getStatus());
+            map.put("startedAt", session.getStartedAt());
+            map.put("endedAt", session.getEndedAt());
+            map.put("durationSeconds", session.getDurationSeconds());
+            map.put("hasFeedback", session.getFeedback() != null && !session.getFeedback().isBlank());
+            map.put("createdAt", session.getCreatedAt());
+            return map;
+        }).collect(java.util.stream.Collectors.toList());
+
+        return ResponseEntity.ok(history);
+    }
+
+    @GetMapping("/{sessionId}/detail")
+    public ResponseEntity<?> getCandidateInterviewDetail(
+            @PathVariable Long sessionId,
+            Principal principal
+    ) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "User not authenticated"));
+        }
+
+        UserEntity user = userRepo.findByEmail(principal.getName())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+
+        AiInterviewSession session = sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "AI Interview session not found"));
+
+        if (!session.getUserId().equals(user.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("message", "Not authorized to view this interview session"));
+        }
+
+        String resumeFileUrl = null;
+        if (session.getResumeId() != null) {
+            Optional<Resume> resumeOpt = resumeRepository.findById(session.getResumeId());
+            if (resumeOpt.isPresent()) {
+                resumeFileUrl = resumeOpt.get().getFileUrl();
+            }
+        }
+
+        String jobTitle = session.getJobTitle();
+        if (jobTitle == null || jobTitle.isBlank()) {
+            jobTitle = session.getJobRole() != null ? session.getJobRole() : "Software Engineer";
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("sessionId", session.getId());
+        response.put("jobTitle", jobTitle);
+        response.put("jobRole", session.getJobRole() != null ? session.getJobRole() : jobTitle);
+        response.put("status", session.getStatus());
+        response.put("startedAt", session.getStartedAt());
+        response.put("endedAt", session.getEndedAt());
+        response.put("durationSeconds", session.getDurationSeconds());
+        response.put("hasFeedback", session.getFeedback() != null && !session.getFeedback().isBlank());
+        response.put("feedback", session.getFeedback());
+        response.put("transcript", session.getTranscript());
+        response.put("resumeFileUrl", resumeFileUrl);
+        response.put("createdAt", session.getCreatedAt());
+
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{sessionId}/room")
@@ -488,6 +576,9 @@ public class AiInterviewController {
         }
 
         session.setStatus("CLOSED");
+        if (session.getEndedAt() == null) {
+            session.setEndedAt(LocalDateTime.now());
+        }
         sessionRepository.save(session);
 
         return ResponseEntity.ok(Map.of(

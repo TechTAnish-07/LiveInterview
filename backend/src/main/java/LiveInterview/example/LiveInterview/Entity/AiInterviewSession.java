@@ -45,11 +45,25 @@ public class AiInterviewSession {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "started_at")
+    private LocalDateTime startedAt;
+
+    @Column(name = "ended_at")
+    private LocalDateTime endedAt;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         if (status == null) {
             status = "CREATED";
         }
+    }
+
+    @Transient
+    public Long getDurationSeconds() {
+        if (startedAt != null && endedAt != null) {
+            return java.time.Duration.between(startedAt, endedAt).getSeconds();
+        }
+        return null;
     }
 }
