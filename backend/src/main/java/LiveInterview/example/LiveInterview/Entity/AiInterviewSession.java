@@ -39,9 +39,6 @@ public class AiInterviewSession {
     @Column(columnDefinition = "TEXT")
     private String transcript;
 
-    @Column(columnDefinition = "TEXT")
-    private String feedback;
-
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

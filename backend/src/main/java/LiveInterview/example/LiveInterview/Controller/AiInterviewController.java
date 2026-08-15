@@ -1,8 +1,10 @@
 package LiveInterview.example.LiveInterview.Controller;
 
+import LiveInterview.example.LiveInterview.Entity.AiFeedback;
 import LiveInterview.example.LiveInterview.Entity.AiInterviewSession;
 import LiveInterview.example.LiveInterview.Entity.Resume;
 import LiveInterview.example.LiveInterview.Entity.UserEntity;
+import LiveInterview.example.LiveInterview.Repository.AiFeedbackRepository;
 import LiveInterview.example.LiveInterview.Repository.AiInterviewSessionRepository;
 import LiveInterview.example.LiveInterview.Repository.ResumeRepository;
 import LiveInterview.example.LiveInterview.Repository.UserRepo;
@@ -36,6 +38,7 @@ public class AiInterviewController {
     private static final Logger logger = LoggerFactory.getLogger(AiInterviewController.class);
 
     private final AiInterviewSessionRepository sessionRepository;
+    private final AiFeedbackRepository feedbackRepository;
     private final ResumeRepository resumeRepository;
     private final UserRepo userRepo;
     private final RoomServiceClient roomServiceClient;
@@ -62,6 +65,7 @@ public class AiInterviewController {
 
     public AiInterviewController(
             AiInterviewSessionRepository sessionRepository,
+            AiFeedbackRepository feedbackRepository,
             ResumeRepository resumeRepository,
             UserRepo userRepo,
             RoomServiceClient roomServiceClient,
@@ -69,6 +73,7 @@ public class AiInterviewController {
             @Value("${resume.normalization.service.url:http://localhost:8000}") String resumeNormalizationServiceUrl
     ) {
         this.sessionRepository = sessionRepository;
+        this.feedbackRepository = feedbackRepository;
         this.resumeRepository = resumeRepository;
         this.userRepo = userRepo;
         this.roomServiceClient = roomServiceClient;
@@ -357,8 +362,16 @@ public class AiInterviewController {
             if (resultRequest.getTranscript() != null) {
                 session.setTranscript(resultRequest.getTranscript());
             }
-            if (resultRequest.getFeedback() != null) {
-                session.setFeedback(resultRequest.getFeedback());
+            if (resultRequest.getFeedback() != null && !resultRequest.getFeedback().isBlank()) {
+                String feedbackText = resultRequest.getFeedback();
+                Optional<AiFeedback> existingOpt = feedbackRepository.findBySessionId(sessionId);
+                AiFeedback aiFeedback = existingOpt.orElseGet(() -> {
+                    AiFeedback fb = new AiFeedback();
+                    fb.setSessionId(sessionId);
+                    return fb;
+                });
+                aiFeedback.setFeedbackText(feedbackText);
+                feedbackRepository.save(aiFeedback);
             }
             if (resultRequest.getStatus() != null && !resultRequest.getStatus().isBlank()) {
                 session.setStatus(resultRequest.getStatus());
@@ -425,13 +438,31 @@ public class AiInterviewController {
         AiInterviewSession session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "AI Interview session not found"));
 
-        if (body != null && body.get("feedback") != null) {
-            session.setFeedback(String.valueOf(body.get("feedback")));
-            if (session.getEndedAt() == null) {
-                session.setEndedAt(LocalDateTime.now());
+        if (body != null) {
+            String feedbackText = null;
+            if (body.get("feedback") != null) {
+                feedbackText = String.valueOf(body.get("feedback"));
+            } else if (body.get("feedbackText") != null) {
+                feedbackText = String.valueOf(body.get("feedbackText"));
             }
-            sessionRepository.save(session);
-            logger.info("Saved feedback report for session {}", sessionId);
+
+            if (feedbackText != null && !feedbackText.isBlank()) {
+                Optional<AiFeedback> existingOpt = feedbackRepository.findBySessionId(sessionId);
+                final String textToSave = feedbackText;
+                AiFeedback aiFeedback = existingOpt.orElseGet(() -> {
+                    AiFeedback fb = new AiFeedback();
+                    fb.setSessionId(sessionId);
+                    return fb;
+                });
+                aiFeedback.setFeedbackText(textToSave);
+                feedbackRepository.save(aiFeedback);
+
+                if (session.getEndedAt() == null) {
+                    session.setEndedAt(LocalDateTime.now());
+                }
+                sessionRepository.save(session);
+                logger.info("Saved feedback report into ai_feedback entity for session {}", sessionId);
+            }
         }
 
         return ResponseEntity.ok(Map.of(
@@ -459,7 +490,7 @@ public class AiInterviewController {
             map.put("startedAt", session.getStartedAt());
             map.put("endedAt", session.getEndedAt());
             map.put("durationSeconds", session.getDurationSeconds());
-            map.put("hasFeedback", session.getFeedback() != null && !session.getFeedback().isBlank());
+            map.put("hasFeedback", feedbackRepository.existsBySessionId(session.getId()));
             map.put("createdAt", session.getCreatedAt());
             return map;
         }).collect(java.util.stream.Collectors.toList());
@@ -500,6 +531,10 @@ public class AiInterviewController {
             jobTitle = session.getJobRole() != null ? session.getJobRole() : "Software Engineer";
         }
 
+        Optional<AiFeedback> feedbackOpt = feedbackRepository.findBySessionId(sessionId);
+        String feedbackText = feedbackOpt.map(AiFeedback::getFeedbackText).orElse(null);
+        boolean hasFeedback = feedbackText != null && !feedbackText.isBlank();
+
         Map<String, Object> response = new HashMap<>();
         response.put("sessionId", session.getId());
         response.put("jobTitle", jobTitle);
@@ -508,8 +543,8 @@ public class AiInterviewController {
         response.put("startedAt", session.getStartedAt());
         response.put("endedAt", session.getEndedAt());
         response.put("durationSeconds", session.getDurationSeconds());
-        response.put("hasFeedback", session.getFeedback() != null && !session.getFeedback().isBlank());
-        response.put("feedback", session.getFeedback());
+        response.put("hasFeedback", hasFeedback);
+        response.put("feedback", feedbackText);
         response.put("transcript", session.getTranscript());
         response.put("resumeFileUrl", resumeFileUrl);
         response.put("createdAt", session.getCreatedAt());
