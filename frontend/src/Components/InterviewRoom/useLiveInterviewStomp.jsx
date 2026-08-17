@@ -7,7 +7,7 @@ const API_BASE =
   import.meta.env.VITE_API_BASE_URL ||
   (window.location.hostname === "localhost"
     ? "http://localhost:8080"
-    : "https://liveinterview-backend.onrender.com");
+    : "https://liveinterview-backend-kfmn.onrender.com");
 
 const WS_URL = `${API_BASE}/ws`;
 
@@ -17,7 +17,7 @@ export function useLiveInterviewStomp({ interviewId, token, role, userId }) {
   const readyRef = useRef(false);
   const questionTimerRef = useRef(null);
   const codeTimerRef = useRef(null);
-  
+
   const [language, setLanguage] = useState("python");
   const [stompClientState, setStompClientState] = useState(null);
   const [question, setQuestion] = useState("");
@@ -67,7 +67,7 @@ export function useLiveInterviewStomp({ interviewId, token, role, userId }) {
         role: role,
       } : {},
       debug: (str) => {
-     //   console.log('STOMP Debug:', str); // Enable for debugging
+        //   console.log('STOMP Debug:', str); // Enable for debugging
       },
     });
 
@@ -139,8 +139,8 @@ export function useLiveInterviewStomp({ interviewId, token, role, userId }) {
         `/topic/interview/${interviewId}/security`,
         (message) => {
           const flag = JSON.parse(message.body);
-        //  console.log("🚩 Security flag received:", flag);
-          
+          //  console.log("🚩 Security flag received:", flag);
+
           setSecurityFlags((prev) => [
             ...prev,
             {
@@ -156,24 +156,24 @@ export function useLiveInterviewStomp({ interviewId, token, role, userId }) {
         `/topic/interview/${interviewId}/presence`,
         (message) => {
           const data = JSON.parse(message.body);
-       //   console.log("👤 Presence broadcast:", data);
-          
+          //   console.log("👤 Presence broadcast:", data);
+
           setOnlineUsers((prevUsers) => {
             const updated = new Map(prevUsers);
-            
+
             if (data.status === "JOINED") {
-       //       console.log(`✅ User JOINED: ${data.user} (${data.role})`);
+              //       console.log(`✅ User JOINED: ${data.user} (${data.role})`);
               updated.set(data.user, {
                 role: data.role,
                 status: data.status,
                 joinedAt: new Date()
               });
             } else if (data.status === "LEFT") {
-      //        console.log(`👋 User LEFT: ${data.user}`);
+              //        console.log(`👋 User LEFT: ${data.user}`);
               updated.delete(data.user);
             }
-            
-        //    console.log(`📊 Total online: ${updated.size}`);
+
+            //    console.log(`📊 Total online: ${updated.size}`);
             return updated;
           });
         }
@@ -184,8 +184,8 @@ export function useLiveInterviewStomp({ interviewId, token, role, userId }) {
         `/user/queue/presence/snapshot`,
         (message) => {
           const users = JSON.parse(message.body);
-       //   console.log("📋 Received user snapshot:", users);
-          
+          //   console.log("📋 Received user snapshot:", users);
+
           setOnlineUsers((prevUsers) => {
             const updated = new Map();
             users.forEach(presence => {
@@ -197,7 +197,7 @@ export function useLiveInterviewStomp({ interviewId, token, role, userId }) {
                 });
               }
             });
-         //   console.log(`📊 Snapshot loaded: ${updated.size} users`);
+            //   console.log(`📊 Snapshot loaded: ${updated.size} users`);
             return updated;
           });
         }
@@ -212,7 +212,7 @@ export function useLiveInterviewStomp({ interviewId, token, role, userId }) {
       );
 
       // ✅ Send join message AFTER subscriptions
-    //  console.log("📤 Sending presence join...");
+      //  console.log("📤 Sending presence join...");
       client.publish({
         destination: `/app/interview/${interviewId}/presence/join`,
         body: JSON.stringify({ action: "join" })
@@ -263,7 +263,7 @@ export function useLiveInterviewStomp({ interviewId, token, role, userId }) {
       }
 
       const destination = `/app/interview/${interviewId}/question`;
-      
+
       try {
         clientRef.current.publish({
           destination: destination,
@@ -286,7 +286,7 @@ export function useLiveInterviewStomp({ interviewId, token, role, userId }) {
       }
 
       const destination = `/app/interview/${interviewId}/code`;
-      
+
       try {
         clientRef.current.publish({
           destination: destination,
@@ -319,7 +319,7 @@ export function useLiveInterviewStomp({ interviewId, token, role, userId }) {
       }
 
       const destination = `/app/interview/${interviewId}/security`;
-      
+
       try {
         const flag = {
           type,
