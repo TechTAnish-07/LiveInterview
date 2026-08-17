@@ -3,10 +3,13 @@ import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
 import api from "../Axios";
 
-const WS_URL =
-  window.location.hostname === "localhost"
-    ? "http://localhost:8080/ws"
-    : "https://liveintervieww.tech/ws";
+const API_BASE =
+  import.meta.env.VITE_API_BASE_URL ||
+  (window.location.hostname === "localhost"
+    ? "http://localhost:8080"
+    : "https://liveinterview-backend.onrender.com");
+
+const WS_URL = `${API_BASE}/ws`;
 
 export function useLiveInterviewStomp({ interviewId, token, role, userId }) {
   const clientRef = useRef(null);
