@@ -1,7 +1,13 @@
 import axios from "axios";
 
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  (window.location.hostname === "localhost"
+    ? "http://localhost:8080"
+    : "https://liveinterview-backend.onrender.com");
+
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8080",
+    baseURL: API_BASE_URL,
     headers: {
         Accept: "application/json, text/plain, */*",
     },
@@ -23,7 +29,7 @@ const logout = () => {
     window.location.href = "/signin";
 };
 
-// ✅ Interceptors on `api` instance, not global `axios`
+// ✅ Interceptors on `api` instance
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem("accessToken");
@@ -65,7 +71,7 @@ api.interceptors.response.use(
                     failedQueue.push({ resolve, reject });
                 }).then((token) => {
                     originalRequest.headers.Authorization = `Bearer ${token}`;
-                    return api(originalRequest); // ✅ Fixed: was `axiosaxios` (typo)
+                    return api(originalRequest);
                 });
             }
 
@@ -81,14 +87,14 @@ api.interceptors.response.use(
                 }
 
                 const res = await axios.post(
-                    "/api/auth/refresh",
+                    `${API_BASE_URL}/auth/refresh-token`,
                     { refreshToken }
                 );
 
-                const newAccessToken = res.data.token;
+                const newAccessToken = res.data.token || res.data.accessToken;
 
                 localStorage.setItem("accessToken", newAccessToken);
-                api.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`; // ✅ Fixed: use `common`
+                api.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`;
 
                 processQueue(null, newAccessToken);
 

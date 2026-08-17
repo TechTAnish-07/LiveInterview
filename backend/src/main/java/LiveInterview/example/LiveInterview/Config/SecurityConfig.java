@@ -49,6 +49,8 @@ public class SecurityConfig {
         config.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:*",
                 "http://127.0.0.1:*",
+                "https://*.vercel.app",
+                "https://*.onrender.com",
                 "https://live-interview-ten.vercel.app",
                 "https://liveintervieww.tech"
         ));

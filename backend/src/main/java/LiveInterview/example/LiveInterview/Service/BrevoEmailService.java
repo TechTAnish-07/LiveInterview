@@ -25,7 +25,7 @@ public class BrevoEmailService implements  EmailService{
     @Value("${BREVO_API_KEY}")
     private String apiKey;
 
-    @Value("${BACKEND_URL}")
+    @Value("${BACKEND_URL:https://liveinterview-backend.onrender.com}")
     private String backendUrl;
 
 
