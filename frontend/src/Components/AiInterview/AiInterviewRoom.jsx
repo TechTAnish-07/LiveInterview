@@ -1,8 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Room, RoomEvent, Track } from "livekit-client";
+import { Room, RoomEvent, Track, setLogLevel } from "livekit-client";
 import { Mic, MicOff, Video, VideoOff, PhoneOff, Bot, AlertCircle, Loader2, ShieldCheck, UserCheck, Activity, Camera, Code2, Video as VideoIcon, GripVertical, ChevronRight, ChevronLeft, Sparkles } from "lucide-react";
 import AiCodingPanel from "./AiCodingPanel";
+
+// Suppress internal LiveKit connection info/debug logs containing tokens and internal state transitions
+setLogLevel("warn");
 
 export default function AiInterviewRoom() {
   const location = useLocation();
@@ -107,7 +110,6 @@ export default function AiInterviewRoom() {
         // 2. Setup LiveKit Event Listeners
         room.on(RoomEvent.Connected, () => {
           if (!isMounted) return;
-          console.log("Connected to LiveKit room:", room.name);
           setConnectionState("CONNECTED");
 
           if (room.remoteParticipants.size > 0) {
@@ -115,9 +117,8 @@ export default function AiInterviewRoom() {
           }
         });
 
-        room.on(RoomEvent.Disconnected, (reason) => {
+        room.on(RoomEvent.Disconnected, () => {
           if (!isMounted) return;
-          console.log("Disconnected from LiveKit room. Reason:", reason);
           setConnectionState("DISCONNECTED");
           setAgentJoined(false);
           // Automatically navigate to dashboard after interview ends.
@@ -126,15 +127,13 @@ export default function AiInterviewRoom() {
           }, 3000);
         });
 
-        room.on(RoomEvent.ParticipantConnected, (participant) => {
+        room.on(RoomEvent.ParticipantConnected, () => {
           if (!isMounted) return;
-          console.log("Participant connected:", participant.identity);
           setAgentJoined(true);
         });
 
-        room.on(RoomEvent.ParticipantDisconnected, (participant) => {
+        room.on(RoomEvent.ParticipantDisconnected, () => {
           if (!isMounted) return;
-          console.log("Participant disconnected:", participant.identity);
           if (room.remoteParticipants.size === 0) {
             setAgentJoined(false);
             setHasRemoteVideo(false);
@@ -169,12 +168,11 @@ export default function AiInterviewRoom() {
         });
 
         // Listen for Data Channel messages from Agent (e.g. coding_question)
-        room.on(RoomEvent.DataReceived, (payload, participant) => {
+        room.on(RoomEvent.DataReceived, (payload) => {
           if (!isMounted) return;
           try {
             const text = new TextDecoder().decode(payload);
             const data = JSON.parse(text);
-            console.log("LiveKit DataReceived:", data, "from:", participant?.identity);
 
             if (
               data.type === "coding_question" ||
@@ -287,7 +285,6 @@ export default function AiInterviewRoom() {
           };
           const encoded = new TextEncoder().encode(JSON.stringify(payloadData));
           await roomRef.current.localParticipant.publishData(encoded, { reliable: true });
-          console.log("Published debounced code_update to LiveKit room");
           setIsSyncing(false);
         } catch (publishErr) {
           console.error("Failed to publish code_update to LiveKit room:", publishErr);
@@ -330,7 +327,6 @@ export default function AiInterviewRoom() {
         };
         const encoded = new TextEncoder().encode(JSON.stringify(payloadData));
         await roomRef.current.localParticipant.publishData(encoded, { reliable: true });
-        console.log("Published code_run_result to LiveKit room:", payloadData);
       } catch (err) {
         console.error("Failed to publish code_run_result to LiveKit room:", err);
       }

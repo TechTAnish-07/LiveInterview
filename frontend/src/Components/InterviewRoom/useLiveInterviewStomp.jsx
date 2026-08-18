@@ -73,7 +73,6 @@ export function useLiveInterviewStomp({ interviewId, token, role, userId }) {
 
     // ✅ SINGLE onConnect handler
     client.onConnect = () => {
-      console.log("✅ STOMP CONNECTED");
 
       // Subscribe to question updates
       client.subscribe(
@@ -128,8 +127,7 @@ export function useLiveInterviewStomp({ interviewId, token, role, userId }) {
       // Subscribe to interview end
       client.subscribe(
         `/topic/interview/${interviewId}/ended`,
-        (message) => {
-          console.log("Interview ended");
+        () => {
           setInterviewEnded(true);
         }
       );
@@ -235,7 +233,6 @@ export function useLiveInterviewStomp({ interviewId, token, role, userId }) {
     };
 
     client.onDisconnect = () => {
-      console.log("🔌 STOMP DISCONNECTED");
       setConnected(false);
       readyRef.current = false;
       setOnlineUsers(new Map()); // Clear users on disconnect
@@ -245,7 +242,6 @@ export function useLiveInterviewStomp({ interviewId, token, role, userId }) {
     clientRef.current = client;
 
     return () => {
-      console.log("🧹 Cleaning up STOMP connection");
       readyRef.current = false;
       setConnected(false);
       setOnlineUsers(new Map());
