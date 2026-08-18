@@ -35,3 +35,7 @@ build/
 ### Uploaded Files ###
 uploads/
 uploads/resumes/
+
+### Test Suites ###
+src/test/java/LiveInterview/example/LiveInterview/LiveInterviewAllTests.java
+LiveInterviewAllTests.java
