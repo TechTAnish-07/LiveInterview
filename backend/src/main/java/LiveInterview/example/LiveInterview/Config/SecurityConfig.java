@@ -56,7 +56,7 @@ public class SecurityConfig {
         ));
 
         config.setAllowedHeaders(List.of("*"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
@@ -84,6 +84,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/ai-interview/*/room", "/api/ai-interview/room/*").permitAll()
                         .requestMatchers("/api/ai-interview/*/execute-code").permitAll()
                         .requestMatchers("/livekit/webhook").permitAll()
+                        .requestMatchers("/api/dsa/**").authenticated()
 
                         .anyRequest().authenticated()
                 )

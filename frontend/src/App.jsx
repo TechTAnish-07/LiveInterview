@@ -23,6 +23,7 @@ const AiInterviewEntry = lazy(() => import("./Components/AiInterview/AiInterview
 const AiInterviewRoom = lazy(() => import("./Components/AiInterview/AiInterviewRoom"));
 const AiInterviewHistory = lazy(() => import("./Components/AiInterview/AiInterviewHistory"));
 const AiInterviewDetail = lazy(() => import("./Components/AiInterview/AiInterviewDetail"));
+const DsaTrackerPage = lazy(() => import("./pages/DsaTracker/DsaTrackerPage"));
 
 const router = createBrowserRouter([
   {
@@ -33,6 +34,8 @@ const router = createBrowserRouter([
       { index: true, element: <Home /> },
       { path: "login", element: <Login /> },
       { path: "practice", element: <Practice /> },
+      { path: "dsa-tracker", element: <DsaTrackerPage /> },
+      { path: "dsa-tracker/revision", element: <DsaTrackerPage /> },
       { path: "interview/:id", element: <InterviewRoom /> },
       { path: "prejoin/:meetingLink", element: <PreJoin /> },
       { path: "join/:meetingLink", element: <JoinInterview /> },
