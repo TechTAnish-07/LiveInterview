@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../Axios";
-import { FileText, Upload, Bot, Sparkles, CheckCircle2, AlertCircle, Loader2, ArrowRight, RefreshCw } from "lucide-react";
+import { FileText, Upload, Bot, Sparkles, CheckCircle2, AlertCircle, Loader2, ArrowRight, RefreshCw, Key, Eye, EyeOff, Shield, ExternalLink } from "lucide-react";
 
 export default function AiInterviewEntry() {
   const navigate = useNavigate();
@@ -16,6 +16,27 @@ export default function AiInterviewEntry() {
   const [jobTitle, setJobTitle] = useState("Software Engineer");
   const [relevanceWarning, setRelevanceWarning] = useState(null);
   const [error, setError] = useState(null);
+
+  // Gemini API Key — primary source is sessionStorage set from Candidate Dashboard
+  const [llmApiKey, setLlmApiKey] = useState(() => sessionStorage.getItem("candidate_llm_key") || "");
+  const [showLocalKeyInput, setShowLocalKeyInput] = useState(false);
+  const [localKeyInput, setLocalKeyInput] = useState("");
+  const [showKey, setShowKey] = useState(false);
+  const [keyTouched, setKeyTouched] = useState(false);
+
+  // Only Gemini, only length check — no prefix restriction (key format can change)
+  const keyValid = llmApiKey.trim().length >= 10;
+  const localKeyInputValid = localKeyInput.trim().length >= 10;
+
+  const saveLocalKey = () => {
+    const trimmed = localKeyInput.trim();
+    if (trimmed.length < 10) { setKeyTouched(true); return; }
+    sessionStorage.setItem("candidate_llm_key", trimmed);
+    setLlmApiKey(trimmed);
+    setLocalKeyInput("");
+    setShowLocalKeyInput(false);
+    setKeyTouched(false);
+  };
 
   // Fetch candidate's latest resume status on mount
   const fetchResume = async () => {
@@ -41,6 +62,13 @@ export default function AiInterviewEntry() {
 
   useEffect(() => {
     fetchResume();
+  }, []);
+
+  // Clear the ephemeral key from sessionStorage on unmount (tab close, navigation away)
+  useEffect(() => {
+    return () => {
+      sessionStorage.removeItem("candidate_llm_key");
+    };
   }, []);
 
   const handleFileChange = (e) => {
@@ -93,12 +121,19 @@ export default function AiInterviewEntry() {
   };
 
   const startSessionDirectly = async (titleToUse) => {
+    if (!keyValid) {
+      setKeyTouched(true);
+      return;
+    }
+
     try {
       setStartingSession(true);
       setError(null);
 
       const title = titleToUse || jobTitle || "Software Engineer";
-      const res = await api.post("/api/ai-interview/start", { jobTitle: title, jobRole: title });
+      const headers = llmApiKey.trim() ? { "X-Candidate-Llm-Key": llmApiKey.trim() } : {};
+
+      const res = await api.post("/api/ai-interview/start", { jobTitle: title, jobRole: title }, { headers });
       const { sessionId, roomName, token, livekitUrl } = res.data;
 
       navigate("/ai-interview/room", {
@@ -106,7 +141,7 @@ export default function AiInterviewEntry() {
       });
     } catch (err) {
       console.error("Error starting AI interview:", err);
-      const msg = err.response?.data?.message || "Could not initialize AI interview room. Please try again.";
+      const msg = err.response?.data?.message || "Could not initialize AI interview room. Please check your API key.";
       setError(msg);
     } finally {
       setStartingSession(false);
@@ -114,13 +149,20 @@ export default function AiInterviewEntry() {
   };
 
   const handleStartInterview = async () => {
+    if (!keyValid) {
+      setKeyTouched(true);
+      return;
+    }
+
     try {
       setCheckingEligibility(true);
       setError(null);
       setRelevanceWarning(null);
 
       const title = jobTitle || "Software Engineer";
-      const checkRes = await api.post("/api/ai-interview/check-eligibility", { jobTitle: title });
+      const headers = llmApiKey.trim() ? { "X-Candidate-Llm-Key": llmApiKey.trim() } : {};
+
+      const checkRes = await api.post("/api/ai-interview/check-eligibility", { jobTitle: title }, { headers });
 
       if (checkRes.data && checkRes.data.relevant === false) {
         setRelevanceWarning({
@@ -432,19 +474,125 @@ export default function AiInterviewEntry() {
 
             </div>
 
-            {/* Right Col: Launch Action Card */}
-            <div className="space-y-6">
-              <div className="bg-gradient-to-b from-[#070235] to-[#1e1b4b] text-white rounded-2xl p-6 shadow-xl flex flex-col justify-between h-full">
+            {/* Right Col: Gemini Key Status + Launch Card */}
+            <div className="space-y-5">
+
+              {/* Compact Gemini API Key status card */}
+              <div className="bg-white rounded-2xl border border-[#e0e3e5] p-5 shadow-xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-bold text-[#070235] flex items-center gap-2">
+                    <Key className="w-4 h-4 text-[#0058be]" />
+                    Gemini API Key
+                  </h2>
+                  {keyValid ? (
+                    <span className="flex items-center gap-1.5 px-2.5 py-0.5 bg-[#89f5e7]/30 text-[#005049] text-[10px] font-mono font-bold rounded-full border border-[#89f5e7]/60">
+                      <CheckCircle2 className="w-3 h-3" /> Ready
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1.5 px-2.5 py-0.5 bg-[#fff3cd] text-[#7c5e00] text-[10px] font-mono font-bold rounded-full border border-[#f0d980]">
+                      <AlertCircle className="w-3 h-3" /> Required
+                    </span>
+                  )}
+                </div>
+
+                {keyValid ? (
+                  /* Key already saved — show masked value + update */
+                  <div className="flex items-center gap-2 bg-[#f7f9fb] border border-[#e0e3e5] rounded-xl px-3 py-2">
+                    <Key className="w-3 h-3 text-[#787680] shrink-0" />
+                    <span className="text-[11px] font-mono text-[#47464f] flex-1 truncate">
+                      {showKey ? llmApiKey : llmApiKey.slice(0, 8) + "•".repeat(Math.min(llmApiKey.length - 8, 20))}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowKey((v) => !v)}
+                      className="text-[#787680] hover:text-[#070235] cursor-pointer shrink-0"
+                    >
+                      {showKey ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowLocalKeyInput((v) => !v)}
+                      className="text-[11px] text-[#0058be] hover:underline font-semibold cursor-pointer shrink-0"
+                    >
+                      Change
+                    </button>
+                  </div>
+                ) : null}
+
+                {/* Fallback inline input (shown when no key saved, or Change clicked) */}
+                {(!keyValid || showLocalKeyInput) && (
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <input
+                        type="password"
+                        value={localKeyInput}
+                        onChange={(e) => setLocalKeyInput(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && saveLocalKey()}
+                        placeholder="Paste your Gemini API key..."
+                        autoComplete="off"
+                        spellCheck={false}
+                        className={`flex-1 px-3 py-2 text-xs font-mono rounded-xl border focus:outline-none focus:border-[#0058be] focus:ring-2 focus:ring-[#0058be]/20 transition-all ${
+                          keyTouched && !localKeyInputValid
+                            ? "border-[#ba1a1a] bg-[#fff8f8]"
+                            : "border-[#c8c5d0] bg-[#f7f9fb]"
+                        } text-[#191c1e]`}
+                      />
+                      <button
+                        onClick={saveLocalKey}
+                        disabled={!localKeyInputValid}
+                        className="px-3 py-2 bg-[#0058be] hover:bg-[#2170e4] disabled:opacity-50 text-white rounded-xl text-xs font-semibold cursor-pointer"
+                      >
+                        Save
+                      </button>
+                      {keyValid && (
+                        <button
+                          onClick={() => { setShowLocalKeyInput(false); setLocalKeyInput(""); }}
+                          className="px-3 py-2 bg-[#f2f4f6] border border-[#c8c5d0] text-[#191c1e] rounded-xl text-xs font-semibold cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex items-start gap-2 px-3 py-2 bg-[#f7f9fb] border border-[#e0e3e5] rounded-xl">
+                      <Shield className="w-3 h-3 text-[#1a8754] shrink-0 mt-0.5" />
+                      <p className="text-[10px] text-[#47464f] leading-relaxed">
+                        <span className="font-bold text-[#070235]">Privacy:</span> Never stored on our servers — cleared when you close the tab.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <a
+                        href="https://aistudio.google.com/apikey"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-[11px] text-[#0058be] hover:underline font-semibold"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        Get a free Gemini key
+                      </a>
+                      <span className="text-[#c8c5d0] text-[10px]">·</span>
+                      <a
+                        href="/dashboard/candidate"
+                        className="flex items-center gap-1 text-[11px] text-[#787680] hover:text-[#0058be] hover:underline font-semibold"
+                      >
+                        Manage key on Dashboard
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Launch Action Card */}
+              <div className="bg-gradient-to-b from-[#070235] to-[#1e1b4b] text-white rounded-2xl p-6 shadow-xl flex flex-col gap-5">
                 <div>
                   <div className="w-12 h-12 rounded-xl bg-white/10 text-[#89f5e7] flex items-center justify-center mb-4">
                     <Bot className="w-6 h-6" />
                   </div>
                   <h3 className="text-lg font-bold mb-2">Live AI Technical Interview</h3>
-                  <p className="text-xs text-[#8683ba] leading-relaxed mb-6">
-                    Connect via high-quality WebRTC voice transport directly with the LiveKit AI agent. Experience real-time adaptive Q&A, follow-ups, and audio interaction.
+                  <p className="text-xs text-[#8683ba] leading-relaxed mb-4">
+                    Connect via WebRTC voice transport with the LiveKit AI agent. Real-time adaptive Q&amp;A, follow-ups, and audio interaction — powered by your Gemini API key.
                   </p>
 
-                  <div className="space-y-2 text-xs text-[#d8e2ff] font-mono bg-white/5 p-3 rounded-xl border border-white/10 mb-6">
+                  <div className="space-y-2 text-xs text-[#d8e2ff] font-mono bg-white/5 p-3 rounded-xl border border-white/10">
                     <div className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-[#89f5e7]"></span>
                       <span>Audio Input: Microphone required</span>
@@ -453,23 +601,29 @@ export default function AiInterviewEntry() {
                       <span className="w-2 h-2 rounded-full bg-[#89f5e7]"></span>
                       <span>Target Role: {jobTitle || "Software Engineer"}</span>
                     </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full ${keyValid ? "bg-[#89f5e7]" : "bg-[#ffdad6]"}`}></span>
+                      <span className={keyValid ? "" : "text-[#ffdad6]"}>
+                        Gemini Key: {keyValid ? "Ready" : "Required"}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
                 <button
                   onClick={handleStartInterview}
-                  disabled={!resume || startingSession || checkingEligibility}
+                  disabled={!resume || startingSession || checkingEligibility || !keyValid}
                   className="w-full py-3.5 bg-[#89f5e7] hover:bg-[#5cecd9] text-[#003732] font-bold text-xs rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {checkingEligibility ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Checking your resume against this role...</span>
+                      <span>Verifying resume eligibility...</span>
                     </>
                   ) : startingSession ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Minting LiveKit Session...</span>
+                      <span>Initialising LiveKit session...</span>
                     </>
                   ) : (
                     <>
@@ -480,18 +634,24 @@ export default function AiInterviewEntry() {
                 </button>
 
                 {!resume && (
-                  <p className="text-[11px] text-[#ffdad6] text-center mt-2 font-mono">
-                    Please upload your resume to enable the interview call.
+                  <p className="text-[11px] text-[#ffdad6] text-center font-mono -mt-2">
+                    Upload your resume above to enable the call.
+                  </p>
+                )}
+                {!keyValid && resume && (
+                  <p className="text-[11px] text-[#ffdad6] text-center font-mono -mt-2">
+                    Enter your Gemini API key above to start.
                   </p>
                 )}
               </div>
+
             </div>
 
           </div>
         )}
 
       </div>
+    {/* Duplicate launch card removed - cleaned up */}
     </div>
   );
 }
-

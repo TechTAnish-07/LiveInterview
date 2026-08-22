@@ -2,12 +2,38 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import CandidateHistory from "./CandidateHistory";
 import api from "../Axios";
-import { Calendar, Video, CheckCircle2, Code, Clock, ArrowUpRight, Copy, Bot, FileText } from "lucide-react";
+import { Calendar, Video, CheckCircle2, Code, Clock, ArrowUpRight, Copy, Bot, FileText, Key, Eye, EyeOff, Shield, ExternalLink, X } from "lucide-react";
 
 const CandidateDashBoard = () => {
   const [interviews, setInterviews] = useState([]);
   const [copiedId, setCopiedId] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Gemini API Key (persisted per session via sessionStorage)
+  const [geminiKey, setGeminiKey] = useState(() => sessionStorage.getItem("candidate_llm_key") || "");
+  const [keyInput, setKeyInput] = useState("");
+  const [showKeyInput, setShowKeyInput] = useState(false);
+  const [showKeyValue, setShowKeyValue] = useState(false);
+
+  const keySaved = !!geminiKey.trim();
+
+  const saveKey = () => {
+    const trimmed = keyInput.trim();
+    if (trimmed.length < 10) return;
+    sessionStorage.setItem("candidate_llm_key", trimmed);
+    setGeminiKey(trimmed);
+    setKeyInput("");
+    setShowKeyInput(false);
+    setShowKeyValue(false);
+  };
+
+  const clearKey = () => {
+    sessionStorage.removeItem("candidate_llm_key");
+    setGeminiKey("");
+    setKeyInput("");
+    setShowKeyInput(false);
+    setShowKeyValue(false);
+  };
 
   useEffect(() => {
     const fetchInterviews = async () => {
@@ -165,6 +191,100 @@ const CandidateDashBoard = () => {
               <ArrowUpRight className="w-4 h-4" />
             </Link>
           </div>
+        </div>
+
+        {/* Gemini API Key Section */}
+        <div className="bg-white rounded-2xl border border-[#e0e3e5] p-6 shadow-xs">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Key className="w-5 h-5 text-[#0058be]" />
+              <div>
+                <h2 className="text-base font-bold text-[#070235]">Gemini API Key</h2>
+                <p className="text-[11px] text-[#787680] mt-0.5">Used by the AI Mock Interviewer for the duration of your session</p>
+              </div>
+            </div>
+            {keySaved && (
+              <span className="flex items-center gap-1.5 px-3 py-1 bg-[#89f5e7]/30 text-[#005049] text-[11px] font-mono font-bold rounded-full border border-[#89f5e7]/60">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                Key Saved
+              </span>
+            )}
+          </div>
+
+          {keySaved && !showKeyInput ? (
+            <div className="flex items-center gap-3">
+              <div className="flex-1 flex items-center gap-2 bg-[#f7f9fb] border border-[#e0e3e5] rounded-xl px-4 py-2.5">
+                <Key className="w-3.5 h-3.5 text-[#787680] shrink-0" />
+                <span className="text-xs font-mono text-[#47464f] truncate">
+                  {showKeyValue ? geminiKey : geminiKey.slice(0, 8) + "•".repeat(Math.min(geminiKey.length - 8, 24))}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowKeyValue((v) => !v)}
+                  className="ml-auto text-[#787680] hover:text-[#070235] cursor-pointer shrink-0"
+                >
+                  {showKeyValue ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                </button>
+              </div>
+              <button
+                onClick={() => { setShowKeyInput(true); setKeyInput(""); }}
+                className="px-4 py-2.5 bg-[#f2f4f6] hover:bg-[#e0e3e5] border border-[#c8c5d0] rounded-xl text-xs font-semibold text-[#070235] cursor-pointer"
+              >
+                Update
+              </button>
+              <button
+                onClick={clearKey}
+                className="p-2.5 bg-[#ffdad6] hover:bg-[#f9b4af] border border-[#ba1a1a]/20 rounded-xl text-[#ba1a1a] cursor-pointer"
+                title="Remove key"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <input
+                  type="password"
+                  value={keyInput}
+                  onChange={(e) => setKeyInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && saveKey()}
+                  placeholder="Paste your Google Gemini API key here..."
+                  autoComplete="off"
+                  spellCheck={false}
+                  className="flex-1 px-4 py-2.5 text-xs font-mono bg-[#f7f9fb] border border-[#c8c5d0] rounded-xl focus:outline-none focus:border-[#0058be] focus:ring-2 focus:ring-[#0058be]/20 text-[#191c1e]"
+                />
+                <button
+                  onClick={saveKey}
+                  disabled={keyInput.trim().length < 10}
+                  className="px-4 py-2.5 bg-[#0058be] hover:bg-[#2170e4] disabled:opacity-50 text-white rounded-xl text-xs font-semibold cursor-pointer transition-all"
+                >
+                  Save Key
+                </button>
+                {keySaved && (
+                  <button onClick={() => setShowKeyInput(false)} className="px-3 py-2.5 bg-[#f2f4f6] border border-[#c8c5d0] text-[#191c1e] rounded-xl text-xs font-semibold cursor-pointer">
+                    Cancel
+                  </button>
+                )}
+              </div>
+
+              <div className="flex items-start gap-2 px-3 py-2.5 bg-[#f7f9fb] border border-[#e0e3e5] rounded-xl">
+                <Shield className="w-3.5 h-3.5 text-[#1a8754] shrink-0 mt-0.5" />
+                <p className="text-[10px] text-[#47464f] leading-relaxed">
+                  <span className="font-bold text-[#070235]">Privacy:</span> Your key is stored only in your browser session memory and is <span className="font-semibold">never saved to our servers</span>. It will be cleared automatically when you close this tab.
+                </p>
+              </div>
+
+              <a
+                href="https://aistudio.google.com/apikey"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 text-[11px] text-[#0058be] hover:underline font-semibold"
+              >
+                <ExternalLink className="w-3 h-3" />
+                Get a free Gemini API key from Google AI Studio
+              </a>
+            </div>
+          )}
         </div>
 
         {/* Invited Sessions */}
