@@ -170,68 +170,211 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Feature Grid */}
+      {/* Platform Overview: 4 Core Capability Tracks */}
       <section className="py-20 px-6 md:px-12 bg-white border-t border-[#e0e3e5]">
         <div className="max-w-6xl mx-auto">
-          
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-14 gap-4">
             <div>
-              <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#0058be] block mb-2">
-                Capabilities
-              </span>
-              <h2 className="text-3xl font-extrabold text-[#070235]">Engineered for Modern Engineering Hiring</h2>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#d8e2ff] text-[#0058be] rounded-full text-xs font-mono font-bold uppercase tracking-wider mb-2">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Unified Ecosystem</span>
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#070235] tracking-tight">
+                Four Pillars of Technical Excellence
+              </h2>
             </div>
-            <p className="text-sm text-[#47464f] max-w-md">
-              Everything required to conduct end-to-end technical interviews without context switching.
+            <p className="text-sm text-[#47464f] max-w-md leading-relaxed">
+              Experience seamless end-to-end evaluations across live sessions, AI mock interviews, practice banks, and deep analytics.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            
-            {/* Feature 1 */}
-            <div className="p-6 rounded-2xl bg-[#f7f9fb] border border-[#e0e3e5] hover:border-[#0058be] hover:shadow-lg transition-all group">
-              <div className="w-12 h-12 rounded-xl bg-[#e3dfff] text-[#070235] flex items-center justify-center mb-6 group-hover:bg-[#070235] group-hover:text-white transition-colors">
-                <Video className="w-6 h-6" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Track 1: Live HR ↔ Candidate Technical Sessions */}
+            <div className="p-7 rounded-3xl bg-[#f7f9fb] border border-[#e0e3e5] hover:border-[#0058be] hover:shadow-xl transition-all flex flex-col justify-between group">
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="w-14 h-14 rounded-2xl bg-[#070235] text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+                    <Video className="w-7 h-7 text-[#89f5e7]" />
+                  </div>
+                  <span className="px-3 py-1 bg-[#e3dfff] text-[#181445] rounded-full text-[11px] font-mono font-bold uppercase">
+                    Track 01 • Live Studio
+                  </span>
+                </div>
+
+                <h3 className="text-xl font-bold text-[#070235] mb-2.5">
+                  Live HR ↔ Candidate Technical Sessions
+                </h3>
+                <p className="text-xs text-[#47464f] leading-relaxed mb-6">
+                  Synchronized Monaco code editor with live WebSocket broadcast, WebRTC HD audio/video calling, real-time Judge0 test execution, and tab proctoring.
+                </p>
+
+                <div className="flex flex-wrap gap-2 mb-6">
+                  <span className="px-2.5 py-1 bg-white border border-[#c8c5d0] rounded-lg text-[10px] font-mono text-[#191c1e]">
+                    HD WebRTC Video
+                  </span>
+                  <span className="px-2.5 py-1 bg-white border border-[#c8c5d0] rounded-lg text-[10px] font-mono text-[#191c1e]">
+                    Monaco Live Sync
+                  </span>
+                  <span className="px-2.5 py-1 bg-white border border-[#c8c5d0] rounded-lg text-[10px] font-mono text-[#191c1e]">
+                    Tab Proctoring
+                  </span>
+                </div>
               </div>
-              <h3 className="text-lg font-bold text-[#070235] mb-2">Live WebRTC Video</h3>
-              <p className="text-xs text-[#47464f] leading-relaxed">
-                HD audio/video calling built into the workspace so candidate and interviewer communicate smoothly.
-              </p>
+
+              <button
+                onClick={() => {
+                  if (role === "HR" || role === "ADMIN") navigate("/schedule/hr");
+                  else if (role === "CANDIDATE") navigate("/schedule/candidate");
+                  else navigate("/login", { state: { initialRole: "HR" } });
+                }}
+                className="w-full py-3 bg-[#070235] hover:bg-[#1e1b4b] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-xs group/btn cursor-pointer"
+              >
+                <span>Launch Live Session</span>
+                <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+              </button>
             </div>
 
-            {/* Feature 2 */}
-            <div className="p-6 rounded-2xl bg-[#f7f9fb] border border-[#e0e3e5] hover:border-[#0058be] hover:shadow-lg transition-all group">
-              <div className="w-12 h-12 rounded-xl bg-[#d8e2ff] text-[#0058be] flex items-center justify-center mb-6 group-hover:bg-[#0058be] group-hover:text-white transition-colors">
-                <Code className="w-6 h-6" />
+            {/* Track 2: AI Voice & Resume Interviewer */}
+            <div className="p-7 rounded-3xl bg-[#f7f9fb] border border-[#e0e3e5] hover:border-[#0058be] hover:shadow-xl transition-all flex flex-col justify-between group">
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="w-14 h-14 rounded-2xl bg-[#0058be] text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+                    <Sparkles className="w-7 h-7 text-[#89f5e7]" />
+                  </div>
+                  <span className="px-3 py-1 bg-[#d8e2ff] text-[#0058be] rounded-full text-[11px] font-mono font-bold uppercase">
+                    Track 02 • AI Simulation
+                  </span>
+                </div>
+
+                <h3 className="text-xl font-bold text-[#070235] mb-2.5">
+                  Autonomous AI Mock Interviewer
+                </h3>
+                <p className="text-xs text-[#47464f] leading-relaxed mb-6">
+                  Practice with a real-time voice-enabled AI interviewer. Upload your resume to match targeted roles (Frontend, Backend, SDE, AI Engineer) with dynamic coding problems.
+                </p>
+
+                <div className="flex flex-wrap gap-2 mb-6">
+                  <span className="px-2.5 py-1 bg-white border border-[#c8c5d0] rounded-lg text-[10px] font-mono text-[#191c1e]">
+                    Voice Speech-to-Text
+                  </span>
+                  <span className="px-2.5 py-1 bg-white border border-[#c8c5d0] rounded-lg text-[10px] font-mono text-[#191c1e]">
+                    Resume Normalization
+                  </span>
+                  <span className="px-2.5 py-1 bg-white border border-[#c8c5d0] rounded-lg text-[10px] font-mono text-[#191c1e]">
+                    Instant Feedback
+                  </span>
+                </div>
               </div>
-              <h3 className="text-lg font-bold text-[#070235] mb-2">Monaco Code Editor</h3>
-              <p className="text-xs text-[#47464f] leading-relaxed">
-                Multi-language editor with syntax highlighting, live WebSocket code sync, and instant compilation.
-              </p>
+
+              <button
+                onClick={() => {
+                  if (role === "CANDIDATE") navigate("/ai-interview");
+                  else navigate("/login", { state: { initialRole: "CANDIDATE" } });
+                }}
+                className="w-full py-3 bg-[#0058be] hover:bg-[#2170e4] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-xs group/btn cursor-pointer"
+              >
+                <span>Start AI Mock Interview</span>
+                <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+              </button>
             </div>
 
-            {/* Feature 3 */}
-            <div className="p-6 rounded-2xl bg-[#f7f9fb] border border-[#e0e3e5] hover:border-[#0058be] hover:shadow-lg transition-all group">
-              <div className="w-12 h-12 rounded-xl bg-[#89f5e7]/40 text-[#005049] flex items-center justify-center mb-6 group-hover:bg-[#002723] group-hover:text-[#89f5e7] transition-colors">
-                <ShieldCheck className="w-6 h-6" />
+            {/* Track 3: Practice Question Bank & DSA Tracker */}
+            <div className="p-7 rounded-3xl bg-[#f7f9fb] border border-[#e0e3e5] hover:border-[#0058be] hover:shadow-xl transition-all flex flex-col justify-between group">
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="w-14 h-14 rounded-2xl bg-[#181445] text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+                    <Code className="w-7 h-7 text-[#89f5e7]" />
+                  </div>
+                  <span className="px-3 py-1 bg-[#e3dfff] text-[#181445] rounded-full text-[11px] font-mono font-bold uppercase">
+                    Track 03 • Code Bank
+                  </span>
+                </div>
+
+                <h3 className="text-xl font-bold text-[#070235] mb-2.5">
+                  Question Bank & DSA Problem Tracker
+                </h3>
+                <p className="text-xs text-[#47464f] leading-relaxed mb-6">
+                  Master algorithms with our integrated 200+ problem DSA Tracker and author customizable practice questions available for live session attachment.
+                </p>
+
+                <div className="flex flex-wrap gap-2 mb-6">
+                  <span className="px-2.5 py-1 bg-white border border-[#c8c5d0] rounded-lg text-[10px] font-mono text-[#191c1e]">
+                    200+ Curated Problems
+                  </span>
+                  <span className="px-2.5 py-1 bg-white border border-[#c8c5d0] rounded-lg text-[10px] font-mono text-[#191c1e]">
+                    Multi-Language Execution
+                  </span>
+                  <span className="px-2.5 py-1 bg-white border border-[#c8c5d0] rounded-lg text-[10px] font-mono text-[#191c1e]">
+                    Topic Organization
+                  </span>
+                </div>
               </div>
-              <h3 className="text-lg font-bold text-[#070235] mb-2">Tab Proctoring</h3>
-              <p className="text-xs text-[#47464f] leading-relaxed">
-                Automated security logs track tab switches and copy-paste events to maintain high evaluation integrity.
-              </p>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => navigate("/dsa-tracker")}
+                  className="flex-1 py-3 bg-[#070235] hover:bg-[#1e1b4b] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer"
+                >
+                  <span>Open DSA Tracker</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+                {role === "ADMIN" && (
+                  <button
+                    onClick={() => navigate("/admin/questions")}
+                    className="px-4 py-3 bg-white border border-[#c8c5d0] text-[#070235] hover:bg-[#eceef0] rounded-xl text-xs font-semibold transition-all cursor-pointer"
+                    title="Manage Bank"
+                  >
+                    Bank Admin
+                  </button>
+                )}
+              </div>
             </div>
 
-            {/* Feature 4 */}
-            <div className="p-6 rounded-2xl bg-[#f7f9fb] border border-[#e0e3e5] hover:border-[#0058be] hover:shadow-lg transition-all group">
-              <div className="w-12 h-12 rounded-xl bg-[#e3dfff] text-[#181445] flex items-center justify-center mb-6 group-hover:bg-[#181445] group-hover:text-white transition-colors">
-                <Award className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold text-[#070235] mb-2">AI Summary & Feedback</h3>
-              <p className="text-xs text-[#47464f] leading-relaxed">
-                Generates scorecards for technical skills, code quality, and problem-solving with hiring recommendations.
-              </p>
-            </div>
+            {/* Track 4: Feedback & Evaluation Reports */}
+            <div className="p-7 rounded-3xl bg-[#f7f9fb] border border-[#e0e3e5] hover:border-[#0058be] hover:shadow-xl transition-all flex flex-col justify-between group">
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="w-14 h-14 rounded-2xl bg-[#005049] text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+                    <Award className="w-7 h-7 text-[#89f5e7]" />
+                  </div>
+                  <span className="px-3 py-1 bg-[#89f5e7]/30 text-[#005049] rounded-full text-[11px] font-mono font-bold uppercase">
+                    Track 04 • Intelligence
+                  </span>
+                </div>
 
+                <h3 className="text-xl font-bold text-[#070235] mb-2.5">
+                  Granular Evaluations & AI Feedback
+                </h3>
+                <p className="text-xs text-[#47464f] leading-relaxed mb-6">
+                  Comprehensive candidate scorecards analyzing algorithmic correctness, time complexity, communication clarity, and verifiable proctoring integrity logs.
+                </p>
+
+                <div className="flex flex-wrap gap-2 mb-6">
+                  <span className="px-2.5 py-1 bg-white border border-[#c8c5d0] rounded-lg text-[10px] font-mono text-[#191c1e]">
+                    Rubric Scoring
+                  </span>
+                  <span className="px-2.5 py-1 bg-white border border-[#c8c5d0] rounded-lg text-[10px] font-mono text-[#191c1e]">
+                    Code Complexity Stats
+                  </span>
+                  <span className="px-2.5 py-1 bg-white border border-[#c8c5d0] rounded-lg text-[10px] font-mono text-[#191c1e]">
+                    Proctoring Audit
+                  </span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  if (role === "HR") navigate("/dashboard/hr");
+                  else if (role === "CANDIDATE") navigate("/ai-interview/history");
+                  else if (role === "ADMIN") navigate("/admin/dashboard");
+                  else navigate("/login", { state: { initialRole: "HR" } });
+                }}
+                className="w-full py-3 bg-[#070235] hover:bg-[#1e1b4b] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-xs group/btn cursor-pointer"
+              >
+                <span>View Evaluation Metrics</span>
+                <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+              </button>
+            </div>
           </div>
         </div>
       </section>

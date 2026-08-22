@@ -14,7 +14,10 @@ const Login = lazy(() => import("./Components/Login"));
 const ErrorPage = lazy(() => import("./Components/ErrorPage"));
 const AppLayout = lazy(() => import("./Components/Layout/AppLayout"));
 const Questions = lazy(() => import("./Components/Questions"));
+const AdminDashboard = lazy(() => import("./Components/Admin/AdminDashboard"));
+const AdminQuestions = lazy(() => import("./Components/Admin/AdminQuestions"));
 const InterviewRoom = lazy(() => import("./Components/InterviewRoom/InterviewRoom"));
+
 const InterviewSchedule = lazy(() => import("./Components/HR/InterviewSchedule"));
 const History = lazy(() => import("./Components/HR/History"));
 const PreJoin = lazy(() => import("./Components/InterviewRoom/PreJoin"));
@@ -43,6 +46,32 @@ const router = createBrowserRouter([
       {
         path: "demoVideo",
         element: <DemoVideo />,
+      },
+
+      // Admin
+      {
+        path: "admin",
+        element: (
+          <ProtectedRoute allowedRole="ADMIN">
+            <AdminDashboard />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "admin/dashboard",
+        element: (
+          <ProtectedRoute allowedRole="ADMIN">
+            <AdminDashboard />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "admin/questions",
+        element: (
+          <ProtectedRoute allowedRole="ADMIN">
+            <AdminQuestions />
+          </ProtectedRoute>
+        ),
       },
 
       // HR

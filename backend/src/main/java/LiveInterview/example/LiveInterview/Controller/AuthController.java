@@ -2,7 +2,9 @@ package LiveInterview.example.LiveInterview.Controller;
 import LiveInterview.example.LiveInterview.DTO.AuthResponse;
 import LiveInterview.example.LiveInterview.DTO.LoginReq;
 import LiveInterview.example.LiveInterview.DTO.RegisterRequest;
+import LiveInterview.example.LiveInterview.DTO.Role;
 import LiveInterview.example.LiveInterview.DTO.UserResponse;
+
 import LiveInterview.example.LiveInterview.Entity.UserEntity;
 import LiveInterview.example.LiveInterview.Entity.VerificationToken;
 import LiveInterview.example.LiveInterview.Repository.UserRepo;
@@ -82,7 +84,8 @@ public class AuthController {
       UserEntity user = new UserEntity();
       user.setEmail(req.email());
       user.setName(req.name());
-      user.setRole(req.role());
+      // Security fix: public self-registration defaults strictly to CANDIDATE role
+      user.setRole(Role.CANDIDATE);
       user.setPassword(passwordEncoder.encode(req.password()));
       user.setCreatedDate(LocalDateTime.now());
       user.setEnabled(false);

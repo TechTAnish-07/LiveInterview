@@ -79,6 +79,36 @@ const Navbar = () => {
             DSA Tracker
           </NavLink>
 
+          {isLoggedIn && role === "ADMIN" && (
+            <>
+              <NavLink
+                to="/admin/dashboard"
+                className={({ isActive }) =>
+                  `px-4 py-1.5 rounded-lg text-xs font-medium font-sans transition-all flex items-center gap-1.5 ${isActive
+                    ? "bg-white text-[#070235] shadow-xs font-semibold"
+                    : "text-[#47464f] hover:text-[#070235] hover:bg-white/50"
+                  }`
+                }
+              >
+                <LayoutDashboard className="w-3.5 h-3.5 text-[#0058be]" />
+                Admin Console
+              </NavLink>
+
+              <NavLink
+                to="/admin/questions"
+                className={({ isActive }) =>
+                  `px-4 py-1.5 rounded-lg text-xs font-medium font-sans transition-all flex items-center gap-1.5 ${isActive
+                    ? "bg-white text-[#070235] shadow-xs font-semibold"
+                    : "text-[#47464f] hover:text-[#070235] hover:bg-white/50"
+                  }`
+                }
+              >
+                <Code className="w-3.5 h-3.5 text-[#0058be]" />
+                Question Bank
+              </NavLink>
+            </>
+          )}
+
           {isLoggedIn && role === "HR" && (
             <>
               <NavLink
@@ -224,6 +254,34 @@ const Navbar = () => {
             <CheckSquare className="w-4 h-4 text-indigo-500" />
             DSA Tracker
           </NavLink>
+
+          {isLoggedIn && role === "ADMIN" && (
+            <>
+              <NavLink
+                to="/admin/dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className={({ isActive }) =>
+                  `px-3 py-2 rounded-lg font-medium flex items-center gap-2 ${isActive ? "bg-[#070235] text-white font-semibold" : "text-[#47464f] hover:bg-slate-100"
+                  }`
+                }
+              >
+                <LayoutDashboard className="w-4 h-4 text-[#0058be]" />
+                Admin Console
+              </NavLink>
+
+              <NavLink
+                to="/admin/questions"
+                onClick={() => setMobileMenuOpen(false)}
+                className={({ isActive }) =>
+                  `px-3 py-2 rounded-lg font-medium flex items-center gap-2 ${isActive ? "bg-[#070235] text-white font-semibold" : "text-[#47464f] hover:bg-slate-100"
+                  }`
+                }
+              >
+                <Code className="w-4 h-4 text-[#0058be]" />
+                Question Bank
+              </NavLink>
+            </>
+          )}
 
           {isLoggedIn && role === "HR" && (
             <>

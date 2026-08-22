@@ -36,18 +36,58 @@ public class PracticeQuestionController {
        this.practiceProgressService = practiceProgressService;
     }
     @PostMapping("/question/add")
-    public ResponseEntity<?> addQuestion(@RequestBody PracticeQuestion practiceQuestion) {
-      practiceQuestionService.saveQuestion(practiceQuestion);
-      return ResponseEntity.ok("successfully added");
+    public ResponseEntity<PracticeQuestionResponse> addQuestion(@RequestBody PracticeQuestion practiceQuestion) {
+        PracticeQuestionResponse saved = practiceQuestionService.saveQuestion(practiceQuestion);
+        return ResponseEntity.ok(saved);
     }
+
+    @PutMapping("/question/{id}")
+    public ResponseEntity<PracticeQuestionResponse> updateQuestion(
+            @PathVariable Long id,
+            @RequestBody PracticeQuestion practiceQuestion
+    ) {
+        PracticeQuestionResponse updated = practiceQuestionService.updateQuestion(id, practiceQuestion);
+        return ResponseEntity.ok(updated);
+    }
+
+    @DeleteMapping("/question/{id}")
+    public ResponseEntity<?> deleteQuestion(@PathVariable Long id) {
+        practiceQuestionService.deleteQuestion(id);
+        return ResponseEntity.ok(java.util.Map.of("message", "Question deleted successfully"));
+    }
+
     @GetMapping("/question/{id}")
     public ResponseEntity<PracticeQuestionResponse> getQuestion(@PathVariable Long id) {
-       return ResponseEntity.ok(practiceQuestionService.findById(id));
+        return ResponseEntity.ok(practiceQuestionService.findById(id));
     }
+
     @GetMapping("/practiceQuestions")
-    public ResponseEntity<List<PracticeQuestionResponse>> getAllQuestions() {
+    public ResponseEntity<?> getAllQuestions(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Topic topic,
+            @RequestParam(required = false) Difficulty difficulty,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
+    ) {
+        if (page != null) {
+            int pageIndex = Math.max(0, page);
+            int pageSize = (size != null && size > 0) ? size : 10;
+            org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
+                    pageIndex,
+                    pageSize,
+                    org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createTime")
+            );
+            return ResponseEntity.ok(practiceQuestionService.findQuestions(search, topic, difficulty, pageable));
+        }
+
+        if ((search != null && !search.isBlank()) || topic != null || difficulty != null) {
+            org.springframework.data.domain.Pageable unpaged = org.springframework.data.domain.Pageable.unpaged();
+            return ResponseEntity.ok(practiceQuestionService.findQuestions(search, topic, difficulty, unpaged).getContent());
+        }
+
         return ResponseEntity.ok(practiceQuestionService.findAll());
     }
+
 
     @PostMapping("/practice/submit")
     public ResponseEntity<RunResponse> submitPracticeCode(
