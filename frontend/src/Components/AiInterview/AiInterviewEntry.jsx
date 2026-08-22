@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../Axios";
-import { FileText, Upload, Bot, Sparkles, CheckCircle2, AlertCircle, Loader2, ArrowRight, RefreshCw } from "lucide-react";
+import { FileText, Upload, Bot, Sparkles, CheckCircle2, AlertCircle, Loader2, ArrowRight, RefreshCw, Key, Lock, Eye, EyeOff, Shield, ExternalLink } from "lucide-react";
 
 export default function AiInterviewEntry() {
   const navigate = useNavigate();
@@ -16,6 +16,45 @@ export default function AiInterviewEntry() {
   const [jobTitle, setJobTitle] = useState("Software Engineer");
   const [relevanceWarning, setRelevanceWarning] = useState(null);
   const [error, setError] = useState(null);
+
+  // Bring Your Own Key (BYOK) State
+  const [llmProvider, setLlmProvider] = useState("gemini");
+  const [llmApiKey, setLlmApiKey] = useState(() => sessionStorage.getItem("candidate_llm_key") || "");
+  const [showKey, setShowKey] = useState(false);
+  const [keyTouched, setKeyTouched] = useState(false);
+
+  // Validate API key based on chosen provider
+  const validateApiKey = (key, provider) => {
+    if (!key || !key.trim()) return { valid: false, message: "API key is required to start the interview session." };
+    const trimmed = key.trim();
+    if (trimmed.length < 20) {
+      return { valid: false, message: "API key must be at least 20 characters long." };
+    }
+    if (provider === "openai" && !trimmed.startsWith("sk-")) {
+      return { valid: false, message: "OpenAI API keys typically begin with 'sk-'." };
+    }
+    if (provider === "gemini" && !trimmed.startsWith("AIza")) {
+      return { valid: false, message: "Google Gemini API keys typically begin with 'AIza'." };
+    }
+    if (provider === "groq" && !trimmed.startsWith("gsk_")) {
+      return { valid: false, message: "Groq API keys typically begin with 'gsk_'." };
+    }
+    return { valid: true, message: "Key format validated" };
+  };
+
+  const keyValidation = validateApiKey(llmApiKey, llmProvider);
+
+  // Update sessionStorage on key change
+  const handleKeyChange = (e) => {
+    const val = e.target.value;
+    setLlmApiKey(val);
+    setKeyTouched(true);
+    if (val.trim()) {
+      sessionStorage.setItem("candidate_llm_key", val.trim());
+    } else {
+      sessionStorage.removeItem("candidate_llm_key");
+    }
+  };
 
   // Fetch candidate's latest resume status on mount
   const fetchResume = async () => {
@@ -41,6 +80,13 @@ export default function AiInterviewEntry() {
 
   useEffect(() => {
     fetchResume();
+  }, []);
+
+  // Clear the ephemeral key from sessionStorage on unmount (tab close, navigation away)
+  useEffect(() => {
+    return () => {
+      sessionStorage.removeItem("candidate_llm_key");
+    };
   }, []);
 
   const handleFileChange = (e) => {
@@ -93,12 +139,20 @@ export default function AiInterviewEntry() {
   };
 
   const startSessionDirectly = async (titleToUse) => {
+    if (!keyValidation.valid) {
+      setKeyTouched(true);
+      setError(keyValidation.message);
+      return;
+    }
+
     try {
       setStartingSession(true);
       setError(null);
 
       const title = titleToUse || jobTitle || "Software Engineer";
-      const res = await api.post("/api/ai-interview/start", { jobTitle: title, jobRole: title });
+      const headers = llmApiKey.trim() ? { "X-Candidate-Llm-Key": llmApiKey.trim() } : {};
+
+      const res = await api.post("/api/ai-interview/start", { jobTitle: title, jobRole: title }, { headers });
       const { sessionId, roomName, token, livekitUrl } = res.data;
 
       navigate("/ai-interview/room", {
@@ -106,7 +160,7 @@ export default function AiInterviewEntry() {
       });
     } catch (err) {
       console.error("Error starting AI interview:", err);
-      const msg = err.response?.data?.message || "Could not initialize AI interview room. Please try again.";
+      const msg = err.response?.data?.message || "Could not initialize AI interview room. Please check your API key.";
       setError(msg);
     } finally {
       setStartingSession(false);
@@ -114,13 +168,21 @@ export default function AiInterviewEntry() {
   };
 
   const handleStartInterview = async () => {
+    if (!keyValidation.valid) {
+      setKeyTouched(true);
+      setError(keyValidation.message);
+      return;
+    }
+
     try {
       setCheckingEligibility(true);
       setError(null);
       setRelevanceWarning(null);
 
       const title = jobTitle || "Software Engineer";
-      const checkRes = await api.post("/api/ai-interview/check-eligibility", { jobTitle: title });
+      const headers = llmApiKey.trim() ? { "X-Candidate-Llm-Key": llmApiKey.trim() } : {};
+
+      const checkRes = await api.post("/api/ai-interview/check-eligibility", { jobTitle: title }, { headers });
 
       if (checkRes.data && checkRes.data.relevant === false) {
         setRelevanceWarning({
@@ -432,19 +494,133 @@ export default function AiInterviewEntry() {
 
             </div>
 
-            {/* Right Col: Launch Action Card */}
-            <div className="space-y-6">
-              <div className="bg-gradient-to-b from-[#070235] to-[#1e1b4b] text-white rounded-2xl p-6 shadow-xl flex flex-col justify-between h-full">
+            {/* Right Col: BYOK Key + Launch Card */}
+            <div className="space-y-5">
+
+              {/* BYOK API Key Card */}
+              <div className="bg-white rounded-2xl border border-[#e0e3e5] p-6 shadow-xs space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-base font-bold text-[#070235] flex items-center gap-2">
+                    <Key className="w-5 h-5 text-[#0058be]" />
+                    <span>Your LLM API Key</span>
+                  </h2>
+                  <span className="px-2 py-0.5 bg-[#fff3cd] text-[#7c5e00] text-[10px] font-mono font-bold rounded-full uppercase tracking-wide border border-[#f0d980]">
+                    Required
+                  </span>
+                </div>
+
+                {/* Provider selector */}
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-semibold text-[#47464f] uppercase tracking-wide">
+                    LLM Provider
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { id: "gemini", label: "Gemini", hint: "AIza..." },
+                      { id: "openai", label: "OpenAI", hint: "sk-..." },
+                      { id: "groq",   label: "Groq",   hint: "gsk_..." },
+                    ].map(({ id, label, hint }) => (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => { setLlmProvider(id); setKeyTouched(false); }}
+                        className={`py-2 px-3 rounded-xl border text-[11px] font-semibold transition-all cursor-pointer ${
+                          llmProvider === id
+                            ? "border-[#0058be] bg-[#d8e2ff] text-[#0058be]"
+                            : "border-[#e0e3e5] bg-[#f7f9fb] text-[#47464f] hover:border-[#c8c5d0]"
+                        }`}
+                      >
+                        <span className="block">{label}</span>
+                        <span className="block text-[9px] font-mono opacity-70 mt-0.5">{hint}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Key input */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-semibold text-[#47464f] uppercase tracking-wide">
+                      API Key
+                    </label>
+                    {keyTouched && (
+                      <span className={`text-[10px] font-mono font-semibold flex items-center gap-1 ${keyValidation.valid ? "text-[#1a8754]" : "text-[#ba1a1a]"}`}>
+                        {keyValidation.valid
+                          ? <><CheckCircle2 className="w-3 h-3" /> Valid format</>
+                          : <><AlertCircle className="w-3 h-3" /> {keyValidation.message}</>
+                        }
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="relative">
+                    <Lock className="w-3.5 h-3.5 text-[#787680] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type={showKey ? "text" : "password"}
+                      value={llmApiKey}
+                      onChange={handleKeyChange}
+                      placeholder={
+                        llmProvider === "gemini" ? "AIzaSy..." :
+                        llmProvider === "openai" ? "sk-proj-..." :
+                        "gsk_..."
+                      }
+                      autoComplete="off"
+                      spellCheck={false}
+                      className={`w-full pl-9 pr-10 py-2.5 text-xs font-mono rounded-xl border focus:outline-none focus:ring-2 transition-all ${
+                        keyTouched && !keyValidation.valid
+                          ? "border-[#ba1a1a] bg-[#fff8f8] focus:border-[#ba1a1a] focus:ring-[#ba1a1a]/20"
+                          : keyTouched && keyValidation.valid
+                          ? "border-[#1a8754] bg-[#f0faf4] focus:border-[#1a8754] focus:ring-[#1a8754]/20"
+                          : "border-[#c8c5d0] bg-[#f7f9fb] focus:border-[#0058be] focus:ring-[#0058be]/20"
+                      } text-[#191c1e]`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowKey((s) => !s)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#787680] hover:text-[#070235] cursor-pointer"
+                      tabIndex={-1}
+                    >
+                      {showKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Privacy note */}
+                <div className="flex items-start gap-2 px-3 py-2.5 bg-[#f7f9fb] border border-[#e0e3e5] rounded-xl">
+                  <Shield className="w-3.5 h-3.5 text-[#1a8754] shrink-0 mt-0.5" />
+                  <p className="text-[10px] text-[#47464f] leading-relaxed">
+                    <span className="font-bold text-[#070235]">Privacy:</span> Your key is used only for this session and is <span className="font-semibold">never stored on our servers</span>. It is transmitted over HTTPS only and cleared when you close the tab.
+                  </p>
+                </div>
+
+                {/* Provider docs link */}
+                <a
+                  href={
+                    llmProvider === "gemini" ? "https://aistudio.google.com/apikey" :
+                    llmProvider === "openai" ? "https://platform.openai.com/api-keys" :
+                    "https://console.groq.com/keys"
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-[11px] text-[#0058be] hover:underline font-semibold"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  Get a {llmProvider === "gemini" ? "Gemini" : llmProvider === "openai" ? "OpenAI" : "Groq"} API key (free tier available)
+                </a>
+              </div>
+
+              {/* Launch Action Card */}
+              <div className="bg-gradient-to-b from-[#070235] to-[#1e1b4b] text-white rounded-2xl p-6 shadow-xl flex flex-col gap-5">
                 <div>
                   <div className="w-12 h-12 rounded-xl bg-white/10 text-[#89f5e7] flex items-center justify-center mb-4">
                     <Bot className="w-6 h-6" />
                   </div>
                   <h3 className="text-lg font-bold mb-2">Live AI Technical Interview</h3>
-                  <p className="text-xs text-[#8683ba] leading-relaxed mb-6">
-                    Connect via high-quality WebRTC voice transport directly with the LiveKit AI agent. Experience real-time adaptive Q&A, follow-ups, and audio interaction.
+                  <p className="text-xs text-[#8683ba] leading-relaxed mb-4">
+                    Connect via WebRTC voice transport with the LiveKit AI agent. Real-time adaptive Q&amp;A, follow-ups, and audio interaction — powered by your own API key.
                   </p>
 
-                  <div className="space-y-2 text-xs text-[#d8e2ff] font-mono bg-white/5 p-3 rounded-xl border border-white/10 mb-6">
+                  <div className="space-y-2 text-xs text-[#d8e2ff] font-mono bg-white/5 p-3 rounded-xl border border-white/10">
                     <div className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-[#89f5e7]"></span>
                       <span>Audio Input: Microphone required</span>
@@ -453,23 +629,29 @@ export default function AiInterviewEntry() {
                       <span className="w-2 h-2 rounded-full bg-[#89f5e7]"></span>
                       <span>Target Role: {jobTitle || "Software Engineer"}</span>
                     </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full ${keyValidation.valid ? "bg-[#89f5e7]" : "bg-[#ffdad6]"}`}></span>
+                      <span className={keyValidation.valid ? "" : "text-[#ffdad6]"}>
+                        LLM Key: {keyValidation.valid ? "Ready" : "Required"}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
                 <button
                   onClick={handleStartInterview}
-                  disabled={!resume || startingSession || checkingEligibility}
+                  disabled={!resume || startingSession || checkingEligibility || !keyValidation.valid}
                   className="w-full py-3.5 bg-[#89f5e7] hover:bg-[#5cecd9] text-[#003732] font-bold text-xs rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {checkingEligibility ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Checking your resume against this role...</span>
+                      <span>Verifying resume eligibility...</span>
                     </>
                   ) : startingSession ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Minting LiveKit Session...</span>
+                      <span>Initialising LiveKit session...</span>
                     </>
                   ) : (
                     <>
@@ -480,11 +662,17 @@ export default function AiInterviewEntry() {
                 </button>
 
                 {!resume && (
-                  <p className="text-[11px] text-[#ffdad6] text-center mt-2 font-mono">
-                    Please upload your resume to enable the interview call.
+                  <p className="text-[11px] text-[#ffdad6] text-center font-mono -mt-2">
+                    Upload your resume above to enable the call.
+                  </p>
+                )}
+                {!keyValidation.valid && resume && (
+                  <p className="text-[11px] text-[#ffdad6] text-center font-mono -mt-2">
+                    Enter a valid API key above to start.
                   </p>
                 )}
               </div>
+
             </div>
 
           </div>
@@ -494,4 +682,5 @@ export default function AiInterviewEntry() {
     </div>
   );
 }
+
 

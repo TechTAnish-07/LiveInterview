@@ -62,6 +62,11 @@ public class AiInterviewController {
     @Value("${resume.normalization.service.url:http://localhost:8000}")
     private String resumeNormalizationServiceUrl;
 
+    @Value("${ai.interview.allow-server-key-fallback:false}")
+    private boolean allowServerKeyFallback;
+
+    // Ephemeral in-memory session LLM key store (cleared on session end/deletion, never written to DB)
+    private final java.util.concurrent.ConcurrentHashMap<Long, String> sessionLlmKeys = new java.util.concurrent.ConcurrentHashMap<>();
 
     public AiInterviewController(
             AiInterviewSessionRepository sessionRepository,
@@ -83,6 +88,7 @@ public class AiInterviewController {
 
     @PostMapping("/check-eligibility")
     public ResponseEntity<?> checkEligibility(
+            @RequestHeader(value = "X-Candidate-Llm-Key", required = false) String candidateLlmKey,
             @RequestBody(required = false) Map<String, String> body,
             Principal principal
     ) {
@@ -145,9 +151,15 @@ public class AiInterviewController {
 
             logger.info("Calling /resume/check-relevance for user {} with jobTitle: {}", user.getId(), jobTitle);
 
-            Map<?, ?> response = webClient.post()
+            var reqSpec = webClient.post()
                     .uri("/resume/check-relevance")
-                    .contentType(MediaType.APPLICATION_JSON)
+                    .contentType(MediaType.APPLICATION_JSON);
+
+            if (candidateLlmKey != null && !candidateLlmKey.isBlank()) {
+                reqSpec.header("X-Candidate-Llm-Key", candidateLlmKey.trim());
+            }
+
+            Map<?, ?> response = reqSpec
                     .bodyValue(payload)
                     .retrieve()
                     .bodyToMono(Map.class)
@@ -157,6 +169,14 @@ public class AiInterviewController {
                 Boolean relevant = Boolean.TRUE.equals(response.get("relevant"));
                 String reason = response.get("reason") != null ? response.get("reason").toString() : "Resume assessment completed.";
                 return ResponseEntity.ok(Map.of("relevant", relevant, "reason", reason));
+            }
+        } catch (org.springframework.web.reactive.function.client.WebClientResponseException e) {
+            logger.warn("Relevance check service call returned error {}: {}", e.getStatusCode(), e.getMessage());
+            if (e.getStatusCode().value() == 401 || e.getStatusCode().value() == 403 || e.getStatusCode().value() == 429) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                        "message", "Your LLM API key was rejected by the AI provider — please verify that it is active, valid, and has sufficient quota.",
+                        "relevant", false
+                ));
             }
         } catch (Exception e) {
             logger.warn("Relevance check service call failed for user {}: {}", user.getId(), e.getMessage());
@@ -168,11 +188,19 @@ public class AiInterviewController {
 
     @PostMapping("/start")
     public ResponseEntity<?> startAiInterview(
+            @RequestHeader(value = "X-Candidate-Llm-Key", required = false) String candidateLlmKey,
             @RequestBody(required = false) Map<String, String> body,
             Principal principal
     ) {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "User not authenticated"));
+        }
+
+        boolean hasCandidateKey = candidateLlmKey != null && !candidateLlmKey.isBlank();
+        if (!hasCandidateKey && !allowServerKeyFallback) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                    "message", "Candidate LLM API key is required. Please provide your own OpenAI, Gemini, or Groq API key to start the interview session."
+            ));
         }
 
         UserEntity user = userRepo.findByEmail(principal.getName())
@@ -204,8 +232,12 @@ public class AiInterviewController {
 
         AiInterviewSession savedSession = sessionRepository.save(session);
 
+        if (hasCandidateKey) {
+            sessionLlmKeys.put(savedSession.getId(), candidateLlmKey.trim());
+        }
+
         // Explicitly dispatch Python Voice Agent to LiveKit server for this room with pre-packaged context
-        dispatchAgentToRoom(roomName, savedSession.getId(), user.getName(), jobTitle, latestResume.orElse(null));
+        dispatchAgentToRoom(roomName, savedSession.getId(), user.getName(), jobTitle, latestResume.orElse(null), candidateLlmKey);
 
         // 1. Build RoomAgentDispatch and RoomConfiguration
         String agentName = "interview-agent";
@@ -274,24 +306,33 @@ public class AiInterviewController {
         }
     }
 
-    private void dispatchAgentToRoom(String roomName, Long sessionId, String candidateName, String jobTitle, Resume resume) {
+    private void dispatchAgentToRoom(String roomName, Long sessionId, String candidateName, String jobTitle, Resume resume, String candidateLlmKey) {
         try {
-            Map<String, Object> payload = Map.of(
-                    "room", roomName,
-                    "session_id", sessionId,
-                    "candidate_name", candidateName != null ? candidateName : "Candidate",
-                    "job_title", jobTitle != null ? jobTitle : "Software Engineer",
-                    "summary", resume != null && resume.getSummary() != null ? resume.getSummary() : "",
-                    "skills", resume != null && resume.getSkills() != null ? resume.getSkills() : "[]",
-                    "resume_text", resume != null && resume.getExtractedText() != null ? resume.getExtractedText() : ""
-            );
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("room", roomName);
+            payload.put("session_id", sessionId);
+            payload.put("candidate_name", candidateName != null ? candidateName : "Candidate");
+            payload.put("job_title", jobTitle != null ? jobTitle : "Software Engineer");
+            payload.put("summary", resume != null && resume.getSummary() != null ? resume.getSummary() : "");
+            payload.put("skills", resume != null && resume.getSkills() != null ? resume.getSkills() : "[]");
+            payload.put("resume_text", resume != null && resume.getExtractedText() != null ? resume.getExtractedText() : "");
+
+            if (candidateLlmKey != null && !candidateLlmKey.isBlank()) {
+                payload.put("llm_api_key", candidateLlmKey.trim());
+                payload.put("candidate_llm_key", candidateLlmKey.trim());
+            }
 
             logger.info("Sending WebClient POST to /dispatch-agent for session {} with context for candidate '{}'", sessionId, candidateName);
 
-            webClient.post()
+            var reqSpec = webClient.post()
                     .uri("/dispatch-agent")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(payload)
+                    .contentType(MediaType.APPLICATION_JSON);
+
+            if (candidateLlmKey != null && !candidateLlmKey.isBlank()) {
+                reqSpec.header("X-Candidate-Llm-Key", candidateLlmKey.trim());
+            }
+
+            reqSpec.bodyValue(payload)
                     .retrieve()
                     .bodyToMono(String.class)
                     .doOnSuccess(res -> logger.info("Successfully dispatched 'interview-agent' to room {} via WebClient: {}", roomName, res))
@@ -341,6 +382,11 @@ public class AiInterviewController {
         response.put("jobTitle", jobTitle);
         response.put("jobRole", jobTitle);
 
+        if (sessionLlmKeys.containsKey(session.getId())) {
+            response.put("llmApiKey", sessionLlmKeys.get(session.getId()));
+            response.put("candidateLlmKey", sessionLlmKeys.get(session.getId()));
+        }
+
         return ResponseEntity.ok(response);
     }
 
@@ -354,6 +400,8 @@ public class AiInterviewController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("message", "Unauthorized internal service access"));
         }
+
+        sessionLlmKeys.remove(sessionId);
 
         AiInterviewSession session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "AI Interview session not found"));
@@ -404,6 +452,8 @@ public class AiInterviewController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("message", "Unauthorized internal service access"));
         }
+
+        sessionLlmKeys.remove(sessionId);
 
         AiInterviewSession session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "AI Interview session not found"));
@@ -599,6 +649,9 @@ public class AiInterviewController {
     }
 
     private ResponseEntity<?> executeRoomDeletion(AiInterviewSession session) {
+        if (session != null && session.getId() != null) {
+            sessionLlmKeys.remove(session.getId());
+        }
         String roomName = session.getRoomName();
         try {
             retrofit2.Response<Void> response = roomServiceClient.deleteRoom(roomName).execute();

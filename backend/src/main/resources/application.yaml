@@ -54,6 +54,10 @@ app:
     name: ${ADMIN_NAME:Admin}
 
 
+ai:
+  interview:
+    allow-server-key-fallback: ${AI_INTERVIEW_ALLOW_SERVER_KEY_FALLBACK:false}
+
 file:
   upload-dir: ${FILE_UPLOAD_DIR:uploads/resumes}
 
