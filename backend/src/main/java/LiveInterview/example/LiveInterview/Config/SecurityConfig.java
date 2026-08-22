@@ -56,7 +56,7 @@ public class SecurityConfig {
         ));
 
         config.setAllowedHeaders(List.of("*"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
@@ -76,14 +76,19 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**", "/api/auth/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers("/api/hr/**").hasRole("HR")
-                        .requestMatchers("/api/feedback/**").hasAnyRole("HR", "CANDIDATE")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/hr/**").hasAnyRole("HR", "ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/question/add").hasAnyRole("HR", "ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/question/**").hasAnyRole("HR", "ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/question/**").hasAnyRole("HR", "ADMIN")
+                        .requestMatchers("/api/feedback/**").hasAnyRole("HR", "CANDIDATE", "ADMIN")
                         .requestMatchers("/api/ai-interview/*/context").permitAll()
                         .requestMatchers("/api/ai-interview/*/result").permitAll()
                         .requestMatchers("/api/ai-interview/*/end", "/api/ai-interview/*/feedback").permitAll()
                         .requestMatchers("/api/ai-interview/*/room", "/api/ai-interview/room/*").permitAll()
                         .requestMatchers("/api/ai-interview/*/execute-code").permitAll()
                         .requestMatchers("/livekit/webhook").permitAll()
+                        .requestMatchers("/api/dsa/**").authenticated()
 
                         .anyRequest().authenticated()
                 )

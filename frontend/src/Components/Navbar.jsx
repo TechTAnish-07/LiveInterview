@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthProvider";
-import { Terminal, LogOut, User, Code, Calendar, LayoutDashboard, Menu, X } from "lucide-react";
+import { Terminal, LogOut, User, Code, Calendar, LayoutDashboard, Menu, X, CheckSquare } from "lucide-react";
 
 const Navbar = () => {
   const { user, role, clearAuth, isAuthenticated } = useAuth();
@@ -19,9 +19,9 @@ const Navbar = () => {
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-[#c8c5d0]/40 px-4 md:px-6 py-3 transition-all">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
-        
+
         {/* Brand Logo */}
-        <div 
+        <div
           className="flex items-center gap-2 cursor-pointer group"
           onClick={() => {
             setMobileMenuOpen(false);
@@ -42,30 +42,71 @@ const Navbar = () => {
           <NavLink
             to="/"
             className={({ isActive }) =>
-              `px-4 py-1.5 rounded-lg text-xs font-medium font-sans transition-all flex items-center gap-1.5 ${
-                isActive
-                  ? "bg-white text-[#070235] shadow-xs font-semibold"
-                  : "text-[#47464f] hover:text-[#070235] hover:bg-white/50"
+              `px-4 py-1.5 rounded-lg text-xs font-medium font-sans transition-all flex items-center gap-1.5 ${isActive
+                ? "bg-white text-[#070235] shadow-xs font-semibold"
+                : "text-[#47464f] hover:text-[#070235] hover:bg-white/50"
               }`
             }
           >
             Home
           </NavLink>
 
-          {role !== "HR" && (
+          {/* {role !== "HR" && (
             <NavLink
               to="/practice"
               className={({ isActive }) =>
-                `px-4 py-1.5 rounded-lg text-xs font-medium font-sans transition-all flex items-center gap-1.5 ${
-                  isActive
-                    ? "bg-white text-[#070235] shadow-xs font-semibold"
-                    : "text-[#47464f] hover:text-[#070235] hover:bg-white/50"
+                `px-4 py-1.5 rounded-lg text-xs font-medium font-sans transition-all flex items-center gap-1.5 ${isActive
+                  ? "bg-white text-[#070235] shadow-xs font-semibold"
+                  : "text-[#47464f] hover:text-[#070235] hover:bg-white/50"
                 }`
               }
             >
               <Code className="w-3.5 h-3.5" />
               Practice Studio
             </NavLink>
+          )} */}
+
+          <NavLink
+            to="/dsa-tracker"
+            className={({ isActive }) =>
+              `px-4 py-1.5 rounded-lg text-xs font-medium font-sans transition-all flex items-center gap-1.5 ${isActive
+                ? "bg-white text-[#070235] shadow-xs font-semibold"
+                : "text-[#47464f] hover:text-[#070235] hover:bg-white/50"
+              }`
+            }
+          >
+            <CheckSquare className="w-3.5 h-3.5 text-indigo-600" />
+            DSA Tracker
+          </NavLink>
+
+          {isLoggedIn && role === "ADMIN" && (
+            <>
+              <NavLink
+                to="/admin/dashboard"
+                className={({ isActive }) =>
+                  `px-4 py-1.5 rounded-lg text-xs font-medium font-sans transition-all flex items-center gap-1.5 ${isActive
+                    ? "bg-white text-[#070235] shadow-xs font-semibold"
+                    : "text-[#47464f] hover:text-[#070235] hover:bg-white/50"
+                  }`
+                }
+              >
+                <LayoutDashboard className="w-3.5 h-3.5 text-[#0058be]" />
+                Admin Console
+              </NavLink>
+
+              <NavLink
+                to="/admin/questions"
+                className={({ isActive }) =>
+                  `px-4 py-1.5 rounded-lg text-xs font-medium font-sans transition-all flex items-center gap-1.5 ${isActive
+                    ? "bg-white text-[#070235] shadow-xs font-semibold"
+                    : "text-[#47464f] hover:text-[#070235] hover:bg-white/50"
+                  }`
+                }
+              >
+                <Code className="w-3.5 h-3.5 text-[#0058be]" />
+                Question Bank
+              </NavLink>
+            </>
           )}
 
           {isLoggedIn && role === "HR" && (
@@ -73,10 +114,9 @@ const Navbar = () => {
               <NavLink
                 to="/schedule/hr"
                 className={({ isActive }) =>
-                  `px-4 py-1.5 rounded-lg text-xs font-medium font-sans transition-all flex items-center gap-1.5 ${
-                    isActive
-                      ? "bg-white text-[#070235] shadow-xs font-semibold"
-                      : "text-[#47464f] hover:text-[#070235] hover:bg-white/50"
+                  `px-4 py-1.5 rounded-lg text-xs font-medium font-sans transition-all flex items-center gap-1.5 ${isActive
+                    ? "bg-white text-[#070235] shadow-xs font-semibold"
+                    : "text-[#47464f] hover:text-[#070235] hover:bg-white/50"
                   }`
                 }
               >
@@ -87,10 +127,9 @@ const Navbar = () => {
               <NavLink
                 to="/dashboard/hr"
                 className={({ isActive }) =>
-                  `px-4 py-1.5 rounded-lg text-xs font-medium font-sans transition-all flex items-center gap-1.5 ${
-                    isActive
-                      ? "bg-white text-[#070235] shadow-xs font-semibold"
-                      : "text-[#47464f] hover:text-[#070235] hover:bg-white/50"
+                  `px-4 py-1.5 rounded-lg text-xs font-medium font-sans transition-all flex items-center gap-1.5 ${isActive
+                    ? "bg-white text-[#070235] shadow-xs font-semibold"
+                    : "text-[#47464f] hover:text-[#070235] hover:bg-white/50"
                   }`
                 }
               >
@@ -105,10 +144,9 @@ const Navbar = () => {
               <NavLink
                 to="/schedule/candidate"
                 className={({ isActive }) =>
-                  `px-4 py-1.5 rounded-lg text-xs font-medium font-sans transition-all flex items-center gap-1.5 ${
-                    isActive
-                      ? "bg-white text-[#070235] shadow-xs font-semibold"
-                      : "text-[#47464f] hover:text-[#070235] hover:bg-white/50"
+                  `px-4 py-1.5 rounded-lg text-xs font-medium font-sans transition-all flex items-center gap-1.5 ${isActive
+                    ? "bg-white text-[#070235] shadow-xs font-semibold"
+                    : "text-[#47464f] hover:text-[#070235] hover:bg-white/50"
                   }`
                 }
               >
@@ -119,10 +157,9 @@ const Navbar = () => {
               <NavLink
                 to="/dashboard/candidate"
                 className={({ isActive }) =>
-                  `px-4 py-1.5 rounded-lg text-xs font-medium font-sans transition-all flex items-center gap-1.5 ${
-                    isActive
-                      ? "bg-white text-[#070235] shadow-xs font-semibold"
-                      : "text-[#47464f] hover:text-[#070235] hover:bg-white/50"
+                  `px-4 py-1.5 rounded-lg text-xs font-medium font-sans transition-all flex items-center gap-1.5 ${isActive
+                    ? "bg-white text-[#070235] shadow-xs font-semibold"
+                    : "text-[#47464f] hover:text-[#070235] hover:bg-white/50"
                   }`
                 }
               >
@@ -184,15 +221,14 @@ const Navbar = () => {
             to="/"
             onClick={() => setMobileMenuOpen(false)}
             className={({ isActive }) =>
-              `px-3 py-2 rounded-lg font-medium flex items-center gap-2 ${
-                isActive ? "bg-[#070235] text-white font-semibold" : "text-[#47464f] hover:bg-slate-100"
+              `px-3 py-2 rounded-lg font-medium flex items-center gap-2 ${isActive ? "bg-[#070235] text-white font-semibold" : "text-[#47464f] hover:bg-slate-100"
               }`
             }
           >
             Home
           </NavLink>
 
-          {role !== "HR" && (
+          {/* {role !== "HR" && (
             <NavLink
               to="/practice"
               onClick={() => setMobileMenuOpen(false)}
@@ -205,6 +241,46 @@ const Navbar = () => {
               <Code className="w-4 h-4" />
               Practice Studio
             </NavLink>
+          )} */}
+
+          <NavLink
+            to="/dsa-tracker"
+            onClick={() => setMobileMenuOpen(false)}
+            className={({ isActive }) =>
+              `px-3 py-2 rounded-lg font-medium flex items-center gap-2 ${isActive ? "bg-[#070235] text-white font-semibold" : "text-[#47464f] hover:bg-slate-100"
+              }`
+            }
+          >
+            <CheckSquare className="w-4 h-4 text-indigo-500" />
+            DSA Tracker
+          </NavLink>
+
+          {isLoggedIn && role === "ADMIN" && (
+            <>
+              <NavLink
+                to="/admin/dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className={({ isActive }) =>
+                  `px-3 py-2 rounded-lg font-medium flex items-center gap-2 ${isActive ? "bg-[#070235] text-white font-semibold" : "text-[#47464f] hover:bg-slate-100"
+                  }`
+                }
+              >
+                <LayoutDashboard className="w-4 h-4 text-[#0058be]" />
+                Admin Console
+              </NavLink>
+
+              <NavLink
+                to="/admin/questions"
+                onClick={() => setMobileMenuOpen(false)}
+                className={({ isActive }) =>
+                  `px-3 py-2 rounded-lg font-medium flex items-center gap-2 ${isActive ? "bg-[#070235] text-white font-semibold" : "text-[#47464f] hover:bg-slate-100"
+                  }`
+                }
+              >
+                <Code className="w-4 h-4 text-[#0058be]" />
+                Question Bank
+              </NavLink>
+            </>
           )}
 
           {isLoggedIn && role === "HR" && (
@@ -213,8 +289,7 @@ const Navbar = () => {
                 to="/schedule/hr"
                 onClick={() => setMobileMenuOpen(false)}
                 className={({ isActive }) =>
-                  `px-3 py-2 rounded-lg font-medium flex items-center gap-2 ${
-                    isActive ? "bg-[#070235] text-white font-semibold" : "text-[#47464f] hover:bg-slate-100"
+                  `px-3 py-2 rounded-lg font-medium flex items-center gap-2 ${isActive ? "bg-[#070235] text-white font-semibold" : "text-[#47464f] hover:bg-slate-100"
                   }`
                 }
               >
@@ -226,8 +301,7 @@ const Navbar = () => {
                 to="/dashboard/hr"
                 onClick={() => setMobileMenuOpen(false)}
                 className={({ isActive }) =>
-                  `px-3 py-2 rounded-lg font-medium flex items-center gap-2 ${
-                    isActive ? "bg-[#070235] text-white font-semibold" : "text-[#47464f] hover:bg-slate-100"
+                  `px-3 py-2 rounded-lg font-medium flex items-center gap-2 ${isActive ? "bg-[#070235] text-white font-semibold" : "text-[#47464f] hover:bg-slate-100"
                   }`
                 }
               >
@@ -243,8 +317,7 @@ const Navbar = () => {
                 to="/schedule/candidate"
                 onClick={() => setMobileMenuOpen(false)}
                 className={({ isActive }) =>
-                  `px-3 py-2 rounded-lg font-medium flex items-center gap-2 ${
-                    isActive ? "bg-[#070235] text-white font-semibold" : "text-[#47464f] hover:bg-slate-100"
+                  `px-3 py-2 rounded-lg font-medium flex items-center gap-2 ${isActive ? "bg-[#070235] text-white font-semibold" : "text-[#47464f] hover:bg-slate-100"
                   }`
                 }
               >
@@ -256,8 +329,7 @@ const Navbar = () => {
                 to="/dashboard/candidate"
                 onClick={() => setMobileMenuOpen(false)}
                 className={({ isActive }) =>
-                  `px-3 py-2 rounded-lg font-medium flex items-center gap-2 ${
-                    isActive ? "bg-[#070235] text-white font-semibold" : "text-[#47464f] hover:bg-slate-100"
+                  `px-3 py-2 rounded-lg font-medium flex items-center gap-2 ${isActive ? "bg-[#070235] text-white font-semibold" : "text-[#47464f] hover:bg-slate-100"
                   }`
                 }
               >

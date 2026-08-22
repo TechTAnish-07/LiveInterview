@@ -28,4 +28,7 @@ public interface InterviewRepository extends JpaRepository<Interview, Long> {
 
     @Query("SELECT i FROM Interview i WHERE i.candidateEmail = :candidateEmail")
     List<Interview> findByCandidate(@Param("candidateEmail") String candidateEmail);
+
+    long countByStatus(LiveInterview.example.LiveInterview.DTO.InterviewStatus status);
 }
+

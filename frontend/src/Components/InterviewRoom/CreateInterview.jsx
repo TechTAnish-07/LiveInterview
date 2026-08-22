@@ -1,14 +1,36 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import api from "../Axios";
-import { X, Calendar, Clock, Mail, Plus } from "lucide-react";
+import { X, Calendar, Clock, Mail, Plus, BookOpen, Layers } from "lucide-react";
 
 const CreateInterview = ({ onSuccess, onClose }) => {
   const [candidateEmail, setCandidateEmail] = useState("");
   const [interviewDate, setInterviewDate] = useState("");
   const [interviewStartTime, setInterviewStartTime] = useState("");
   const [interviewEndTime, setInterviewEndTime] = useState("");
+  const [selectedQuestionId, setSelectedQuestionId] = useState("");
+  const [availableQuestions, setAvailableQuestions] = useState([]);
+  const [loadingQuestions, setLoadingQuestions] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        setLoadingQuestions(true);
+        const res = await api.get("/api/practiceQuestions");
+        if (Array.isArray(res.data)) {
+          setAvailableQuestions(res.data);
+        } else if (res.data && Array.isArray(res.data.content)) {
+          setAvailableQuestions(res.data.content);
+        }
+      } catch (err) {
+        console.error("Failed to load question bank for interview creation:", err);
+      } finally {
+        setLoadingQuestions(false);
+      }
+    };
+    fetchQuestions();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,6 +43,7 @@ const CreateInterview = ({ onSuccess, onClose }) => {
       candidateEmail,
       startTime,
       endTime,
+      ...(selectedQuestionId ? { questionId: Number(selectedQuestionId) } : {}),
     };
 
     try {
@@ -131,6 +154,31 @@ const CreateInterview = ({ onSuccess, onClose }) => {
                 />
               </div>
             </div>
+          </div>
+
+          {/* Attach Question from Bank (Optional) */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-mono font-semibold text-[#191c1e] flex items-center gap-1.5">
+                <BookOpen className="w-3.5 h-3.5 text-[#0058be]" />
+                Attach Question from Bank (Optional)
+              </label>
+              <span className="text-[10px] text-[#787680] font-mono">
+                Auto-loads in room
+              </span>
+            </div>
+            <select
+              value={selectedQuestionId}
+              onChange={(e) => setSelectedQuestionId(e.target.value)}
+              className="w-full px-3 py-2 text-xs bg-[#f7f9fb] border border-[#c8c5d0] rounded-lg focus:outline-none focus:border-[#0058be] text-[#191c1e] cursor-pointer"
+            >
+              <option value="">-- No question attached (HR will type live) --</option>
+              {availableQuestions.map((q) => (
+                <option key={q.id} value={q.id}>
+                  [{q.difficulty || "MED"}] {q.title} ({q.topic || "General"})
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Buttons */}

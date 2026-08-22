@@ -47,6 +47,13 @@ resume:
     service:
       url: ${RESUME_NORMALIZATION_SERVICE_URL:http://localhost:8000}
 
+app:
+  admin:
+    email: ${ADMIN_EMAIL:patidartanish31@gmail.com}
+    password: ${ADMIN_PASSWORD:12345678}
+    name: ${ADMIN_NAME:Admin}
+
+
 file:
   upload-dir: ${FILE_UPLOAD_DIR:uploads/resumes}
 
