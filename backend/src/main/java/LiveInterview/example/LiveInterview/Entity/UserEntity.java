@@ -35,7 +35,7 @@ public class UserEntity implements UserDetails {
    private Role role;
 
    @Column(nullable = false)
-   private Boolean enabled = true;
+   private Boolean enabled = false;
 
    @Column(nullable = false)
    private LocalDateTime createdDate;
