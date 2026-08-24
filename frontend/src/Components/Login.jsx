@@ -86,7 +86,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f9fb] text-[#191c1e] font-sans flex flex-col items-center justify-center p-4 relative overflow-hidden selection:bg-[#d8e2ff]">
+    <div className="flex-1 bg-[#f7f9fb] text-[#191c1e] font-sans flex flex-col items-center justify-center p-4 py-8 md:py-12 relative overflow-hidden selection:bg-[#d8e2ff]">
       
       {/* Background Subtle Grid */}
       <div className="absolute inset-0 bg-[radial-gradient(#c8c5d0_1px,transparent_1px)] [background-size:32px_32px] opacity-40 pointer-events-none"></div>

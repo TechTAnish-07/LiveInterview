@@ -7,15 +7,14 @@ const AppLayout = () => {
 
   const isInterviewRoom = location.pathname.startsWith("/interview/");
   const isPrejoinRoom = location.pathname.startsWith("/prejoin/");
-  const isLogin = location.pathname === "/login";
 
-  const hideHeaderFooter = isInterviewRoom || isPrejoinRoom || isLogin;
+  const hideHeaderFooter = isInterviewRoom || isPrejoinRoom;
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f7f9fb] text-[#191c1e] font-sans antialiased">
       {!hideHeaderFooter && <Navbar />}
 
-      <main className="flex-1">
+      <main className="flex-1 flex flex-col">
         <Outlet />
       </main>
 
