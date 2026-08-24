@@ -155,6 +155,10 @@ public class AiInterviewController {
                     .uri("/resume/check-relevance")
                     .contentType(MediaType.APPLICATION_JSON);
 
+            if (internalApiKey != null && !internalApiKey.isBlank()) {
+                reqSpec.header("X-Internal-Api-Key", internalApiKey.trim());
+            }
+
             if (candidateLlmKey != null && !candidateLlmKey.isBlank()) {
                 reqSpec.header("X-Candidate-Llm-Key", candidateLlmKey.trim());
             }
@@ -327,6 +331,10 @@ public class AiInterviewController {
             var reqSpec = webClient.post()
                     .uri("/dispatch-agent")
                     .contentType(MediaType.APPLICATION_JSON);
+
+            if (internalApiKey != null && !internalApiKey.isBlank()) {
+                reqSpec.header("X-Internal-Api-Key", internalApiKey.trim());
+            }
 
             if (candidateLlmKey != null && !candidateLlmKey.isBlank()) {
                 reqSpec.header("X-Candidate-Llm-Key", candidateLlmKey.trim());

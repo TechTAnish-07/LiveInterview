@@ -34,16 +34,19 @@ public class ResumeService {
     private final ResumeRepository resumeRepository;
     private final WebClient webClient;
     private final String uploadDir;
+    private final String internalApiKey;
 
     public ResumeService(
             ResumeRepository resumeRepository,
             WebClient.Builder webClientBuilder,
             @Value("${resume.normalization.service.url:http://localhost:8000}") String normalizationServiceUrl,
-            @Value("${file.upload-dir:uploads/resumes}") String uploadDir
+            @Value("${file.upload-dir:uploads/resumes}") String uploadDir,
+            @Value("${internal.service.api-key:}") String internalApiKey
     ) {
         this.resumeRepository = resumeRepository;
         this.webClient = webClientBuilder.baseUrl(normalizationServiceUrl).build();
         this.uploadDir = uploadDir;
+        this.internalApiKey = internalApiKey;
     }
 
     public Map<String, Object> uploadResume(MultipartFile file, Long userId) {
@@ -79,9 +82,15 @@ public class ResumeService {
             ObjectMapper mapper = new ObjectMapper();
 
             try {
-                NormalizeResponse normalizeResponse = webClient.post()
+                var reqSpec = webClient.post()
                         .uri("/resume/normalize")
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON);
+
+                if (internalApiKey != null && !internalApiKey.isBlank()) {
+                    reqSpec.header("X-Internal-Api-Key", internalApiKey);
+                }
+
+                NormalizeResponse normalizeResponse = reqSpec
                         .bodyValue(Map.of("rawText", rawText != null ? rawText : ""))
                         .retrieve()
                         .bodyToMono(NormalizeResponse.class)
