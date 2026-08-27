@@ -13,11 +13,12 @@ import LiveInterview.example.LiveInterview.Service.BrevoEmailService;
 import LiveInterview.example.LiveInterview.Service.CustomUserDetailsService;
 import LiveInterview.example.LiveInterview.Service.EmailService;
 import LiveInterview.example.LiveInterview.Service.JwtService;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -160,75 +161,81 @@ public class AuthController {
 
       String accessToken = jwtService.generateToken(
               user.getEmail(),
-              user.getUsername(),
+              user.getName(),
               user.getRole().name()
       );
 
       String refreshToken = jwtService.generateRefreshToken(user);
 
-      Cookie cookie = new Cookie("refreshToken", refreshToken);
-      cookie.setHttpOnly(true);
-      cookie.setSecure(true);
-      cookie.setPath("/auth/refresh-token");
-      cookie.setMaxAge(7 * 24 * 60 * 60);
+      ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
+              .httpOnly(true)
+              .secure(true)
+              .sameSite("None")
+              .path("/")
+              .maxAge(7 * 24 * 60 * 60)
+              .build();
 
-      response.addCookie(cookie);
+      response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
       return ResponseEntity.ok(
               new AuthResponse(
                       accessToken,
-                      refreshToken,
+                      null,
                       new UserResponse(
-                              user.getId(),user.getName(),
+                              user.getId(), user.getName(),
                               user.getEmail(), user.getRole()
                       )
               )
       );
    }
+
     @PostMapping("/refresh-token")
-    public ResponseEntity<?> refreshToken(HttpServletRequest request) {
-
-        String refreshToken = null;
-
-        if (request.getCookies() != null) {
-            for (Cookie c : request.getCookies()) {
-                if (c.getName().equals("refreshToken")) {
-                    refreshToken = c.getValue();
-                    break;
-                }
-            }
+    public ResponseEntity<?> refreshToken(
+            @CookieValue(name = "refreshToken", required = false) String refreshToken
+    ) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh Token Missing");
         }
 
-        if (refreshToken == null)
-            return ResponseEntity.status(401).body("Refresh Token Missing");
-
         String email = jwtService.extractEmail(refreshToken);
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
 
-        UserDetails user = customUserDetailsService.loadUserByUsername(email);
+        if (!jwtService.isRefreshTokenValid(refreshToken, userDetails)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Refresh Token");
+        }
 
-        if (!jwtService.isRefreshTokenValid(refreshToken, user))
-            return ResponseEntity.status(401).body("Invalid Refresh Token");
-
-        UserEntity app = userRepo.findByEmail(email).orElseThrow();
+        UserEntity app = userRepo.findByEmail(email).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
 
         String newAccessToken = jwtService.generateToken(
                 app.getEmail(),
-                app.getUsername(),
+                app.getName(),
                 app.getRole().name()
         );
 
         return ResponseEntity.ok(
                 new AuthResponse(
                         newAccessToken,
-                        refreshToken,
+                        null,
                         new UserResponse(
-                                app.getId(),app.getUsername(),
+                                app.getId(), app.getName(),
                                 app.getEmail(), app.getRole()
                         )
                 )
         );
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletResponse response) {
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .path("/")
+                .maxAge(0)
+                .build();
 
-
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+        return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
+    }
 }

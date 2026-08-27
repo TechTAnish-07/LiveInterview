@@ -1,18 +1,16 @@
 package LiveInterview.example.LiveInterview.Config;
 
-
 import LiveInterview.example.LiveInterview.Service.CustomUserDetailsService;
-
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -23,38 +21,57 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final InternalApiKeyFilter internalApiKeyFilter;
     private final CustomUserDetailsService userDetailsService;
-    private   AuthenticationProvider daoAuthenticationProvider;
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter,  CustomUserDetailsService userDetailsService) {
+
+    /**
+     * Explicit list of allowed CORS origins configured via application properties
+     * or environment variable.
+     * Replaces unsafe wildcard subdomains (*.vercel.app, *.onrender.com) to prevent
+     * cross-origin credential theft.
+     */
+    @Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:3000,https://live-interview-ten.vercel.app,https://liveintervieww.tech}")
+    private String allowedOrigins;
+
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter,
+            InternalApiKeyFilter internalApiKeyFilter,
+            CustomUserDetailsService userDetailsService) {
         this.jwtAuthFilter = jwtAuthFilter;
+        this.internalApiKeyFilter = internalApiKeyFilter;
         this.userDetailsService = userDetailsService;
     }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-
+    /**
+     * CORS Configuration:
+     * - Uses an explicit, configurable allowlist of trusted origins without
+     * wildcard multi-tenant subdomains.
+     * - allowCredentials(true) is strictly required because the application sets
+     * and validates HTTP-only
+     * refresh token cookies (/auth/refresh-token) during authentication.
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowCredentials(true);
-        config.setAllowedOriginPatterns(Arrays.asList(
-                "http://localhost:*",
-                "http://127.0.0.1:*",
-                "https://*.vercel.app",
-                "https://*.onrender.com",
-                "https://live-interview-ten.vercel.app",
-                "https://liveintervieww.tech"
-        ));
+        List<String> origins = Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
 
+        config.setAllowedOrigins(origins);
+        config.setAllowCredentials(true);
         config.setAllowedHeaders(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 
@@ -66,59 +83,65 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
-
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                // CSRF is disabled as the application uses stateless JWT bearer tokens
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+                        // 1. HTTP Preflight
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // 2. Public auth endpoints (Login, Registration, Token Verification)
                         .requestMatchers("/auth/**", "/api/auth/**").permitAll()
+
+                        // 3. WebSockets & API documentation
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+
+                        // 4. Webhooks (validated at controller level via signature / webhook secrets)
+                        .requestMatchers("/livekit/webhook").permitAll()
+
+                        // 5. Role-based administrative & recruiter management endpoints
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/hr/**").hasAnyRole("HR", "ADMIN")
-                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/question/add").hasAnyRole("HR", "ADMIN")
-                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/question/**").hasAnyRole("HR", "ADMIN")
-                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/question/**").hasAnyRole("HR", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/question/add").hasAnyRole("HR", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/question/**").hasAnyRole("HR", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/question/**").hasAnyRole("HR", "ADMIN")
                         .requestMatchers("/api/feedback/**").hasAnyRole("HR", "CANDIDATE", "ADMIN")
-                        .requestMatchers("/api/ai-interview/*/context").permitAll()
-                        .requestMatchers("/api/ai-interview/*/result").permitAll()
-                        .requestMatchers("/api/ai-interview/*/end", "/api/ai-interview/*/feedback").permitAll()
-                        .requestMatchers("/api/ai-interview/*/room", "/api/ai-interview/room/*").permitAll()
-                        .requestMatchers("/api/ai-interview/*/execute-code").permitAll()
-                        .requestMatchers("/livekit/webhook").permitAll()
                         .requestMatchers("/api/dsa/**").authenticated()
 
-                        .anyRequest().authenticated()
-                )
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-               // .authenticationProvider(daoAuthenticationProvider)
+                        .requestMatchers("/api/ai-interview/**").authenticated()
+
+                        // 7. All other application endpoints require authentication
+                        .anyRequest().authenticated())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(internalApiKeyFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-
-    @Bean
-    public DaoAuthenticationProvider daoAuthenticationProvider(
-            UserDetailsService userDetailsService,
-            PasswordEncoder passwordEncoder
-    ) {
-        DaoAuthenticationProvider provider =
-                new DaoAuthenticationProvider(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder);
-        return provider;
-    }
-
+    /**
+     * AuthenticationManager Bean:
+     *
+     * ROLE & USAGE:
+     * - This bean IS actively used by AuthController (e.g. in /auth/login) to
+     * authenticate candidate/HR
+     * credentials (email + raw password) before generating JWT access and refresh
+     * tokens.
+     * - It is intentionally instantiated with DaoAuthenticationProvider,
+     * CustomUserDetailsService,
+     * and PasswordEncoder without registering a separate redundant
+     * AuthenticationProvider bean
+     * in the application context, avoiding Spring Security auto-configuration
+     * warnings.
+     */
     @Bean
     public AuthenticationManager authenticationManager(
-            DaoAuthenticationProvider daoAuthenticationProvider
-    ) {
-        return new ProviderManager(daoAuthenticationProvider);
+            CustomUserDetailsService userDetailsService,
+            PasswordEncoder passwordEncoder) {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder);
+        return new ProviderManager(provider);
     }
-
-
 }
