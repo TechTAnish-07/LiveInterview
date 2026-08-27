@@ -32,15 +32,17 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
 
     /**
-     * Explicit list of allowed CORS origins configured via application properties or environment variable.
-     * Replaces unsafe wildcard subdomains (*.vercel.app, *.onrender.com) to prevent cross-origin credential theft.
+     * Explicit list of allowed CORS origins configured via application properties
+     * or environment variable.
+     * Replaces unsafe wildcard subdomains (*.vercel.app, *.onrender.com) to prevent
+     * cross-origin credential theft.
      */
     @Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:3000,https://live-interview-ten.vercel.app,https://liveintervieww.tech}")
     private String allowedOrigins;
 
     public SecurityConfig(JwtAuthFilter jwtAuthFilter,
-                          InternalApiKeyFilter internalApiKeyFilter,
-                          CustomUserDetailsService userDetailsService) {
+            InternalApiKeyFilter internalApiKeyFilter,
+            CustomUserDetailsService userDetailsService) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.internalApiKeyFilter = internalApiKeyFilter;
         this.userDetailsService = userDetailsService;
@@ -53,9 +55,11 @@ public class SecurityConfig {
 
     /**
      * CORS Configuration:
-     * - Uses an explicit, configurable allowlist of trusted origins without wildcard multi-tenant subdomains.
-     * - allowCredentials(true) is strictly required because the application sets and validates HTTP-only
-     *   refresh token cookies (/auth/refresh-token) during authentication.
+     * - Uses an explicit, configurable allowlist of trusted origins without
+     * wildcard multi-tenant subdomains.
+     * - allowCredentials(true) is strictly required because the application sets
+     * and validates HTTP-only
+     * refresh token cookies (/auth/refresh-token) during authentication.
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -106,31 +110,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/feedback/**").hasAnyRole("HR", "CANDIDATE", "ADMIN")
                         .requestMatchers("/api/dsa/**").authenticated()
 
-                        /*
-                         * 6. AI-Interview Endpoints & Code Execution Security:
-                         *
-                         * PREVIOUS ISSUE:
-                         * Endpoints such as /execute-code, /context, /result, /end, /feedback, and /room
-                         * were previously permitAll(), leaving code execution and interview session data
-                         * vulnerable to unauthenticated, anonymous exploitation.
-                         *
-                         * SCOPED SECURITY MODEL:
-                         * - These endpoints now require authentication (.authenticated()).
-                         * - Code execution (/execute-code) and session management endpoints (/context, /result,
-                         *   /end, /feedback) require an authenticated participant session or a validated
-                         *   internal service key (X-Internal-Api-Key) scoped to the specific session/room ID.
-                         * - Candidate self-service endpoints (/start, /run-code, /history, /check-eligibility)
-                         *   require an authenticated candidate JWT, ensuring only legitimate participants
-                         *   tied to that specific interview session can execute code or access context.
-                         */
                         .requestMatchers("/api/ai-interview/**").authenticated()
 
                         // 7. All other application endpoints require authentication
-                        .anyRequest().authenticated()
-                )
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+                        .anyRequest().authenticated())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(internalApiKeyFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -141,17 +125,21 @@ public class SecurityConfig {
      * AuthenticationManager Bean:
      *
      * ROLE & USAGE:
-     * - This bean IS actively used by AuthController (e.g. in /auth/login) to authenticate candidate/HR
-     *   credentials (email + raw password) before generating JWT access and refresh tokens.
-     * - It is intentionally instantiated with DaoAuthenticationProvider, CustomUserDetailsService,
-     *   and PasswordEncoder without registering a separate redundant AuthenticationProvider bean
-     *   in the application context, avoiding Spring Security auto-configuration warnings.
+     * - This bean IS actively used by AuthController (e.g. in /auth/login) to
+     * authenticate candidate/HR
+     * credentials (email + raw password) before generating JWT access and refresh
+     * tokens.
+     * - It is intentionally instantiated with DaoAuthenticationProvider,
+     * CustomUserDetailsService,
+     * and PasswordEncoder without registering a separate redundant
+     * AuthenticationProvider bean
+     * in the application context, avoiding Spring Security auto-configuration
+     * warnings.
      */
     @Bean
     public AuthenticationManager authenticationManager(
             CustomUserDetailsService userDetailsService,
-            PasswordEncoder passwordEncoder
-    ) {
+            PasswordEncoder passwordEncoder) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder);
         return new ProviderManager(provider);
