@@ -17,15 +17,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Production-Grade JWT Service:
- * - Single-pass cryptographic token parsing and claims extraction.
- * - Explicit token type claim ("type": "ACCESS") to prevent token confusion attacks.
- * - Constant-time signing key verification using HMAC-SHA256.
- * - Avoids repetitive redundant parsing per request.
- */
 @Service
 public class JwtService {
+
 
     @Value("${JWT_SECRET}")
     private String secret;

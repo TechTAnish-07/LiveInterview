@@ -16,13 +16,6 @@ import java.util.Base64;
 import java.util.HexFormat;
 import java.util.UUID;
 
-/**
- * Production-Grade Refresh Token Service:
- * - Employs opaque cryptographically random tokens (or JWT refresh tokens).
- * - Stores ONLY SHA-256 hashes in the database (protects against database breach).
- * - Implements Token Family tracking & Rotation.
- * - Implements Automatic Reuse / Replay Detection (revokes entire token family if a used token is presented).
- */
 @Service
 public class RefreshTokenService {
 
@@ -37,7 +30,8 @@ public class RefreshTokenService {
     }
 
     /**
-     * Generates a new refresh token for a user upon fresh login (starts a new token family).
+     * Generates a new refresh token for a user upon fresh login (starts a new token
+     * family).
      */
     @Transactional
     public String createRefreshToken(UserEntity user) {
@@ -55,7 +49,8 @@ public class RefreshTokenService {
     /**
      * Rotates a refresh token:
      * 1. Validates token hash and expiry.
-     * 2. Detects token reuse (if token was already used or revoked, revokes entire family).
+     * 2. Detects token reuse (if token was already used or revoked, revokes entire
+     * family).
      * 3. Marks old token as used and issues a new token in the same family.
      *
      * @return RotatedTokenResult containing new raw token and associated UserEntity
@@ -71,7 +66,8 @@ public class RefreshTokenService {
             throw new InvalidRefreshTokenException("Invalid or unrecognized refresh token.");
         }
 
-        // 2. Token reuse / replay detection: If token was already used or revoked, breach suspected!
+        // 2. Token reuse / replay detection: If token was already used or revoked,
+        // breach suspected!
         if (token.isUsed() || token.isRevoked()) {
             // Compromise detected: revoke entire token family immediately
             refreshTokenRepository.revokeAllInFamily(token.getFamilyId());
@@ -116,7 +112,8 @@ public class RefreshTokenService {
     }
 
     /**
-     * Revokes all active refresh tokens for a user (e.g. password reset / admin ban).
+     * Revokes all active refresh tokens for a user (e.g. password reset / admin
+     * ban).
      */
     @Transactional
     public void revokeAllUserTokens(UserEntity user) {
@@ -139,13 +136,18 @@ public class RefreshTokenService {
         }
     }
 
-    public record RotatedTokenResult(String newRefreshToken, UserEntity user) {}
+    public record RotatedTokenResult(String newRefreshToken, UserEntity user) {
+    }
 
     public static class InvalidRefreshTokenException extends RuntimeException {
-        public InvalidRefreshTokenException(String message) { super(message); }
+        public InvalidRefreshTokenException(String message) {
+            super(message);
+        }
     }
 
     public static class CompromisedTokenException extends RuntimeException {
-        public CompromisedTokenException(String message) { super(message); }
+        public CompromisedTokenException(String message) {
+            super(message);
+        }
     }
 }
