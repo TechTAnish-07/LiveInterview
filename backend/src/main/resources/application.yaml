@@ -37,10 +37,10 @@ spring:
       platform: ${SQL_PLATFORM:postgres}
 
 livekit:
+  url: ${LIVEKIT_URL}
   api:
     key: ${LIVEKIT_API_KEY}
     secret: ${LIVEKIT_API_SECRET}
-  url: ${LIVEKIT_URL:ws://localhost:7880}
   token:
     ttl: ${LIVEKIT_TOKEN_TTL:7200}
 
@@ -55,10 +55,9 @@ resume:
 
 app:
   admin:
-    email: ${ADMIN_EMAIL:patidartanish31@gmail.com}
-    password: ${ADMIN_PASSWORD:12345678}
+    email: ${ADMIN_EMAIL}
+    password: ${ADMIN_PASSWORD}
     name: ${ADMIN_NAME:Admin}
-
 
 ai:
   interview:
