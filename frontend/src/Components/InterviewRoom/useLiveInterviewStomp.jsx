@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
 import api from "../Axios";
 
@@ -9,7 +8,7 @@ const API_BASE =
     ? "http://localhost:8080"
     : "https://liveinterview-backend-kfmn.onrender.com");
 
-const WS_URL = `${API_BASE}/ws`;
+const WS_URL = `${API_BASE.replace(/^http/, "ws")}/ws`;
 
 export function useLiveInterviewStomp({ interviewId, token, role, userId }) {
   const clientRef = useRef(null);
@@ -59,7 +58,7 @@ export function useLiveInterviewStomp({ interviewId, token, role, userId }) {
     }
 
     const client = new Client({
-      webSocketFactory: () => new SockJS(WS_URL),
+      brokerURL: WS_URL,
       reconnectDelay: 3000,
       connectHeaders: token ? {
         Authorization: `Bearer ${token}`,
