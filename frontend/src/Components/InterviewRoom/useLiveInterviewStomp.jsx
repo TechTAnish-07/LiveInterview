@@ -63,7 +63,6 @@ export function useLiveInterviewStomp({ interviewId, token, role, userId }) {
       connectHeaders: token ? {
         Authorization: `Bearer ${token}`,
         interviewId: String(interviewId),
-        role: role,
       } : {},
       debug: (str) => {
         //   console.log('STOMP Debug:', str); // Enable for debugging
