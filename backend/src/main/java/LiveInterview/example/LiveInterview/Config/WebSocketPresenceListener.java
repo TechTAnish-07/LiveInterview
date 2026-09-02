@@ -1,6 +1,6 @@
 package LiveInterview.example.LiveInterview.Config;
 
-import LiveInterview.example.LiveInterview.Controller.PresenceController;
+import LiveInterview.example.LiveInterview.Service.PresenceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -17,7 +17,7 @@ import java.util.Map;
 @Slf4j
 public class WebSocketPresenceListener {
 
-    private final PresenceController presenceController;
+    private final PresenceService presenceService;
 
     @EventListener
     public void handleConnect(SessionConnectedEvent event) {
@@ -39,7 +39,6 @@ public class WebSocketPresenceListener {
 
         if (interviewId == null || role == null) return;
 
-
-        presenceController.handleUserLeft(interviewId, user.getName(), role);
+        presenceService.handleUserLeft(interviewId, user.getName(), role);
     }
 }
